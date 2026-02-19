@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reportes - SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
+        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
+    </div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="activos.html"><i class="fas fa-boxes"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+        <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+        <a href="reportes.html" class="active"><i class="fas fa-chart-bar"></i> Reportes</a>
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+</div>
+
+<div class="content">
+    <header class="dashboard-header">
+        <h1><i class="fas fa-chart-bar"></i> Reportes y Estadísticas</h1>
+    </header>
+
+    <div class="report-cards">
+        <div class="report-card">
+            <h3>Reporte de Activos</h3>
+            <p>Generar reporte completo de activos</p>
+            <button class="btn-primary" onclick="generateReport('assets')"><i class="fas fa-file-pdf"></i> Generar PDF</button>
+        </div>
+        <div class="report-card">
+            <h3>Reporte de Consumibles</h3>
+            <p>Inventario de consumibles y niveles</p>
+            <button class="btn-primary" onclick="generateReport('consumables')"><i class="fas fa-file-pdf"></i> Generar PDF</button>
+        </div>
+        <div class="report-card">
+            <h3>Reporte de Solicitudes</h3>
+            <p>Historial de solicitudes y préstamos</p>
+            <button class="btn-primary" onclick="generateReport('requests')"><i class="fas fa-file-pdf"></i> Generar PDF</button>
+        </div>
+        <div class="report-card">
+            <h3>Reporte de Reservas</h3>
+            <p>Uso de laboratorios y equipos</p>
+            <button class="btn-primary" onclick="generateReport('reservations')"><i class="fas fa-file-pdf"></i> Generar PDF</button>
+        </div>
+    </div>
+
+    <div class="charts-section">
+        <h2>Gráficos Estadísticos</h2>
+        <div class="chart-container">
+            <canvas id="usageChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/reportes.js"></script>
+</body>
+</html>

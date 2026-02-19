@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
+        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
+    </div>
+    <nav>
+        <a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-boxes"></i> Activos</a>
+        <a href="#"><i class="fas fa-flask"></i> Consumibles</a>
+        <a href="#"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+        <a href="#"><i class="fas fa-calendar-check"></i> Reservas</a>
+        <a href="#"><i class="fas fa-chart-bar"></i> Reportes</a>
+        <a href="#"><i class="fas fa-users"></i> Usuarios</a>
+        <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+</div>
+
+<div class="content">
+    <header class="dashboard-header">
+        <h1><i class="fas fa-home"></i> Bienvenido, Williams</h1>
+        <div class="header-actions">
+            <button class="btn-primary"><i class="fas fa-plus"></i> Nuevo Activo</button>
+            <button class="btn-secondary"><i class="fas fa-download"></i> Exportar</button>
+        </div>
+    </header>
+
+    <div class="cards">
+        <div class="card card-assets">
+            <div class="card-icon"><i class="fas fa-boxes"></i></div>
+            <h2>1,245</h2>
+            <p>Activos registrados</p>
+            <div class="card-trend"><i class="fas fa-arrow-up"></i> +5% este mes</div>
+        </div>
+        <div class="card card-consumables">
+            <div class="card-icon"><i class="fas fa-flask"></i></div>
+            <h2>340</h2>
+            <p>Consumibles disponibles</p>
+            <div class="card-trend"><i class="fas fa-arrow-down"></i> -2% este mes</div>
+        </div>
+        <div class="card card-reservations">
+            <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+            <h2>12</h2>
+            <p>Reservas activas</p>
+            <div class="card-trend"><i class="fas fa-arrow-up"></i> +10% este mes</div>
+        </div>
+        <div class="card card-requests">
+            <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+            <h2>15</h2>
+            <p>Solicitudes pendientes</p>
+            <div class="card-trend"><i class="fas fa-exclamation-triangle"></i> Requiere atención</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="table-section">
+            <h3><i class="fas fa-history"></i> Últimos movimientos</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-calendar"></i> Fecha</th>
+                            <th><i class="fas fa-info-circle"></i> Descripción</th>
+                            <th><i class="fas fa-user"></i> Usuario</th>
+                            <th><i class="fas fa-tag"></i> Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>24/04/2024</td>
+                            <td>Activo registrado: Laptop Dell</td>
+                            <td>Williams Díaz</td>
+                            <td><span class="badge badge-asset">Activo</span></td>
+                        </tr>
+                        <tr>
+                            <td>24/04/2024</td>
+                            <td>Consumible agregado: Papel A4</td>
+                            <td>Williams Díaz</td>
+                            <td><span class="badge badge-consumable">Consumible</span></td>
+                        </tr>
+                        <tr>
+                            <td>23/04/2024</td>
+                            <td>Reserva confirmada: Lab 1</td>
+                            <td>Maria García</td>
+                            <td><span class="badge badge-reservation">Reserva</span></td>
+                        </tr>
+                        <tr>
+                            <td>23/04/2024</td>
+                            <td>Solicitud aprobada: Proyector</td>
+                            <td>Juan Pérez</td>
+                            <td><span class="badge badge-request">Solicitud</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h3><i class="fas fa-chart-pie"></i> Distribución de Activos</h3>
+            <div class="chart-placeholder">
+                <div class="chart-item" style="background: linear-gradient(45deg, #4b1fa2, #6c5ce7); width: 40%;">Electrónicos 40%</div>
+                <div class="chart-item" style="background: linear-gradient(45deg, #2e6bff, #74b9ff); width: 30%;">Mobiliario 30%</div>
+                <div class="chart-item" style="background: linear-gradient(45deg, #00b894, #55efc4); width: 20%;">Herramientas 20%</div>
+                <div class="chart-item" style="background: linear-gradient(45deg, #fdcb6e, #ffeaa7); width: 10%;">Otros 10%</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="../js/common.js"></script>
+<script src="../js/dashboard.js"></script>
+</body>
+</html>

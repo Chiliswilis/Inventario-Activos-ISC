@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reservas - SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
+        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
+    </div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="activos.html"><i class="fas fa-boxes"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+        <a href="reservas.html" class="active"><i class="fas fa-calendar-check"></i> Reservas</a>
+        <a href="reportes.html"><i class="fas fa-chart-bar"></i> Reportes</a>
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+</div>
+
+<div class="content">
+    <header class="dashboard-header">
+        <h1><i class="fas fa-calendar-check"></i> Gestión de Reservas</h1>
+        <div class="header-actions">
+            <button class="btn-primary" onclick="openModal('addReservation')"><i class="fas fa-plus"></i> Nueva Reserva</button>
+            <button class="btn-secondary" onclick="exportData('reservations')"><i class="fas fa-download"></i> Exportar</button>
+        </div>
+    </header>
+
+    <div class="filters">
+        <select id="statusFilter" onchange="filterReservations()">
+            <option value="">Todos los estados</option>
+            <option value="pending">Pendiente</option>
+            <option value="confirmed">Confirmada</option>
+            <option value="cancelled">Cancelada</option>
+        </select>
+        <input type="text" id="labFilter" placeholder="Buscar laboratorio..." onkeyup="filterReservations()">
+    </div>
+
+    <div class="table-section">
+        <div class="table-container">
+            <table id="reservationsTable">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> Usuario</th>
+                        <th><i class="fas fa-building"></i> Laboratorio</th>
+                        <th><i class="fas fa-clock"></i> Inicio</th>
+                        <th><i class="fas fa-clock"></i> Fin</th>
+                        <th><i class="fas fa-info-circle"></i> Estado</th>
+                        <th><i class="fas fa-cogs"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Juan Pérez</td>
+                        <td>Lab 1</td>
+                        <td>2024-04-25 10:00</td>
+                        <td>2024-04-25 12:00</td>
+                        <td><span class="status-badge status-pending">Pendiente</span></td>
+                        <td>
+                            <button class="btn-action confirm" onclick="confirmReservation(1)"><i class="fas fa-check"></i></button>
+                            <button class="btn-action cancel" onclick="cancelReservation(1)"><i class="fas fa-times"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="../js/reservas.js"></script>
+</body>
+</html>

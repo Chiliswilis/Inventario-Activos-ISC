@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Activos - SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
+        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
+    </div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="activos.html" class="active"><i class="fas fa-boxes"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+        <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+        <a href="reportes.html"><i class="fas fa-chart-bar"></i> Reportes</a>
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+</div>
+
+<div class="content">
+    <header class="dashboard-header">
+        <h1><i class="fas fa-boxes"></i> Gestión de Activos</h1>
+        <div class="header-actions">
+            <button class="btn-primary" onclick="openModal('addAsset')"><i class="fas fa-plus"></i> Nuevo Activo</button>
+            <button class="btn-secondary" onclick="exportData('assets')"><i class="fas fa-download"></i> Exportar</button>
+        </div>
+    </header>
+
+    <div class="filters">
+        <input type="text" id="searchAsset" placeholder="Buscar activo..." onkeyup="filterAssets()">
+        <select id="categoryFilter" onchange="filterAssets()">
+            <option value="">Todas las categorías</option>
+            <option value="electrónicos">Electrónicos</option>
+            <option value="mobiliario">Mobiliario</option>
+            <option value="herramientas">Herramientas</option>
+        </select>
+        <select id="statusFilter" onchange="filterAssets()">
+            <option value="">Todos los estados</option>
+            <option value="available">Disponible</option>
+            <option value="borrowed">Prestado</option>
+            <option value="maintenance">Mantenimiento</option>
+        </select>
+    </div>
+
+    <div class="table-section">
+        <div class="table-container">
+            <table id="assetsTable">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-tag"></i> Nombre</th>
+                        <th><i class="fas fa-list"></i> Categoría</th>
+                        <th><i class="fas fa-barcode"></i> Serial</th>
+                        <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>
+                        <th><i class="fas fa-info-circle"></i> Estado</th>
+                        <th><i class="fas fa-cogs"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Laptop Dell XPS</td>
+                        <td>Electrónicos</td>
+                        <td>DELL-001</td>
+                        <td>Lab 1</td>
+                        <td><span class="status-badge status-available">Disponible</span></td>
+                        <td>
+                            <button class="btn-action edit" onclick="editAsset(1)"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action delete" onclick="deleteAsset(1)"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Proyector Epson</td>
+                        <td>Electrónicos</td>
+                        <td>EPS-002</td>
+                        <td>Aula 101</td>
+                        <td><span class="status-badge status-borrowed">Prestado</span></td>
+                        <td>
+                            <button class="btn-action edit" onclick="editAsset(2)"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action delete" onclick="deleteAsset(2)"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add/Edit Asset -->
+<div id="assetModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Agregar Activo</h2>
+        <form id="assetForm">
+            <input type="hidden" id="assetId">
+            <div class="form-group">
+                <label for="assetName">Nombre:</label>
+                <input type="text" id="assetName" required>
+            </div>
+            <div class="form-group">
+                <label for="assetCategory">Categoría:</label>
+                <select id="assetCategory" required>
+                    <option value="">Seleccionar categoría</option>
+                    <option value="electrónicos">Electrónicos</option>
+                    <option value="mobiliario">Mobiliario</option>
+                    <option value="herramientas">Herramientas</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="assetSerial">Serial:</label>
+                <input type="text" id="assetSerial" required>
+            </div>
+            <div class="form-group">
+                <label for="assetLocation">Ubicación:</label>
+                <input type="text" id="assetLocation" required>
+            </div>
+            <div class="form-group">
+                <label for="assetStatus">Estado:</label>
+                <select id="assetStatus" required>
+                    <option value="available">Disponible</option>
+                    <option value="borrowed">Prestado</option>
+                    <option value="maintenance">Mantenimiento</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Guardar</button>
+        </form>
+    </div>
+</div>
+
+<script src="../js/activos.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Consumibles - SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
+        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
+    </div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="activos.html"><i class="fas fa-boxes"></i> Activos</a>
+        <a href="consumibles.html" class="active"><i class="fas fa-flask"></i> Consumibles</a>
+        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+        <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+        <a href="reportes.html"><i class="fas fa-chart-bar"></i> Reportes</a>
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+</div>
+
+<div class="content">
+    <header class="dashboard-header">
+        <h1><i class="fas fa-flask"></i> Gestión de Consumibles</h1>
+        <div class="header-actions">
+            <button class="btn-primary" onclick="openModal('addConsumable')"><i class="fas fa-plus"></i> Nuevo Consumible</button>
+            <button class="btn-secondary" onclick="exportData('consumables')"><i class="fas fa-download"></i> Exportar</button>
+        </div>
+    </header>
+
+    <div class="filters">
+        <input type="text" id="searchConsumable" placeholder="Buscar consumible..." onkeyup="filterConsumables()">
+        <select id="categoryFilter" onchange="filterConsumables()">
+            <option value="">Todas las categorías</option>
+            <option value="papel">Papel</option>
+            <option value="tintas">Tintas</option>
+            <option value="limpieza">Limpieza</option>
+        </select>
+    </div>
+
+    <div class="table-section">
+        <div class="table-container">
+            <table id="consumablesTable">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-tag"></i> Nombre</th>
+                        <th><i class="fas fa-list"></i> Categoría</th>
+                        <th><i class="fas fa-boxes"></i> Cantidad</th>
+                        <th><i class="fas fa-exclamation-triangle"></i> Mínimo</th>
+                        <th><i class="fas fa-balance-scale"></i> Unidad</th>
+                        <th><i class="fas fa-cogs"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Papel A4</td>
+                        <td>Papel</td>
+                        <td>500</td>
+                        <td>100</td>
+                        <td>Hojas</td>
+                        <td>
+                            <button class="btn-action edit" onclick="editConsumable(1)"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action delete" onclick="deleteConsumable(1)"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Tinta Negra</td>
+                        <td>Tintas</td>
+                        <td>20</td>
+                        <td>5</td>
+                        <td>Cartuchos</td>
+                        <td>
+                            <button class="btn-action edit" onclick="editConsumable(2)"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action delete" onclick="deleteConsumable(2)"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add/Edit Consumable -->
+<div id="consumableModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Agregar Consumible</h2>
+        <form id="consumableForm">
+            <input type="hidden" id="consumableId">
+            <div class="form-group">
+                <label for="consumableName">Nombre:</label>
+                <input type="text" id="consumableName" required>
+            </div>
+            <div class="form-group">
+                <label for="consumableCategory">Categoría:</label>
+                <select id="consumableCategory" required>
+                    <option value="">Seleccionar categoría</option>
+                    <option value="papel">Papel</option>
+                    <option value="tintas">Tintas</option>
+                    <option value="limpieza">Limpieza</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="consumableQuantity">Cantidad:</label>
+                <input type="number" id="consumableQuantity" required>
+            </div>
+            <div class="form-group">
+                <label for="consumableMinQuantity">Cantidad Mínima:</label>
+                <input type="number" id="consumableMinQuantity" required>
+            </div>
+            <div class="form-group">
+                <label for="consumableUnit">Unidad:</label>
+                <input type="text" id="consumableUnit" required>
+            </div>
+            <button type="submit" class="btn-primary">Guardar</button>
+        </form>
+    </div>
+</div>
+
+<script src="../js/consumibles.js"></script>
+</body>
+</html>

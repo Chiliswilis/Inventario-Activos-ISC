@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Usuarios - SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
+        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
+    </div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="activos.html"><i class="fas fa-boxes"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+        <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+        <a href="reportes.html"><i class="fas fa-chart-bar"></i> Reportes</a>
+        <a href="usuarios.html" class="active"><i class="fas fa-users"></i> Usuarios</a>
+        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+</div>
+
+<div class="content">
+    <header class="dashboard-header">
+        <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+        <div class="header-actions">
+            <button class="btn-primary" onclick="openModal('addUser')"><i class="fas fa-plus"></i> Nuevo Usuario</button>
+        </div>
+    </header>
+
+    <div class="table-section">
+        <div class="table-container">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> Nombre</th>
+                        <th><i class="fas fa-envelope"></i> Email</th>
+                        <th><i class="fas fa-shield-alt"></i> Rol</th>
+                        <th><i class="fas fa-cogs"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Williams Díaz</td>
+                        <td>williams@example.com</td>
+                        <td><span class="badge badge-admin">Administrador</span></td>
+                        <td>
+                            <button class="btn-action edit" onclick="editUser(1)"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="../js/usuarios.js"></script>
+</body>
+</html>

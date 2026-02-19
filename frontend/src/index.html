@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SGIAC-ISC</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
@@ -31,40 +31,23 @@
 
     <div class="login-card">
         <h2>SGIAC-ISC</h2>
-        <input type="text" id="username" placeholder="Usuario">
-        <input type="password" id="password" placeholder="Contraseña">
-        <select id="userRole">
-            <option value="alumno">Alumno</option>
-            <option value="docente">Docente</option>
-            <option value="administrador">Administrador</option>
-        </select>
+        <input type="text" placeholder="Usuario">
+        <input type="password" placeholder="Contraseña">
         <button onclick="login()">Iniciar Sesión</button>
         <a href="#">¿Olvidaste tu contraseña?</a>
     </div>
 </section>
 
 <section class="sobre" id="sobre">
-    <h2>Sobre TSJ</h2>
-    <p>contacto@tecmm.edu.mx</p>
-    <p>+52 (341) 575 23 31</p>
+    <h2>Sobre Nosotros</h2>
+    <p>hu230112489@lahuerta.tecmm.edu.mx</p>
+    <p>+52 (315) 152 5712</p>
     <p>Unidad Académica La Huerta, Jalisco</p>
 </section>
 
 <script>
 function login(){
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('userRole').value;
-    
-    // Simple validation (in real app, authenticate with backend)
-    if (username && password) {
-        // Store user role in localStorage
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('username', username);
-        window.location.href = "src/dashboard.html";
-    } else {
-        alert('Por favor ingresa usuario y contraseña');
-    }
+    window.location.href = "dashboard.html";
 }
 </script>
 
