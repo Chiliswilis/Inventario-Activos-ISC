@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="CSS/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">Tecnológico Superior de Jalisco</div>
+    <div class="menu">
+        <a href="#">Inicio</a>
+        <a href="#sobre">Sobre TSJ</a>
+        <a href="#">Contacto</a>
+        <button class="btn-top">Iniciar Sesión</button>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-text">
+        <h1>Sistema de Gestión de Inventarios de Activos y Consumibles (SGIAC-ISC)</h1>
+        <p>
+        Accede al sistema para gestionar activos, consumibles, solicitudes y reservas 
+        del Tecnológico Superior de Jalisco.
+        </p>
+        <button class="btn-main" onclick="login()">Iniciar Sesión</button>
+    </div>
+
+    <div class="login-card">
+        <h2>SGIAC-ISC</h2>
+        <input type="text" placeholder="Usuario">
+        <input type="password" placeholder="Contraseña">
+        <button onclick="login()">Iniciar Sesión</button>
+        <a href="#">¿Olvidaste tu contraseña?</a>
+    </div>
+</section>
+
+<section class="sobre" id="sobre">
+    <h2>Sobre TSJ</h2>
+    <p>contacto@tecmm.edu.mx</p>
+    <p>+52 (341) 575 23 31</p>
+    <p>Unidad Académica La Huerta, Jalisco</p>
+</section>
+
+<script>
+function login(){
+    window.location.href = "dashboard.html";
+}
+</script>
+
+</body>
+</html>
