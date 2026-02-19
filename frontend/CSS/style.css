@@ -1,0 +1,129 @@
+body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background:#f4f4f4;
+}
+
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 50px;
+    background:white;
+}
+
+.menu a{
+    margin:0 15px;
+    text-decoration:none;
+    color:#333;
+}
+
+.btn-top{
+    background:#4b1fa2;
+    color:white;
+    border:none;
+    padding:8px 15px;
+    border-radius:6px;
+}
+
+.hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:60px;
+    background:linear-gradient(135deg,#4b1fa2,#2e0f6d);
+    color:white;
+}
+
+.hero-text{
+    width:55%;
+}
+
+.hero-text h1{
+    font-size:40px;
+}
+
+.btn-main{
+    margin-top:20px;
+    padding:12px 25px;
+    background:#2e6bff;
+    border:none;
+    border-radius:8px;
+    color:white;
+    font-size:16px;
+}
+
+.login-card{
+    background:white;
+    color:black;
+    padding:30px;
+    border-radius:12px;
+    width:300px;
+    display:flex;
+    flex-direction:column;
+}
+
+.login-card input{
+    margin:10px 0;
+    padding:10px;
+}
+
+.login-card button{
+    background:#4b1fa2;
+    color:white;
+    border:none;
+    padding:10px;
+    border-radius:6px;
+}
+
+.sobre{
+    padding:40px;
+}
+
+body{background:#f4f6f9;}
+.sidebar{
+    position:fixed;
+    width:230px;
+    height:100vh;
+    background:linear-gradient(180deg,#4b1fa2,#2e0f6d);
+    color:white;
+    padding:20px;
+}
+.sidebar a{
+    display:block;
+    margin:15px 0;
+    color:white;
+    text-decoration:none;
+}
+.content{
+    margin-left:250px;
+    padding:30px;
+}
+.cards{
+    display:flex;
+    gap:20px;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    flex:1;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+.table{
+    margin-top:30px;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    padding:10px;
+    text-align:left;
+}
+th{
+    background:#f2f2f2;
+}
