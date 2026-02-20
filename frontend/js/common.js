@@ -41,3 +41,10 @@ function applyRoleRestrictions() {
 
 // Call on page load
 document.addEventListener('DOMContentLoaded', applyRoleRestrictions);
+document.getElementById('logoutBtn').addEventListener('click', function() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+});
+document.getElementById('homeBtn').addEventListener('click', function() {
+    window.location.href = 'index.html';
+});
