@@ -2,82 +2,95 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reservas - SGIAC-ISC</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="../css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{display:flex;min-height:100vh;background:#f1f3f9;}
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;}
+.sidebar.hide{margin-left:-240px;}
+.logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:block;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;}
+.menu a:hover{background:#4f46e5;color:white;}
+.menu a.active{background:#4f46e5;color:white;}
+.menu i{margin-right:10px;width:20px;}
+.main{flex:1;display:flex;flex-direction:column;}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;}
+.header-left{display:flex;align-items:center;gap:15px;}
+.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:14px;}
+.user img{width:34px;border-radius:50%;}
+.content{padding:25px;}
+.header-actions{display:flex;gap:10px;margin-top:10px;}
+.btn-primary{background:#4f46e5;color:white;padding:8px 15px;border:none;border-radius:5px;cursor:pointer;}
+.btn-secondary{background:#6b7280;color:white;padding:8px 15px;border:none;border-radius:5px;cursor:pointer;}
+.table-section{margin-top:20px;}
+.table-container{background:white;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;}
+th{background:#f8f9fc;font-weight:500;}
+</style>
 </head>
 <body>
 
-<div class="sidebar">
-    <div class="sidebar-header">
-        <h3><i class="fas fa-cogs"></i> SGIAC-ISC</h3>
-        <p><i class="fas fa-user-shield"></i> Williams Díaz<br>Administrador</p>
-    </div>
-    <nav>
-        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="activos.html"><i class="fas fa-boxes"></i> Activos</a>
-        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-        <a href="reservas.html" class="active"><i class="fas fa-calendar-check"></i> Reservas</a>
-        <a href="reportes.html"><i class="fas fa-chart-bar"></i> Reportes</a>
-        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-    </nav>
+<div class="sidebar" id="sidebar">
+  <div class="logo">SGIAC-ISC</div>
+  <div class="menu">
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a class="active" href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
 </div>
 
-<div class="content">
-    <header class="dashboard-header">
-        <h1><i class="fas fa-calendar-check"></i> Gestión de Reservas</h1>
-        <div class="header-actions">
-            <button class="btn-primary" onclick="openModal('addReservation')"><i class="fas fa-plus"></i> Nueva Reserva</button>
-            <button class="btn-secondary" onclick="exportData('reservations')"><i class="fas fa-download"></i> Exportar</button>
-        </div>
-    </header>
-
-    <div class="filters">
-        <select id="statusFilter" onchange="filterReservations()">
-            <option value="">Todos los estados</option>
-            <option value="pending">Pendiente</option>
-            <option value="confirmed">Confirmada</option>
-            <option value="cancelled">Cancelada</option>
-        </select>
-        <input type="text" id="labFilter" placeholder="Buscar laboratorio..." onkeyup="filterReservations()">
+<div class="main">
+  <div class="header">
+    <div class="header-left">
+      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+      <h2><i class="fas fa-calendar-check"></i> Gestión de Reservas</h2>
     </div>
+    <div class="user">
+      <img src="https://i.pravatar.cc/40">
+      <span id="username">Administrador</span>
+    </div>
+  </div>
 
+  <div class="content">
+    <div class="header-actions">
+      <button class="btn-primary" onclick="openModal('addReservation')"><i class="fas fa-plus"></i> Nueva Reserva</button>
+      <button class="btn-secondary" onclick="exportData('reservations')"><i class="fas fa-download"></i> Exportar</button>
+    </div>
     <div class="table-section">
-        <div class="table-container">
-            <table id="reservationsTable">
-                <thead>
-                    <tr>
-                        <th><i class="fas fa-hashtag"></i> ID</th>
-                        <th><i class="fas fa-user"></i> Usuario</th>
-                        <th><i class="fas fa-building"></i> Laboratorio</th>
-                        <th><i class="fas fa-clock"></i> Inicio</th>
-                        <th><i class="fas fa-clock"></i> Fin</th>
-                        <th><i class="fas fa-info-circle"></i> Estado</th>
-                        <th><i class="fas fa-cogs"></i> Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Juan Pérez</td>
-                        <td>Lab 1</td>
-                        <td>2024-04-25 10:00</td>
-                        <td>2024-04-25 12:00</td>
-                        <td><span class="status-badge status-pending">Pendiente</span></td>
-                        <td>
-                            <button class="btn-action confirm" onclick="confirmReservation(1)"><i class="fas fa-check"></i></button>
-                            <button class="btn-action cancel" onclick="cancelReservation(1)"><i class="fas fa-times"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+      <div class="table-container">
+        <table id="reservationsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuario</th>
+              <th>Laboratorio</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
+  </div>
 </div>
 
+<script>
+function toggleMenu(){document.getElementById("sidebar").classList.toggle("hide");}
+document.getElementById("username").innerText = "NombreUsuario";
+</script>
 <script src="../js/reservas.js"></script>
 </body>
 </html>

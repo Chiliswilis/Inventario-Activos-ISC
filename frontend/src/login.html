@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGIAC-ISC | Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#1e3c72,#2a5298);}
+.container{width:900px;height:500px;background:white;border-radius:20px;display:flex;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.2);}
+.left{flex:1;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;}
+.left img{width:120px;margin-bottom:20px;}
+.left h1{font-size:26px;margin-bottom:10px;}
+.left p{font-size:14px;opacity:.8;}
+.right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
+.login-box{width:100%;max-width:320px;}
+.login-box h2{margin-bottom:25px;color:#333;}
+.input-group{margin-bottom:20px;}
+.input-group label{font-size:14px;color:#555;}
+.input-group input{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;margin-top:5px;transition:.3s;}
+.input-group input:focus{border-color:#2a5298;outline:none;}
+button{width:100%;padding:12px;background:#2a5298;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;transition:.3s;}
+button:hover{background:#1e3c72;}
+.footer{margin-top:15px;font-size:12px;text-align:center;color:#777;}
+@media(max-width:768px){.container{flex-direction:column;height:auto;}.left{padding:30px;}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="left">
+    <img src="tecnm.png" alt="TecNM Logo">
+    <h1>SGIAC-ISC</h1>
+    <p>Sistema de Gestión de Inventario de Activos y Consumibles</p>
+  </div>
+  <div class="right">
+    <div class="login-box">
+      <h2>Iniciar Sesión</h2>
+      <form id="login-form">
+        <div class="input-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit">Iniciar sesión</button>
+      </form>
+      <div class="footer">Instituto Tecnológico Nacional de México</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const loginForm = document.getElementById('login-form');
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  try {
+    // Llama al backend (Service Role Key seguro en backend)
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+    console.log("response.ok:", response.ok, "data:", data);
+
+    if (response.ok) {
+      // Guarda usuario en localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("session", JSON.stringify(data.session));
+
+      // Redirige al dashboard
+      window.location.href = "dashboard.html";
+    } else {
+      // Muestra el error del backend
+      alert(data.error);
+    }
+
+  } catch (error) {
+    console.error("Error conexión backend:", error);
+    alert("Error de conexión con el servidor");
+  }
+});
+</script>
+
+</body>
+</html>

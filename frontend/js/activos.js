@@ -1,175 +1,96 @@
-// Activos management functions
+const apiUrl = "http://localhost:3000/assets";
+const catUrl = "http://localhost:3000/categories";
 
-// Sample data (in a real app, this would come from the backend)
-let assets = [
-    { id: 1, name: 'Laptop Dell XPS', category: 'electrónicos', serial: 'DELL-001', location: 'Lab 1', status: 'available' },
-    { id: 2, name: 'Proyector Epson', category: 'electrónicos', serial: 'EPS-002', location: 'Aula 101', status: 'borrowed' },
-    { id: 3, name: 'Silla de oficina', category: 'mobiliario', serial: 'CHAIR-003', location: 'Oficina', status: 'available' }
-];
+const assetsTableBody = document.getElementById("assetsTableBody");
+const assetCategory = document.getElementById("assetCategory");
 
-// DOM elements
-const assetsTable = document.getElementById('assetsTable').getElementsByTagName('tbody')[0];
-const assetModal = document.getElementById('assetModal');
-const assetForm = document.getElementById('assetForm');
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    renderAssets();
-    assetForm.addEventListener('submit', handleFormSubmit);
-});
-
-// Render assets table
-function renderAssets(filteredAssets = assets) {
-    assetsTable.innerHTML = '';
-    filteredAssets.forEach(asset => {
-        const row = assetsTable.insertRow();
-        row.innerHTML = `
-            <td>${asset.id}</td>
-            <td>${asset.name}</td>
-            <td>${capitalizeFirst(asset.category)}</td>
-            <td>${asset.serial}</td>
-            <td>${asset.location}</td>
-            <td><span class="status-badge status-${asset.status}">${getStatusText(asset.status)}</span></td>
-            <td>
-                <button class="btn-action edit" onclick="editAsset(${asset.id})"><i class="fas fa-edit"></i></button>
-                <button class="btn-action delete" onclick="deleteAsset(${asset.id})"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
+async function loadCategories() {
+  try {
+    const res = await fetch(catUrl);
+    const categories = await res.json();
+    assetCategory.innerHTML = '<option value="">Seleccionar categoría</option>';
+    categories.forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      assetCategory.appendChild(opt);
     });
+  } catch(err){console.error(err);}
 }
 
-// Filter assets
-function filterAssets() {
-    const searchTerm = document.getElementById('searchAsset').value.toLowerCase();
-    const categoryFilter = document.getElementById('categoryFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-
-    const filtered = assets.filter(asset => {
-        const matchesSearch = asset.name.toLowerCase().includes(searchTerm) ||
-                             asset.serial.toLowerCase().includes(searchTerm);
-        const matchesCategory = !categoryFilter || asset.category === categoryFilter;
-        const matchesStatus = !statusFilter || asset.status === statusFilter;
-        return matchesSearch && matchesCategory && matchesStatus;
+async function loadAssets() {
+  try {
+    const res = await fetch(apiUrl);
+    const assets = await res.json();
+    assetsTableBody.innerHTML = "";
+    assets.forEach(a=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${a.id}</td>
+        <td>${a.name}</td>
+        <td>${a.category_name || a.category_id}</td>
+        <td>${a.serial_number}</td>
+        <td>${a.location}</td>
+        <td>${a.status}</td>
+        <td>${a.quantity}</td>
+        <td class="actions">
+          <i class="fas fa-edit" onclick="editAsset(${a.id})"></i>
+          <i class="fas fa-trash" onclick="deleteAsset(${a.id})"></i>
+        </td>
+      `;
+      assetsTableBody.appendChild(tr);
     });
-
-    renderAssets(filtered);
+  } catch(err){console.error(err);}
 }
 
-// Open modal for add/edit
-function openModal(mode, assetId = null) {
-    const modalTitle = document.getElementById('modalTitle');
-    const assetIdField = document.getElementById('assetId');
+async function saveAsset() {
+  const id = document.getElementById("assetId").value;
+  const name = document.getElementById("assetName").value;
+  const description = document.getElementById("assetDescription").value;
+  const category_id = document.getElementById("assetCategory").value;
+  const serial_number = document.getElementById("assetSerial").value;
+  const location = document.getElementById("assetLocation").value;
+  const status = document.getElementById("assetStatus").value;
+  const quantity = document.getElementById("assetQuantity").value;
 
-    if (mode === 'addAsset') {
-        modalTitle.textContent = 'Agregar Activo';
-        assetForm.reset();
-        assetIdField.value = '';
-    } else if (mode === 'editAsset' && assetId) {
-        const asset = assets.find(a => a.id === assetId);
-        if (asset) {
-            modalTitle.textContent = 'Editar Activo';
-            document.getElementById('assetId').value = asset.id;
-            document.getElementById('assetName').value = asset.name;
-            document.getElementById('assetCategory').value = asset.category;
-            document.getElementById('assetSerial').value = asset.serial;
-            document.getElementById('assetLocation').value = asset.location;
-            document.getElementById('assetStatus').value = asset.status;
-        }
-    }
+  if(!name || !category_id || !serial_number || !location || !quantity){
+    alert("Todos los campos son obligatorios");
+    return;
+  }
 
-    assetModal.style.display = 'block';
-}
+  const body = { name, description, category_id, serial_number, location, status, quantity };
 
-// Close modal
-function closeModal() {
-    assetModal.style.display = 'none';
-}
-
-// Handle form submit
-function handleFormSubmit(e) {
-    e.preventDefault();
-
-    const assetId = document.getElementById('assetId').value;
-    const assetData = {
-        name: document.getElementById('assetName').value,
-        category: document.getElementById('assetCategory').value,
-        serial: document.getElementById('assetSerial').value,
-        location: document.getElementById('assetLocation').value,
-        status: document.getElementById('assetStatus').value
-    };
-
-    if (assetId) {
-        // Edit existing asset
-        const index = assets.findIndex(a => a.id == assetId);
-        if (index !== -1) {
-            assets[index] = { ...assets[index], ...assetData };
-            showNotification('Activo actualizado exitosamente', 'success');
-        }
+  try {
+    if(id){
+      await fetch(`${apiUrl}/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
     } else {
-        // Add new asset
-        const newId = Math.max(...assets.map(a => a.id)) + 1;
-        assets.push({ id: newId, ...assetData });
-        showNotification('Activo agregado exitosamente', 'success');
+      await fetch(apiUrl, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
     }
-
-    renderAssets();
     closeModal();
+    loadAssets();
+  } catch(err){console.error(err);}
 }
 
-// Edit asset
-function editAsset(id) {
-    openModal('editAsset', id);
+async function editAsset(id){
+  const res = await fetch(`${apiUrl}/${id}`);
+  const a = await res.json();
+  openModal();
+  document.getElementById("modalTitle").innerText="Editar Activo";
+  document.getElementById("assetId").value = a.id;
+  document.getElementById("assetName").value = a.name;
+  document.getElementById("assetDescription").value = a.description || "";
+  document.getElementById("assetCategory").value = a.category_id;
+  document.getElementById("assetSerial").value = a.serial_number;
+  document.getElementById("assetLocation").value = a.location;
+  document.getElementById("assetStatus").value = a.status;
+  document.getElementById("assetQuantity").value = a.quantity || 1;
 }
 
-// Delete asset
-function deleteAsset(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar este activo?')) {
-        assets = assets.filter(a => a.id !== id);
-        renderAssets();
-        showNotification('Activo eliminado exitosamente', 'success');
-    }
+async function deleteAsset(id){
+  if(!confirm("¿Deseas eliminar este activo?")) return;
+  await fetch(`${apiUrl}/${id}`, { method:"DELETE" });
+  loadAssets();
 }
 
-// Export data
-function exportData(type) {
-    // Simple CSV export simulation
-    let csv = 'ID,Nombre,Categoría,Serial,Ubicación,Estado\n';
-    assets.forEach(asset => {
-        csv += `${asset.id},${asset.name},${asset.category},${asset.serial},${asset.location},${asset.status}\n`;
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${type}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    showNotification('Datos exportados exitosamente', 'success');
-}
-
-// Utility functions
-function capitalizeFirst(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function getStatusText(status) {
-    const statusMap = {
-        'available': 'Disponible',
-        'borrowed': 'Prestado',
-        'maintenance': 'Mantenimiento'
-    };
-    return statusMap[status] || status;
-}
-
-function showNotification(message, type) {
-    // Simple notification (in a real app, use a proper notification library)
-    alert(`${type.toUpperCase()}: ${message}`);
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    if (event.target === assetModal) {
-        closeModal();
-    }
-}
+loadCategories();
+loadAssets();
