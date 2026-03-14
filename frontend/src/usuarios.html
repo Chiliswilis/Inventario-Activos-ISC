@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usuarios - SGIAC-ISC</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{display:flex;min-height:100vh;background:#f1f3f9;}
+ 
+/* SIDEBAR */
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;}
+.sidebar.hide{margin-left:-240px;}
+.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
+.menu a i{margin-right:10px;width:20px;}
+.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
+ 
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;}
+.header-left{display:flex;align-items:center;gap:15px;}
+.header h2{font-size:18px;}
+.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:14px;}
+.user img{width:34px;border-radius:50%;}
+ 
+/* CONTENT */
+.content{padding:25px;}
+.panel{background:white;border-radius:8px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+.btn{background:#4f46e5;color:white;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;}
+.btn:hover{background:#3730a3;}
+ 
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;}
+th{background:#f8f9fc;font-weight:600;color:#1f2a3a;}
+tr:hover{background:#f3f4f6;}
+</style>
+</head>
+<body>
+ 
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="logo">SGIAC-ISC</div>
+  <div class="menu">
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+    <a href="usuarios.html" class="active"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
+</div>
+ 
+<!-- MAIN -->
+<div class="main">
+  <div class="header">
+    <div class="header-left">
+      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+      <h2><i class="fas fa-users"></i> Usuarios</h2>
+    </div>
+    <div class="user">
+      <img src="https://i.pravatar.cc/40">
+      <span id="usernameDisplay">Administrador</span>
+    </div>
+  </div>
+ 
+  <div class="content">
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Gestión de Usuarios</h3>
+        <button class="btn" onclick="openModal('add')"><i class="fas fa-plus"></i> Nuevo Usuario</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+ 
+<script>
+function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide"); }
+ 
+// Mostrar nombre del usuario logueado
+const userData = JSON.parse(localStorage.getItem("user") || "{}");
+if (userData.username) document.getElementById("usernameDisplay").innerText = userData.username;
+</script>
+<script src="../js/usuarios.js"></script>
+<script src="../js/common.js"></script>
+</body>
+</html>

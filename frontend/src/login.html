@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGIAC-ISC | Acceso</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#1e3c72,#2a5298);}
+
+.container{width:920px;min-height:520px;background:white;border-radius:20px;display:flex;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.25);}
+
+/* LEFT PANEL */
+.left{width:380px;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;flex-shrink:0;}
+.left img{width:110px;margin-bottom:20px;}
+.left h1{font-size:26px;margin-bottom:10px;}
+.left p{font-size:13px;opacity:.8;line-height:1.6;}
+
+/* RIGHT PANEL */
+.right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
+.panel{width:100%;max-width:340px;display:none;}
+.panel.active{display:block;}
+
+h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
+.subtitle{font-size:13px;color:#6b7280;margin-bottom:24px;}
+
+.input-group{margin-bottom:16px;}
+.input-group label{font-size:13px;color:#555;display:block;margin-bottom:5px;}
+.input-group input, .input-group select{
+  width:100%;padding:11px 14px;border-radius:8px;border:1px solid #d1d5db;
+  font-size:14px;transition:.3s;outline:none;
+}
+.input-group input:focus, .input-group select:focus{border-color:#4f46e5;}
+
+.btn{width:100%;padding:12px;background:#4f46e5;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;transition:.3s;margin-top:4px;}
+.btn:hover{background:#3730a3;}
+
+.link{font-size:13px;color:#4f46e5;cursor:pointer;text-decoration:underline;}
+.link:hover{color:#3730a3;}
+
+.footer-links{margin-top:16px;display:flex;justify-content:space-between;font-size:13px;}
+
+.msg{margin-top:14px;padding:12px;border-radius:8px;font-size:13px;display:none;}
+.msg.error{background:#fee2e2;color:#dc2626;}
+.msg.success{background:#dcfce7;color:#16a34a;}
+
+.temp-pass-box{
+  background:#fef9c3;border:1px solid #fde047;border-radius:8px;
+  padding:16px;margin-top:16px;display:none;text-align:center;
+}
+.temp-pass-box p{font-size:13px;color:#555;margin-bottom:8px;}
+.temp-pass-box strong{font-size:20px;color:#1f2a3a;letter-spacing:2px;}
+
+@media(max-width:700px){
+  .container{flex-direction:column;width:95%;min-height:auto;}
+  .left{width:100%;padding:30px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- LEFT -->
+  <div class="left">
+    <img src="tecnm.png" alt="TecNM Logo">
+    <h1>SGIAC-ISC</h1>
+    <p>Sistema de Gestión de Inventario de Activos y Consumibles</p>
+    <p style="margin-top:16px;font-size:12px;opacity:.6;">Instituto Tecnológico Nacional de México</p>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <!-- ── PANEL LOGIN ── -->
+    <div class="panel active" id="panelLogin">
+      <h2>Iniciar Sesión</h2>
+      <p class="subtitle">Bienvenido de nuevo</p>
+
+      <div class="input-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="loginEmail" placeholder="correo@ejemplo.com">
+      </div>
+      <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPassword" placeholder="Tu contraseña">
+      </div>
+
+      <button class="btn" onclick="doLogin()">Iniciar sesión</button>
+      <div class="msg" id="loginMsg"></div>
+
+      <div class="footer-links">
+        <span class="link" onclick="showPanel('panelRecover')">¿Olvidaste tu contraseña?</span>
+        <span class="link" onclick="showPanel('panelRegister')">Registrarse</span>
+      </div>
+    </div>
+
+    <!-- ── PANEL REGISTRO ── -->
+    <div class="panel" id="panelRegister">
+      <h2>Crear Cuenta</h2>
+      <p class="subtitle">Completa los datos para registrarte</p>
+
+      <div class="input-group">
+        <label>Nombre completo</label>
+        <input type="text" id="regUsername" placeholder="Ej: Juan Pérez">
+      </div>
+      <div class="input-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="regEmail" placeholder="correo@ejemplo.com">
+      </div>
+      <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="input-group">
+        <label>Rol</label>
+        <select id="regRole">
+          <option value="alumno">Alumno</option>
+          <option value="docente">Docente</option>
+          <option value="administrador">Administrador</option>
+        </select>
+      </div>
+
+      <button class="btn" onclick="doRegister()">Crear cuenta</button>
+      <div class="msg" id="registerMsg"></div>
+
+      <div style="margin-top:16px;text-align:center;font-size:13px;">
+        ¿Ya tienes cuenta? <span class="link" onclick="showPanel('panelLogin')">Inicia sesión</span>
+      </div>
+    </div>
+
+    <!-- ── PANEL RECUPERAR ── -->
+    <div class="panel" id="panelRecover">
+      <h2>Recuperar Contraseña</h2>
+      <p class="subtitle">Te daremos una contraseña temporal</p>
+
+      <div class="input-group">
+        <label>Correo electrónico registrado</label>
+        <input type="email" id="recoverEmail" placeholder="correo@ejemplo.com">
+      </div>
+
+      <button class="btn" onclick="doRecover()">Obtener contraseña temporal</button>
+      <div class="msg" id="recoverMsg"></div>
+
+      <div class="temp-pass-box" id="tempPassBox">
+        <p>Tu contraseña temporal es:</p>
+        <strong id="tempPassText"></strong>
+        <p style="margin-top:10px;font-size:12px;color:#d97706;">⚠️ Cámbiala después de iniciar sesión</p>
+      </div>
+
+      <div style="margin-top:16px;text-align:center;font-size:13px;">
+        <span class="link" onclick="showPanel('panelLogin')">← Volver al login</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:3000/api/auth";
+
+/* ── CAMBIAR PANEL ── */
+function showPanel(id) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  // Limpiar mensajes
+  document.querySelectorAll(".msg").forEach(m => { m.style.display="none"; m.textContent=""; });
+  document.getElementById("tempPassBox").style.display = "none";
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `msg ${type}`;
+  el.style.display = "block";
+}
+
+/* ── LOGIN ── */
+async function doLogin() {
+  const email    = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password) return showMsg("loginMsg", "Completa todos los campos", "error");
+
+  try {
+    const res  = await fetch(`${API}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("user",    JSON.stringify(data.user));
+      localStorage.setItem("session", JSON.stringify(data.session));
+      window.location.href = "dashboard.html";
+    } else {
+      showMsg("loginMsg", data.error || "Error al iniciar sesión", "error");
+    }
+  } catch {
+    showMsg("loginMsg", "No se pudo conectar con el servidor", "error");
+  }
+}
+
+/* ── REGISTRO ── */
+async function doRegister() {
+  const username = document.getElementById("regUsername").value.trim();
+  const email    = document.getElementById("regEmail").value.trim();
+  const password = document.getElementById("regPassword").value;
+  const role     = document.getElementById("regRole").value;
+
+  if (!username || !email || !password) return showMsg("registerMsg", "Completa todos los campos", "error");
+  if (password.length < 6) return showMsg("registerMsg", "La contraseña debe tener al menos 6 caracteres", "error");
+
+  try {
+    const res  = await fetch(`${API}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password, role })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showMsg("registerMsg", "✅ Cuenta creada correctamente. Ahora puedes iniciar sesión.", "success");
+      setTimeout(() => showPanel("panelLogin"), 2000);
+    } else {
+      showMsg("registerMsg", data.error || "Error al registrar", "error");
+    }
+  } catch {
+    showMsg("registerMsg", "No se pudo conectar con el servidor", "error");
+  }
+}
+
+/* ── RECUPERAR CONTRASEÑA ── */
+async function doRecover() {
+  const email = document.getElementById("recoverEmail").value.trim();
+
+  if (!email) return showMsg("recoverMsg", "Ingresa tu correo electrónico", "error");
+
+  try {
+    const res  = await fetch(`${API}/recover`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showMsg("recoverMsg", `Contraseña temporal generada para: ${data.username}`, "success");
+      document.getElementById("tempPassText").textContent = data.tempPassword;
+      document.getElementById("tempPassBox").style.display = "block";
+    } else {
+      showMsg("recoverMsg", data.error || "Error al recuperar contraseña", "error");
+    }
+  } catch {
+    showMsg("recoverMsg", "No se pudo conectar con el servidor", "error");
+  }
+}
+
+/* ── ENTER KEY ── */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const active = document.querySelector(".panel.active").id;
+  if (active === "panelLogin")    doLogin();
+  if (active === "panelRegister") doRegister();
+  if (active === "panelRecover")  doRecover();
+});
+</script>
+
+</body>
+</html>
