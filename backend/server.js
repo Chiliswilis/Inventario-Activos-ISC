@@ -8,6 +8,7 @@ const assetsRoutes      = require("./src/assets");
 const categoriesRoutes  = require("./src/categories");
 const usersRoutes       = require("./src/users");
 const consumiblesRoutes = require("./src/consumibles");
+const statsRoutes       = require("./src/stats"); // 👈 NUEVO
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/api/assets",      assetsRoutes);
 app.use("/api/categories",  categoriesRoutes);
 app.use("/api/users",       usersRoutes);
 app.use("/api/consumibles", consumiblesRoutes);
+app.use("/api/stats",       statsRoutes); // 👈 NUEVO
 
 const PORT = process.env.PORT || 3000;
 

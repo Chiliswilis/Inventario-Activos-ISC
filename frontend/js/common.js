@@ -1,15 +1,34 @@
 // ============================================
 // SGIAC-ISC | common.js
-// Utilidades globales: sesión, roles, UI
+
 // ============================================
 
-/* ── OBTENER DATOS DEL USUARIO ── */
+/* ── USUARIO ── */
 function getUser() {
   try { return JSON.parse(localStorage.getItem("user")) || null; }
   catch { return null; }
 }
 function getUserRole()  { return getUser()?.role     || "alumno"; }
 function getUsername()  { return getUser()?.username || "Usuario"; }
+
+/* ── FOTOS POR ROL ── */
+const rolePhotos = {
+  administrador: "../public/Captura de pantalla 2026-03-15 131358.png",
+  docente:       "../public/Captura de pantalla 2026-03-15 131947.png",
+  alumno:        "../public/Captura de pantalla 2026-03-15 132051.png"
+};
+
+function applyProfilePhoto() {
+  try {
+    const user  = getUser();
+    if (!user) return;
+    const photo = rolePhotos[user.role] || rolePhotos.alumno;
+    document.querySelectorAll(".user img").forEach(img => {
+      img.src = photo;
+      img.alt = user.role;
+    });
+  } catch {}
+}
 
 /* ── PROTECCIÓN DE RUTAS ── */
 function requireAuth() {
@@ -36,23 +55,13 @@ function logout() {
 /* ── MENÚ SEGÚN ROL ── */
 function applyMenuByRole() {
   const role = getUserRole();
-
-  // Links del menú que solo ve el administrador
-  const adminOnlyLinks = ["usuarios.html", "configuracion.html"];
-
-  // Links del menú que ven admin y docente (no alumno)
-  const docentePlusLinks = ["reportes.html"];
+  const adminOnly   = ["usuarios.html", "configuracion.html"];
+  const docentePlus = ["reportes.html"];
 
   document.querySelectorAll(".menu a").forEach(link => {
-    const href = link.getAttribute("href") || "";
-    const page = href.split("/").pop(); // obtiene solo el nombre del archivo
-
-    if (adminOnlyLinks.includes(page) && role !== "administrador") {
-      link.style.display = "none";
-    }
-    if (docentePlusLinks.includes(page) && role === "alumno") {
-      link.style.display = "none";
-    }
+    const page = (link.getAttribute("href") || "").split("/").pop();
+    if (adminOnly.includes(page)   && role !== "administrador") link.style.display = "none";
+    if (docentePlus.includes(page) && role === "alumno")        link.style.display = "none";
   });
 }
 
@@ -61,7 +70,7 @@ function applyRoleUI() {
   const user = getUser();
   if (!user) return;
 
-  // Mostrar nombre en elementos comunes
+  // Nombre en header
   ["username", "usernameDisplay", "userDisplayName"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = user.username;
@@ -70,19 +79,10 @@ function applyRoleUI() {
     el.textContent = user.username;
   });
 
-  // Badge de rol
-  const roleBadge = {
-    administrador: { text:"Administrador", color:"#4f46e5" },
-    docente:       { text:"Docente",       color:"#0891b2" },
-    alumno:        { text:"Alumno",        color:"#16a34a" }
-  };
-  const rb = roleBadge[user.role] || { text: user.role, color:"#6b7280" };
-  document.querySelectorAll(".role-display").forEach(el => {
-    el.textContent = rb.text;
-    el.style.cssText = `background:${rb.color};color:white;padding:2px 10px;border-radius:10px;font-size:12px;`;
-  });
+  // Foto por rol en todas las páginas
+  applyProfilePhoto();
 
-  // Ocultar elementos por clase
+  // Ocultar por clase
   if (user.role !== "administrador") {
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   }
@@ -90,7 +90,7 @@ function applyRoleUI() {
     document.querySelectorAll(".docente-plus").forEach(el => el.style.display = "none");
   }
 
-  // Botón logout en el header
+  // Botón logout
   const userDiv = document.querySelector(".user");
   if (userDiv && !document.getElementById("logoutBtn")) {
     const btn = document.createElement("button");
@@ -104,7 +104,7 @@ function applyRoleUI() {
     userDiv.appendChild(btn);
   }
 
-  // Aplicar menú por rol
+  
   applyMenuByRole();
 }
 
