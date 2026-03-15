@@ -281,7 +281,7 @@ color:#9ca3af;
 </div>
 
 <div class="user">
-<img src="https://i.pravatar.cc/40">
+<img src="../public/Captura de pantalla 2026-03-15 131358.png">
 <span id="username">Administrador</span>
 </div>
 
@@ -298,7 +298,7 @@ color:#9ca3af;
 
 <div class="card">
 <div>
-<h3>120</h3>
+<h3 id="cardAssets">...</h3>
 <p>Activos Totales</p>
 </div>
 <i class="fas fa-box"></i>
@@ -306,7 +306,7 @@ color:#9ca3af;
 
 <div class="card">
 <div>
-<h3>40</h3>
+<h3 id="cardConsumables">...</h3>
 <p>Consumibles</p>
 </div>
 <i class="fas fa-flask"></i>
@@ -314,7 +314,7 @@ color:#9ca3af;
 
 <div class="card">
 <div>
-<h3>18</h3>
+<h3 id="cardRequests">...</h3>
 <p>Solicitudes</p>
 </div>
 <i class="fas fa-clipboard-list"></i>
@@ -322,7 +322,7 @@ color:#9ca3af;
 
 <div class="card">
 <div>
-<h3>6</h3>
+<h3 id="cardReservations">...</h3>
 <p>Reservas Hoy</p>
 </div>
 <i class="fas fa-calendar"></i>
@@ -352,7 +352,7 @@ color:#9ca3af;
 </tr>
 </thead>
 
-<tbody>
+<tbody id="movementsBody">
 
 <tr>
 <td>101</td>
@@ -388,7 +388,7 @@ color:#9ca3af;
 
 <h3>Actividad Reciente</h3>
 
-<div class="activity">
+<div class="activity" id="activityContainer">
 
 <div class="activity-item">
 Nuevo activo registrado
@@ -413,8 +413,6 @@ Reserva creada
 
 </div>
 
-</div>
-
 
 <script>
 
@@ -424,6 +422,7 @@ document.getElementById("sidebar").classList.toggle("hide");
 
 </script>
 
+<script src="../js/dashboard.js"></script>
 <script src="../js/common.js"></script>
 </body>
 </html>
