@@ -4,214 +4,70 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>SGIAC-ISC | Dashboard</title> 
-
+<title>SGIAC-ISC | Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Poppins',sans-serif;
-}
-
-body{
-display:flex;
-height:100vh;
-background:#f1f3f9;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{display:flex;height:100vh;background:#f1f3f9;}
 
 /* SIDEBAR */
-
-.sidebar{
-width:240px;
-background:#1f2a3a;
-color:white;
-transition:0.3s;
-}
-
-.sidebar.hide{
-margin-left:-240px;
-}
-
-.logo{
-  padding:22px;
-  font-weight:600;
-  font-size:20px;  /* cambia 18px → 20px */
-  text-align:center;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-}
-
-.menu a{
-display:block;
-padding:14px 22px;
-color:#cbd5e1;
-text-decoration:none;
-font-size:14px;
-}
-
-.menu a:hover{
-background:#4f46e5;
-color:white;
-}
-
-.menu i{
-margin-right:10px;
-width:20px;
-}
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;flex-shrink:0;}
+.sidebar.hide{margin-left:-240px;}
+.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
+.menu a i{margin-right:10px;width:20px;}
+.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
 
 /* MAIN */
-
-.main{
-flex:1;
-display:flex;
-flex-direction:column;
-}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
 /* HEADER */
-
-.header h2{
-  font-size:18px;
-}
-
-.header{
-height:65px;
-background:white;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:0 25px;
-border-bottom:1px solid #e6e8f0;
-}
-
-.header-left{
-display:flex;
-align-items:center;
-gap:15px;
-}
-
-.menu-btn{
-font-size:20px;
-cursor:pointer;
-color:#374151;
-}
-
-.user{
-display:flex;
-align-items:center;
-gap:10px;
-font-size:14px;
-}
-
-.user img{
-width:34px;
-border-radius:50%;
-}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
+.header h2{font-size:18px;color:#1f2a3a;}
+.header-left{display:flex;align-items:center;gap:15px;}
+.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:14px;color:#374151;}
+.user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
 
 /* CONTENT */
-
-.content{
-padding:25px;
-}
+.content{padding:25px;overflow-y:auto;flex:1;}
 
 /* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:25px;}
+.card{background:white;padding:20px 22px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;border-left:4px solid #4f46e5;}
+.card-info h3{font-size:28px;font-weight:600;color:#1f2a3a;margin-bottom:4px;}
+.card-info p{font-size:13px;color:#6b7280;}
+.card-icon{width:48px;height:48px;background:#ede9fe;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.card-icon i{font-size:20px;color:#4f46e5;}
 
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:18px;
-margin-bottom:25px;
-}
+/* GRID */
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;}
 
-.card{
-background:white;
-padding:18px;
-border-radius:8px;
-box-shadow:0 2px 6px rgba(0,0,0,0.05);
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.card h3{
-font-size:22px;
-margin-bottom:3px;
-}
-
-.card p{
-font-size:13px;
-color:#6b7280;
-}
-
-.card i{
-font-size:22px;
-color:#4f46e5;
-}
-
-/* GRID SECTIONS */
-
-.grid{
-display:grid;
-grid-template-columns:2fr 1fr;
-gap:20px;
-}
+/* PANEL */
+.panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.panel-title{font-size:15px;font-weight:600;color:#1f2a3a;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;}
 
 /* TABLE */
-
-.panel{
-background:white;
-border-radius:8px;
-padding:18px;
-box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-.panel h3{
-font-size:15px;
-margin-bottom:12px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-font-size:13px;
-}
-
-th,td{
-padding:10px;
-border-bottom:1px solid #eee;
-text-align:left;
-}
-
-th{
-background:#f8f9fc;
-font-weight:500;
-}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
 
 /* ACTIVITY */
+.activity-item{padding:11px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;line-height:1.5;}
+.activity-item:last-child{border-bottom:none;}
+.activity-item .time{font-size:11px;color:#9ca3af;margin-top:3px;}
 
-.activity{
-font-size:13px;
-}
+/* LOADING */
+.loading-row td{text-align:center;color:#9ca3af;padding:30px;}
 
-.activity-item{
-padding:10px 0;
-border-bottom:1px solid #eee;
-}
-
-.activity-item:last-child{
-border-bottom:none;
-}
-
-.time{
-font-size:12px;
-color:#9ca3af;
-}
-
+/* RESPONSIVE */
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+@media(max-width:768px){.sidebar{position:absolute;z-index:1000;height:100vh;}.cards{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -219,45 +75,17 @@ color:#9ca3af;
 <!-- SIDEBAR -->
 
 <div class="sidebar" id="sidebar">
-
-<div class="logo">SGIAC-ISC</div>
-
-<div class="menu">
-
-<a href="dashboard.html">
-<i class="fas fa-chart-line"></i> Dashboard
-</a>
-
-<a href="activos.html">
-<i class="fas fa-box"></i> Activos
-</a>
-
-<a href="consumibles.html">
-<i class="fas fa-flask"></i> Consumibles
-</a>
-
-<a href="solicitudes.html">
-<i class="fas fa-clipboard-list"></i> Solicitudes
-</a>
-
-<a href="reservas.html">
-<i class="fas fa-calendar"></i> Reservas
-</a>
-
-<a href="usuarios.html">
-<i class="fas fa-users"></i> Usuarios
-</a>
-
-<a href="reportes.html">
-<i class="fas fa-file-alt"></i> Reportes
-</a>
-
-<a href="configuracion.html">
-<i class="fas fa-cog"></i> Configuración
-</a>
-
-</div>
-
+  <div class="logo">SGIAC-ISC</div>
+  <div class="menu">
+    <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="reservas.html"><i class="fas fa-calendar"></i> Reservas</a>
+    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
 </div>
 
 
@@ -266,160 +94,89 @@ color:#9ca3af;
 <div class="main">
 
 
-<!-- HEADER -->
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+      <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+    </div>
+    <div class="user">
+      <img src="../public/Captura de pantalla 2026-03-15 131358.png" alt="Avatar">
+      <span id="username">Cargando...</span>
+    </div>
+  </div>
 
-<div class="header">
+  <!-- CONTENT -->
+  <div class="content">
 
-<div class="header-left">
+    <!-- CARDS -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardAssets">—</h3>
+          <p>Activos Totales</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-box"></i></div>
+      </div>
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardConsumables">—</h3>
+          <p>Consumibles</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-flask"></i></div>
+      </div>
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardRequests">—</h3>
+          <p>Solicitudes Pendientes</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+      </div>
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardReservations">—</h3>
+          <p>Reservas Hoy</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-calendar"></i></div>
+      </div>
+    </div>
 
-<div class="menu-btn" onclick="toggleMenu()">
-<i class="fas fa-bars"></i>
-</div>
+    <!-- GRID -->
+    <div class="grid">
 
-<h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+      <!-- ÚLTIMOS MOVIMIENTOS -->
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-exchange-alt" style="color:#4f46e5;margin-right:8px;"></i>Últimos Movimientos</div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Activo</th>
+              <th>Usuario</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="movementsBody">
+            <tr class="loading-row"><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-</div>
+      <!-- ACTIVIDAD RECIENTE -->
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-bell" style="color:#4f46e5;margin-right:8px;"></i>Actividad Reciente</div>
+        <div id="activityContainer">
+          <div class="activity-item" style="color:#9ca3af;">Cargando...</div>
+        </div>
+      </div>
 
-<div class="user">
-<img src="../public/Captura de pantalla 2026-03-15 131358.png">
-<span id="username">Administrador</span>
-</div>
-
-</div>
-
-
-<!-- CONTENT -->
-
-<div class="content">
-
-<!-- CARDS -->
-
-<div class="cards">
-
-<div class="card">
-<div>
-<h3 id="cardAssets">...</h3>
-<p>Activos Totales</p>
-</div>
-<i class="fas fa-box"></i>
-</div>
-
-<div class="card">
-<div>
-<h3 id="cardConsumables">...</h3>
-<p>Consumibles</p>
-</div>
-<i class="fas fa-flask"></i>
-</div>
-
-<div class="card">
-<div>
-<h3 id="cardRequests">...</h3>
-<p>Solicitudes</p>
-</div>
-<i class="fas fa-clipboard-list"></i>
-</div>
-
-<div class="card">
-<div>
-<h3 id="cardReservations">...</h3>
-<p>Reservas Hoy</p>
-</div>
-<i class="fas fa-calendar"></i>
-</div>
-
-</div>
-
-
-<!-- GRID -->
-
-<div class="grid">
-
-<!-- TABLE -->
-
-<div class="panel">
-
-<h3>Últimos Movimientos</h3>
-
-<table>
-
-<thead>
-<tr>
-<th>ID</th>
-<th>Activo</th>
-<th>Usuario</th>
-<th>Estado</th>
-</tr>
-</thead>
-
-<tbody id="movementsBody">
-
-<tr>
-<td>101</td>
-<td>Laptop HP</td>
-<td>Juan Pérez</td>
-<td>Prestado</td>
-</tr>
-
-<tr>
-<td>102</td>
-<td>Proyector Epson</td>
-<td>Ana López</td>
-<td>Devuelto</td>
-</tr>
-
-<tr>
-<td>103</td>
-<td>Tablet Samsung</td>
-<td>Carlos Ruiz</td>
-<td>Prestado</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-
-<!-- ACTIVITY -->
-
-<div class="panel">
-
-<h3>Actividad Reciente</h3>
-
-<div class="activity" id="activityContainer">
-
-<div class="activity-item">
-Nuevo activo registrado
-<div class="time">Hace 10 min</div>
-</div>
-
-<div class="activity-item">
-Solicitud aprobada
-<div class="time">Hace 1 hora</div>
-</div>
-
-<div class="activity-item">
-Reserva creada
-<div class="time">Hoy</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+    </div>
+  </div>
 </div>
 
 
 <script>
-
-function toggleMenu(){
-document.getElementById("sidebar").classList.toggle("hide");
-}
-
+function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide"); }
 </script>
 
 <script src="../js/dashboard.js"></script>
