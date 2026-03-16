@@ -3,34 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Solicitudes - SGIAC-ISC</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>SGIAC-ISC | Solicitudes</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{display:flex;min-height:100vh;background:#f1f3f9;}
-.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;}
+body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;flex-shrink:0;}
 .sidebar.hide{margin-left:-240px;}
-.logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.menu a{display:block;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;}
-.menu a:hover{background:#4f46e5;color:white;}
-.menu a.active{background:#4f46e5;color:white;}
-.menu i{margin-right:10px;width:20px;}
-.main{flex:1;display:flex;flex-direction:column;}
-.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;}
+.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
+.menu a i{margin-right:10px;width:20px;}
+.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
+.header h2{font-size:18px;color:#1f2a3a;font-weight:600;}
 .header-left{display:flex;align-items:center;gap:15px;}
 .menu-btn{font-size:20px;cursor:pointer;color:#374151;}
 .user{display:flex;align-items:center;gap:10px;font-size:14px;}
-.user img{width:34px;border-radius:50%;}
-.content{padding:25px;}
-.header-actions{display:flex;gap:10px;margin-top:10px;}
-.btn-primary{background:#4f46e5;color:white;padding:8px 15px;border:none;border-radius:5px;cursor:pointer;}
-.btn-secondary{background:#6b7280;color:white;padding:8px 15px;border:none;border-radius:5px;cursor:pointer;}
-.table-section{margin-top:20px;}
-.table-container{background:white;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+.user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
+.content{padding:25px;overflow-y:auto;flex:1;}
+.panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
+.btn{background:#4f46e5;color:white;border:none;padding:9px 18px;border-radius:7px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:7px;}
+.btn:hover{background:#3730a3;}
+.btn-export{background:#10b981;color:white;border:none;padding:9px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-export:hover{background:#059669;}
+.btn-approve{background:none;border:none;cursor:pointer;color:#16a34a;font-size:16px;padding:4px;transition:0.2s;}
+.btn-approve:hover{color:#15803d;}
+.btn-reject{background:none;border:none;cursor:pointer;color:#dc2626;font-size:16px;padding:4px;transition:0.2s;}
+.btn-reject:hover{color:#b91c1c;}
+.btn-return{background:none;border:none;cursor:pointer;color:#0891b2;font-size:16px;padding:4px;transition:0.2s;}
+.btn-return:hover{color:#0e7490;}
+.btn-delete{background:none;border:none;cursor:pointer;color:#9ca3af;font-size:15px;padding:4px;transition:0.2s;}
+.btn-delete:hover{color:#dc2626;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
-th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;}
-th{background:#f8f9fc;font-weight:500;}
+th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-pending{background:#fef3c7;color:#d97706;}
+.badge-approved{background:#dcfce7;color:#16a34a;}
+.badge-rejected{background:#fee2e2;color:#dc2626;}
+.badge-returned{background:#dbeafe;color:#2563eb;}
+.empty{text-align:center;padding:40px;color:#9ca3af;}
+.empty i{font-size:36px;display:block;margin-bottom:10px;}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+.modal.open{display:flex;}
+.modal-box{background:white;border-radius:12px;padding:28px;width:460px;position:relative;box-shadow:0 8px 30px rgba(0,0,0,0.15);}
+.modal-box h3{font-size:17px;color:#1f2a3a;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f3f4f6;}
+.modal-box .close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#9ca3af;background:none;border:none;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
+.form-group select,.form-group input,.form-group textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:7px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:0.2s;}
+.form-group select:focus,.form-group input:focus,.form-group textarea:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.1);}
+.form-group textarea{resize:none;height:70px;}
+.modal-actions{display:flex;gap:10px;margin-top:8px;}
+.modal-actions .btn{flex:1;justify-content:center;}
+.btn-cancel{flex:1;padding:10px;background:#f3f4f6;color:#374151;border:none;border-radius:7px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;}
+.btn-cancel:hover{background:#e5e7eb;}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;color:white;font-size:13px;font-family:'Poppins',sans-serif;z-index:9999;opacity:0;transform:translateY(8px);transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:#10b981;}
+.toast.error{background:#ef4444;}
+@media(max-width:768px){.sidebar{position:absolute;z-index:1000;height:100vh;}}
 </style>
 </head>
 <body>
@@ -41,7 +79,7 @@ th{background:#f8f9fc;font-weight:500;}
     <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
     <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
     <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-    <a class="active" href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="solicitudes.html" class="active"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
     <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
     <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
     <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
@@ -53,43 +91,84 @@ th{background:#f8f9fc;font-weight:500;}
   <div class="header">
     <div class="header-left">
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-      <h2><i class="fas fa-clipboard-list"></i> Gestión de Solicitudes</h2>
+      <h2><i class="fas fa-clipboard-list"></i> Solicitudes</h2>
     </div>
     <div class="user">
-      <img src="https://i.pravatar.cc/40">
-      <span id="username">Administrador</span>
+      <img src="https://i.pravatar.cc/40" alt="Avatar">
+      <span id="username">Cargando...</span>
     </div>
   </div>
 
   <div class="content">
-    <div class="header-actions">
-      <button class="btn-primary" onclick="openModal('addRequest')"><i class="fas fa-plus"></i> Nueva Solicitud</button>
-      <button class="btn-secondary" onclick="exportData('requests')"><i class="fas fa-download"></i> Exportar</button>
-    </div>
-
-    <div class="table-section">
-      <div class="table-container">
-        <table id="requestsTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Usuario</th>
-              <th>Item</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Gestión de Solicitudes</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-export" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar</button>
+          <button class="btn" onclick="openModal()"><i class="fas fa-plus"></i> Nueva Solicitud</button>
+        </div>
       </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Item</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="requestsBody">
+          <tr><td colspan="7" class="empty"><i class="fas fa-spinner fa-spin"></i>Cargando...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
+<!-- MODAL -->
+<div class="modal" id="requestModal">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal()">&times;</button>
+    <h3><i class="fas fa-clipboard-list" style="color:#4f46e5;margin-right:8px;"></i>Nueva Solicitud</h3>
+
+    <div class="form-group">
+      <label>Usuario *</label>
+      <select id="reqUser"><option value="" disabled selected>Seleccionar usuario</option></select>
+    </div>
+    <div class="form-group">
+      <label>Tipo de item *</label>
+      <select id="reqType" onchange="loadItems()">
+        <option value="" disabled selected>Seleccionar tipo</option>
+        <option value="asset">Activo</option>
+        <option value="consumable">Consumible</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Item *</label>
+      <select id="reqItem"><option value="" disabled selected>Seleccionar item</option></select>
+    </div>
+    <div class="form-group">
+      <label>Cantidad</label>
+      <input type="number" id="reqQuantity" value="1" min="1">
+    </div>
+    <div class="form-group">
+      <label>Notas</label>
+      <textarea id="reqNotes" placeholder="Observaciones opcionales..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn" onclick="saveRequest()"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-function toggleMenu(){document.getElementById("sidebar").classList.toggle("hide");}
-document.getElementById("username").innerText = "NombreUsuario";
+function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide"); }
 </script>
 <script src="../js/solicitudes.js"></script>
 <script src="../js/common.js"></script>
