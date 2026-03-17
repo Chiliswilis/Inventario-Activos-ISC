@@ -15,24 +15,18 @@ body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
 .menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
 .menu a i{margin-right:10px;width:20px;}
 .menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-
 .main{flex:1;display:flex;flex-direction:column;}
-
 .header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;}
 .header h2{font-size:18px;}
 .header-left{display:flex;align-items:center;gap:15px;}
 .menu-btn{font-size:20px;cursor:pointer;color:#374151;}
 .user{display:flex;align-items:center;gap:10px;font-size:14px;}
 .user img{width:34px;border-radius:50%;}
-
-
 .content{padding:25px;}
 .panel{background:white;border-radius:8px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
 .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
 .btn{background:#4f46e5;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;}
 .btn:hover{background:#3730a3;}
-
-
 table{width:100%;border-collapse:collapse;font-size:14px;}
 th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;}
 th{background:#f8f9fc;font-weight:600;color:#1f2a3a;}
@@ -46,11 +40,10 @@ tr:hover{background:#f3f4f6;}
 .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:10px;margin-bottom:15px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;}
 .modal-content textarea{resize:none;height:60px;}
 .modal-content button{width:100%;font-size:15px;}
-@media(max-width:768px){.sidebar{position:absolute;z-index:1000;height:100vh;}.main{flex:1;}}
+@media(max-width:768px){.sidebar{position:absolute;z-index:1000;height:100vh;}}
 </style>
 </head>
 <body>
-
 
 <div class="sidebar" id="sidebar">
   <div class="logo">SGIAC-ISC</div>
@@ -66,9 +59,7 @@ tr:hover{background:#f3f4f6;}
   </div>
 </div>
 
-
 <div class="main">
-
   <div class="header">
     <div class="header-left">
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
@@ -80,25 +71,20 @@ tr:hover{background:#f3f4f6;}
     </div>
   </div>
 
-
   <div class="content">
     <div class="panel">
       <div class="panel-header">
         <h3>Gestión de Activos</h3>
-        <!-- Solo docentes y admins pueden agregar activos -->
-        <button class="btn docente-plus" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Activo</button>
+        <!-- Solo admin puede agregar activos -->
+        <button class="btn admin-only" onclick="openModal()">
+          <i class="fas fa-plus"></i> Nuevo Activo
+        </button>
       </div>
       <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Serie</th>
-            <th>Ubicación</th>
-            <th>Estado</th>
-            <th>Cantidad</th>
-            <th>Acciones</th>
+            <th>ID</th><th>Nombre</th><th>Categoría</th><th>Serie</th>
+            <th>Ubicación</th><th>Estado</th><th>Cantidad</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody id="assetsTableBody"></tbody>
@@ -106,7 +92,6 @@ tr:hover{background:#f3f4f6;}
     </div>
   </div>
 </div>
-
 
 <div class="modal" id="assetModal">
   <div class="modal-content">
@@ -117,7 +102,6 @@ tr:hover{background:#f3f4f6;}
     <textarea id="assetDescription" placeholder="Descripción"></textarea>
     <select id="assetCategory">
       <option value="" selected disabled>Seleccione una categoría</option>
-
     </select>
     <input type="text" id="assetSerial" placeholder="Número de serie">
     <input type="text" id="assetLocation" placeholder="Ubicación">
@@ -133,7 +117,7 @@ tr:hover{background:#f3f4f6;}
 
 <script src="../js/activos.js"></script>
 <script>
-function toggleMenu(){document.getElementById("sidebar").classList.toggle("hide");}
+function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide"); }
 function openModal(){
   document.getElementById("assetModal").style.display="flex";
   document.getElementById("modalTitle").innerText="Agregar Activo";
@@ -146,7 +130,7 @@ function openModal(){
   document.getElementById("assetStatus").value="available";
   document.getElementById("assetQuantity").value="1";
 }
-function closeModal(){document.getElementById("assetModal").style.display="none";}
+function closeModal(){ document.getElementById("assetModal").style.display="none"; }
 </script>
 <script src="../js/common.js"></script>
 </body>
