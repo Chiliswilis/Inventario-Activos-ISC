@@ -5,13 +5,13 @@ let allConsumables = [];
 let categories     = [];
 let activeCategory = "";
 
-// Determinar rol una sola vez
+// Rol actual — solo admin puede editar/eliminar
 let currentRole = "alumno";
 try {
   const u = JSON.parse(localStorage.getItem("user"));
   if (u && u.role) currentRole = u.role;
 } catch {}
-const canEdit = currentRole === "administrador" || currentRole === "docente";
+const isAdmin = currentRole === "administrador";
 
 /* INIT */
 document.addEventListener("DOMContentLoaded", async () => {
@@ -27,9 +27,7 @@ async function loadCategories() {
     categories = await res.json();
     buildCategoryTabs();
     buildCategorySelect();
-  } catch {
-    console.warn("No se pudieron cargar categorías");
-  }
+  } catch { console.warn("No se pudieron cargar categorías"); }
 }
 
 function buildCategoryTabs() {
@@ -50,8 +48,7 @@ function buildCategorySelect() {
   sel.innerHTML = `<option value="" disabled selected>Seleccione una categoría</option>`;
   categories.forEach(cat => {
     const opt = document.createElement("option");
-    opt.value       = cat.id;
-    opt.textContent = cat.name;
+    opt.value = cat.id; opt.textContent = cat.name;
     sel.appendChild(opt);
   });
 }
@@ -64,9 +61,7 @@ async function loadConsumables() {
     if (!res.ok) throw new Error("Error al cargar");
     allConsumables = await res.json();
     renderTable(allConsumables);
-  } catch (e) {
-    showError("No se pudieron cargar los consumibles: " + e.message);
-  }
+  } catch (e) { showError("No se pudieron cargar los consumibles: " + e.message); }
 }
 
 /* RENDER */
@@ -94,8 +89,8 @@ function renderTable(data) {
     const catName = c.categories ? c.categories.name
                   : (categories.find(x => x.id == c.category_id)?.name || "—");
 
-    // Acciones según rol
-    const acciones = canEdit
+    // Acciones: solo admin puede editar y eliminar
+    const acciones = isAdmin
       ? `<i class="fas fa-edit edit-btn"    title="Editar"   onclick="openEdit(${c.id})"></i>
          <i class="fas fa-trash delete-btn" title="Eliminar" onclick="deleteConsumable(${c.id})"></i>`
       : `<span style="color:#9ca3af;font-size:12px;">Solo lectura</span>`;
@@ -143,14 +138,14 @@ function applyFilters() {
 
 /* MODAL AGREGAR */
 function openModal() {
-  document.getElementById("modalTitle").textContent         = "Agregar Consumible";
-  document.getElementById("consumibleId").value             = "";
-  document.getElementById("consumibleName").value           = "";
-  document.getElementById("consumibleDescription").value    = "";
-  document.getElementById("consumibleCategory").value       = "";
-  document.getElementById("consumibleQuantity").value       = "0";
-  document.getElementById("consumibleMinQuantity").value    = "0";
-  document.getElementById("consumibleUnit").value           = "";
+  document.getElementById("modalTitle").textContent      = "Agregar Consumible";
+  document.getElementById("consumibleId").value          = "";
+  document.getElementById("consumibleName").value        = "";
+  document.getElementById("consumibleDescription").value = "";
+  document.getElementById("consumibleCategory").value    = "";
+  document.getElementById("consumibleQuantity").value    = "0";
+  document.getElementById("consumibleMinQuantity").value = "0";
+  document.getElementById("consumibleUnit").value        = "";
   document.getElementById("consumibleModal").classList.add("open");
 }
 
@@ -158,30 +153,28 @@ function openModal() {
 function openEdit(id) {
   const c = allConsumables.find(x => x.id === id);
   if (!c) return;
-  document.getElementById("modalTitle").textContent         = "Editar Consumible";
-  document.getElementById("consumibleId").value             = c.id;
-  document.getElementById("consumibleName").value           = c.name;
-  document.getElementById("consumibleDescription").value    = c.description || "";
-  document.getElementById("consumibleCategory").value       = c.category_id || "";
-  document.getElementById("consumibleQuantity").value       = c.quantity;
-  document.getElementById("consumibleMinQuantity").value    = c.min_quantity;
-  document.getElementById("consumibleUnit").value           = c.unit;
+  document.getElementById("modalTitle").textContent      = "Editar Consumible";
+  document.getElementById("consumibleId").value          = c.id;
+  document.getElementById("consumibleName").value        = c.name;
+  document.getElementById("consumibleDescription").value = c.description || "";
+  document.getElementById("consumibleCategory").value    = c.category_id || "";
+  document.getElementById("consumibleQuantity").value    = c.quantity;
+  document.getElementById("consumibleMinQuantity").value = c.min_quantity;
+  document.getElementById("consumibleUnit").value        = c.unit;
   document.getElementById("consumibleModal").classList.add("open");
 }
 
-function closeModal() {
-  document.getElementById("consumibleModal").classList.remove("open");
-}
+function closeModal() { document.getElementById("consumibleModal").classList.remove("open"); }
 
 /* GUARDAR */
 async function saveConsumible() {
-  const id          = document.getElementById("consumibleId").value;
-  const name        = document.getElementById("consumibleName").value.trim();
-  const description = document.getElementById("consumibleDescription").value.trim();
-  const category_id = document.getElementById("consumibleCategory").value;
-  const quantity    = parseInt(document.getElementById("consumibleQuantity").value);
-  const min_quantity= parseInt(document.getElementById("consumibleMinQuantity").value);
-  const unit        = document.getElementById("consumibleUnit").value.trim();
+  const id           = document.getElementById("consumibleId").value;
+  const name         = document.getElementById("consumibleName").value.trim();
+  const description  = document.getElementById("consumibleDescription").value.trim();
+  const category_id  = document.getElementById("consumibleCategory").value;
+  const quantity     = parseInt(document.getElementById("consumibleQuantity").value);
+  const min_quantity = parseInt(document.getElementById("consumibleMinQuantity").value);
+  const unit         = document.getElementById("consumibleUnit").value.trim();
 
   if (!name || !category_id || !unit || isNaN(quantity) || isNaN(min_quantity)) {
     showToast("Completa todos los campos obligatorios", "error"); return;
@@ -192,21 +185,12 @@ async function saveConsumible() {
   const method = id ? "PUT" : "POST";
 
   try {
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      showToast("Error: " + (err.message || "No se pudo guardar"), "error"); return;
-    }
+    const res = await fetch(url, { method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (!res.ok) { const err = await res.json(); showToast("Error: " + (err.message || "No se pudo guardar"), "error"); return; }
     showToast(id ? "Consumible actualizado ✅" : "Consumible agregado ✅", "success");
     closeModal();
     await loadConsumables();
-  } catch {
-    showToast("No se pudo conectar con el servidor", "error");
-  }
+  } catch { showToast("No se pudo conectar con el servidor", "error"); }
 }
 
 /* ELIMINAR */
@@ -217,9 +201,7 @@ async function deleteConsumable(id) {
     if (!res.ok) throw new Error();
     showToast("Consumible eliminado", "success");
     await loadConsumables();
-  } catch {
-    showToast("No se pudo eliminar", "error");
-  }
+  } catch { showToast("No se pudo eliminar", "error"); }
 }
 
 /* EXPORTAR CSV */
@@ -239,29 +221,23 @@ function exportCSV() {
 
 /* UTILS */
 function toggleMenu() { document.getElementById("sidebar").classList.toggle("hide"); }
-
 function showLoading() {
   document.getElementById("tableWrapper").innerHTML =
     `<div class="loading"><i class="fas fa-spinner"></i><p style="margin-top:8px;font-size:13px;">Cargando...</p></div>`;
 }
-
 function showError(msg) {
   document.getElementById("tableWrapper").innerHTML =
     `<div class="empty-state"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i><p>${msg}</p></div>`;
 }
-
 function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className   = `toast ${type} show`;
+  t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove("show"), 3000);
 }
-
 function esc(str) {
   if (!str) return "";
   return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
-
 document.getElementById("consumibleModal").addEventListener("click", function(e) {
   if (e.target === this) closeModal();
 });
