@@ -1,8 +1,6 @@
 // ============================================
 // SGIAC-ISC | common.js
-
 // ============================================
-
 
 function getUser() {
   try { return JSON.parse(localStorage.getItem("user")) || null; }
@@ -10,7 +8,6 @@ function getUser() {
 }
 function getUserRole()  { return getUser()?.role     || "alumno"; }
 function getUsername()  { return getUser()?.username || "Usuario"; }
-
 
 const rolePhotos = {
   administrador: "../public/Captura de pantalla 2026-03-15 131358.png",
@@ -25,16 +22,33 @@ function applyProfilePhoto() {
   document.querySelectorAll(".user img").forEach(img => { img.src = photo; img.alt = user.role; });
 }
 
-
 function requireAuth() {
   if (!getUser()) window.location.href = "login.html";
 }
 
+// Páginas que requieren rol mínimo
+const PAGE_PERMISSIONS = {
+  "usuarios.html":      "administrador",
+  "configuracion.html": "administrador",
+  "reportes.html":      "administrador"   // docente ya NO tiene acceso
+};
+
+function requirePagePermission() {
+  const page    = window.location.pathname.split("/").pop();
+  const minRole = PAGE_PERMISSIONS[page];
+  if (!minRole) return; // página sin restricción especial
+
+  const role = getUserRole();
+  if (role !== minRole) {
+    // Redirigir según rol
+    window.location.href = role === "alumno" ? "solicitudes.html" : "reservas.html";
+  }
+}
 
 function hasPermission(permission) {
   const perms = {
     administrador: ["read","write","delete","manage_users","manage_assets","approve_requests","view_reports"],
-    docente:       ["read","write","view_reports","create_requests"],
+    docente:       ["read","approve_requests","create_requests"],
     alumno:        ["read","create_requests","view_own_requests"]
   };
   return perms[getUserRole()]?.includes(permission) || false;
@@ -91,19 +105,19 @@ function doLogout() {
   window.location.href = "login.html";
 }
 
-
 function applyMenuByRole() {
   const role = getUserRole();
-  const adminOnly   = ["usuarios.html", "configuracion.html"];
-  const docentePlus = ["reportes.html"];
+
+  // Solo admin ve estas páginas en el menú
+  const adminOnly = ["usuarios.html", "configuracion.html", "reportes.html"];
 
   document.querySelectorAll(".menu a").forEach(link => {
     const page = (link.getAttribute("href") || "").split("/").pop();
-    if (adminOnly.includes(page)   && role !== "administrador") link.style.display = "none";
-    if (docentePlus.includes(page) && role === "alumno")        link.style.display = "none";
+    if (adminOnly.includes(page) && role !== "administrador") {
+      link.style.display = "none";
+    }
   });
 }
-
 
 function applyRoleUI() {
   const user = getUser();
@@ -115,15 +129,12 @@ function applyRoleUI() {
   });
   document.querySelectorAll(".username-display").forEach(el => el.textContent = user.username);
 
-
-  
   applyProfilePhoto();
 
   if (user.role !== "administrador")
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   if (user.role === "alumno")
     document.querySelectorAll(".docente-plus").forEach(el => el.style.display = "none");
-
 
   // Botón logout con modal
   const userDiv = document.querySelector(".user");
@@ -142,8 +153,8 @@ function applyRoleUI() {
   applyMenuByRole();
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
   requireAuth();
+  requirePagePermission(); // bloquear acceso directo por URL
   applyRoleUI();
 });
