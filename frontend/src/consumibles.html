@@ -6,32 +6,22 @@
 <title>SGIAC-ISC | Consumibles</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
 <style>
-/* --- RESET --- */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
-
-/* --- SIDEBAR --- */
 .sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;overflow-y:auto;}
 .sidebar.hide{margin-left:-240px;}
 .logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
 .menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
 .menu a i{margin-right:10px;width:20px;}
 .menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-
-/* --- MAIN --- */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-
-/* --- HEADER --- */
 .header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
 .header h2{font-size:18px;}
 .header-left{display:flex;align-items:center;gap:15px;}
 .menu-btn{font-size:20px;cursor:pointer;color:#374151;}
 .user{display:flex;align-items:center;gap:10px;font-size:14px;}
 .user img{width:34px;border-radius:50%;}
-
-/* --- CONTENT --- */
 .content{padding:25px;overflow-y:auto;flex:1;}
 .panel{background:white;border-radius:8px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
 .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;}
@@ -40,56 +30,28 @@ body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
 .btn:hover{background:#3730a3;}
 .btn-export{background:#10b981;color:white;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:0.2s;}
 .btn-export:hover{background:#059669;}
-
-/* --- FILTERS --- */
 .filters{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
-.filters input,.filters select{
-  padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;
-  color:#374151;outline:none;transition:0.2s;
-}
+.filters input,.filters select{padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
 .filters input:focus,.filters select:focus{border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,0.1);}
 .filters input{min-width:200px;}
-
-/* --- TABS de categoría --- */
 .category-tabs{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;}
-.tab-btn{
-  padding:6px 14px;border:1px solid #d1d5db;border-radius:20px;background:white;
-  font-size:12px;font-family:'Poppins',sans-serif;cursor:pointer;color:#6b7280;transition:0.2s;
-}
+.tab-btn{padding:6px 14px;border:1px solid #d1d5db;border-radius:20px;background:white;font-size:12px;font-family:'Poppins',sans-serif;cursor:pointer;color:#6b7280;transition:0.2s;}
 .tab-btn:hover{border-color:#4f46e5;color:#4f46e5;}
 .tab-btn.active{background:#4f46e5;color:white;border-color:#4f46e5;}
-
-/* --- TABLE --- */
 table{width:100%;border-collapse:collapse;font-size:14px;}
 th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;}
 th{background:#f8f9fc;font-weight:600;color:#1f2a3a;}
 tr:hover{background:#f3f4f6;}
 .actions i{cursor:pointer;margin-right:8px;transition:0.2s;color:#6b7280;}
-.actions i:hover.edit-btn{color:#4f46e5;}
-.actions i:hover.delete-btn{color:#ef4444;}
 .actions i.edit-btn:hover{color:#4f46e5;}
 .actions i.delete-btn:hover{color:#ef4444;}
-
-/* --- BADGE stock bajo --- */
-.badge-low{
-  display:inline-block;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;
-  padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;
-}
-.badge-ok{
-  display:inline-block;background:#f0fdf4;color:#22c55e;border:1px solid #bbf7d0;
-  padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;
-}
-
-/* --- EMPTY STATE --- */
+.badge-low{display:inline-block;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;}
+.badge-ok{display:inline-block;background:#f0fdf4;color:#22c55e;border:1px solid #bbf7d0;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;}
 .empty-state{text-align:center;padding:50px 20px;color:#9ca3af;}
 .empty-state i{font-size:40px;margin-bottom:12px;display:block;}
-
-/* --- LOADING --- */
 .loading{text-align:center;padding:30px;color:#6b7280;}
 .loading i{animation:spin 1s linear infinite;font-size:22px;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
-/* --- MODAL --- */
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
 .modal.open{display:flex;}
 .modal-content{background:white;padding:25px;border-radius:10px;width:460px;position:relative;box-shadow:0 8px 20px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;}
@@ -98,41 +60,23 @@ tr:hover{background:#f3f4f6;}
 .modal-content .close:hover{color:#374151;}
 .form-group{margin-bottom:14px;}
 .form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
-.form-group input,.form-group select,.form-group textarea{
-  width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;
-  font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;
-}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
-  border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,0.1);
-}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,0.1);}
 .form-group textarea{resize:none;height:60px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .modal-actions{display:flex;gap:10px;margin-top:5px;}
 .modal-actions .btn{flex:1;}
 .btn-cancel{background:#f3f4f6;color:#374151;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;flex:1;}
 .btn-cancel:hover{background:#e5e7eb;}
-
-/* --- TOAST --- */
-.toast{
-  position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;
-  font-size:14px;font-family:'Poppins',sans-serif;z-index:9999;opacity:0;
-  transform:translateY(10px);transition:all 0.3s;pointer-events:none;
-}
+.toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;font-family:'Poppins',sans-serif;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.success{background:#10b981;}
 .toast.error{background:#ef4444;}
-
-/* --- RESPONSIVE --- */
-@media(max-width:768px){
-  .sidebar{position:absolute;z-index:1000;height:100vh;}
-  .main{flex:1;}
-  .form-row{grid-template-columns:1fr;}
-}
+@media(max-width:768px){.sidebar{position:absolute;z-index:1000;height:100vh;}.main{flex:1;}.form-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="logo">SGIAC-ISC</div>
   <div class="menu">
@@ -147,9 +91,7 @@ tr:hover{background:#f3f4f6;}
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-  <!-- HEADER -->
   <div class="header">
     <div class="header-left">
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
@@ -161,7 +103,6 @@ tr:hover{background:#f3f4f6;}
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <div class="panel">
       <div class="panel-header">
@@ -170,11 +111,11 @@ tr:hover{background:#f3f4f6;}
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn-export" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar</button>
-          <button class="btn" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Consumible</button>
+          <!-- Solo docentes y admins pueden agregar consumibles -->
+          <button class="btn docente-plus" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Consumible</button>
         </div>
       </div>
 
-      <!-- Filtros -->
       <div class="filters">
         <input type="text" id="searchInput" placeholder="Buscar consumible..." oninput="applyFilters()">
         <select id="stockFilter" onchange="applyFilters()">
@@ -184,12 +125,10 @@ tr:hover{background:#f3f4f6;}
         </select>
       </div>
 
-      <!-- Tabs por categoría -->
       <div class="category-tabs" id="categoryTabs">
         <button class="tab-btn active" data-cat="" onclick="selectTab(this, '')">Todas</button>
       </div>
 
-      <!-- Tabla -->
       <div id="tableWrapper">
         <div class="loading"><i class="fas fa-spinner"></i><p style="margin-top:8px;font-size:13px;">Cargando consumibles...</p></div>
       </div>
@@ -203,7 +142,6 @@ tr:hover{background:#f3f4f6;}
     <button class="close" onclick="closeModal()">&times;</button>
     <h3 id="modalTitle">Agregar Consumible</h3>
     <input type="hidden" id="consumibleId">
-
     <div class="form-group">
       <label>Nombre *</label>
       <input type="text" id="consumibleName" placeholder="Ej: Papel A4">
@@ -232,7 +170,6 @@ tr:hover{background:#f3f4f6;}
       <label>Unidad *</label>
       <input type="text" id="consumibleUnit" placeholder="Ej: Hojas, Cartuchos, Botellas">
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
       <button class="btn" onclick="saveConsumible()"><i class="fas fa-save"></i> Guardar</button>
@@ -240,12 +177,8 @@ tr:hover{background:#f3f4f6;}
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
-
-</script>
 <script src="../js/consumibles.js"></script>
 <script src="../js/common.js"></script>
 </body>

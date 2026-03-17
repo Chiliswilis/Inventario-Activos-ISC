@@ -4,88 +4,54 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SGIAC-ISC | Activos</title>
-
-<!-- Font Awesome y Google Fonts --> 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
 <style>
-/* --- RESET --- */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
-
-/* --- SIDEBAR --- */
-.sidebar{
-  width:240px;background:#1f2a3a;color:white;transition:0.3s;overflow-y:auto;
-}
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;overflow-y:auto;}
 .sidebar.hide{margin-left:-240px;}
 .logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.menu a{
-  display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;
-  transition:0.2s;
-}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
 .menu a i{margin-right:10px;width:20px;}
 .menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-.menu .submenu{display:none;flex-direction:column;padding-left:20px;}
-.menu .has-submenu:hover .submenu{display:flex;}
 
-/* --- MAIN --- */
 .main{flex:1;display:flex;flex-direction:column;}
 
-/* --- HEADER --- */
-.header h2{
-  font-size:18px;
-}
-.header{
-  height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;
-}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;}
+.header h2{font-size:18px;}
 .header-left{display:flex;align-items:center;gap:15px;}
 .menu-btn{font-size:20px;cursor:pointer;color:#374151;}
 .user{display:flex;align-items:center;gap:10px;font-size:14px;}
 .user img{width:34px;border-radius:50%;}
 
-/* --- CONTENT --- */
+
 .content{padding:25px;}
 .panel{background:white;border-radius:8px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
 .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
 .btn{background:#4f46e5;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;}
 .btn:hover{background:#3730a3;}
 
-/* --- TABLE --- */
+
 table{width:100%;border-collapse:collapse;font-size:14px;}
 th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;}
 th{background:#f8f9fc;font-weight:600;color:#1f2a3a;}
 tr:hover{background:#f3f4f6;}
 .actions i{cursor:pointer;margin-right:10px;transition:0.2s;}
 .actions i:hover{color:#4f46e5;}
-
-/* --- MODAL --- */
-.modal{
-  display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
-  justify-content:center;align-items:center;z-index:1000;
-}
-.modal-content{
-  background:white;padding:25px;border-radius:10px;width:450px;position:relative;
-  box-shadow:0 8px 20px rgba(0,0,0,0.2);
-}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+.modal-content{background:white;padding:25px;border-radius:10px;width:450px;position:relative;box-shadow:0 8px 20px rgba(0,0,0,0.2);}
 .modal-content h3{margin-bottom:20px;font-size:18px;color:#1f2a3a;}
 .modal-content .close{position:absolute;top:15px;right:15px;font-size:22px;cursor:pointer;color:#6b7280;}
-.modal-content input, .modal-content select, .modal-content textarea{
-  width:100%;padding:10px;margin-bottom:15px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;
-}
+.modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:10px;margin-bottom:15px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;}
 .modal-content textarea{resize:none;height:60px;}
 .modal-content button{width:100%;font-size:15px;}
-
-/* --- RESPONSIVE --- */
-@media(max-width:768px){
-  .sidebar{position:absolute;z-index:1000;height:100vh;}
-  .main{flex:1;}
-}
+@media(max-width:768px){.sidebar{position:absolute;z-index:1000;height:100vh;}.main{flex:1;}}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
+
 <div class="sidebar" id="sidebar">
   <div class="logo">SGIAC-ISC</div>
   <div class="menu">
@@ -100,25 +66,27 @@ tr:hover{background:#f3f4f6;}
   </div>
 </div>
 
-<!-- MAIN -->
+
 <div class="main">
-  <!-- HEADER -->
+
   <div class="header">
     <div class="header-left">
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
       <h2><i class="fas fa-box"></i> Activos</h2>
     </div>
     <div class="user">
-      <img src="https://i.pravatar.cc/40" alt="Avatar"><span id="username">Administrador</span>
+      <img src="https://i.pravatar.cc/40" alt="Avatar">
+      <span id="username">Administrador</span>
     </div>
   </div>
 
-  <!-- CONTENT -->
+
   <div class="content">
     <div class="panel">
       <div class="panel-header">
         <h3>Gestión de Activos</h3>
-        <button class="btn" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Activo</button>
+        <!-- Solo docentes y admins pueden agregar activos -->
+        <button class="btn docente-plus" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Activo</button>
       </div>
       <table>
         <thead>
@@ -139,7 +107,7 @@ tr:hover{background:#f3f4f6;}
   </div>
 </div>
 
-<!-- MODAL -->
+
 <div class="modal" id="assetModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
@@ -149,9 +117,7 @@ tr:hover{background:#f3f4f6;}
     <textarea id="assetDescription" placeholder="Descripción"></textarea>
     <select id="assetCategory">
       <option value="" selected disabled>Seleccione una categoría</option>
-      <option value="computadora">Computadora</option>
-      <option value="impresora">Consumible</option>
-      <option value="scanner">Scanner</option>
+
     </select>
     <input type="text" id="assetSerial" placeholder="Número de serie">
     <input type="text" id="assetLocation" placeholder="Ubicación">
