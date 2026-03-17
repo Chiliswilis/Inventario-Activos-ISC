@@ -11,14 +11,14 @@ body{height:100vh;display:flex;justify-content:center;align-items:center;backgro
 
 .container{width:920px;min-height:520px;background:white;border-radius:20px;display:flex;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.25);}
 
-/* LEFT PANEL */
+/* LEFT */
 .left{width:380px;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;flex-shrink:0;}
 .left img{width:110px;margin-bottom:20px;}
 .left h1{font-size:26px;margin-bottom:10px;}
 .left p{font-size:13px;opacity:.8;line-height:1.6;}
 
-/* RIGHT PANEL */
-.right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
+/* RIGHT */
+.right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;overflow-y:auto;}
 .panel{width:100%;max-width:340px;display:none;}
 .panel.active{display:block;}
 
@@ -27,13 +27,15 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
 
 .input-group{margin-bottom:16px;}
 .input-group label{font-size:13px;color:#555;display:block;margin-bottom:5px;}
-.input-group input, .input-group select{
+.input-group input{
   width:100%;padding:11px 14px;border-radius:8px;border:1px solid #d1d5db;
-  font-size:14px;transition:.3s;outline:none;
+  font-size:14px;transition:.3s;outline:none;font-family:'Poppins',sans-serif;
 }
-.input-group input:focus, .input-group select:focus{border-color:#4f46e5;}
+.input-group input:focus{border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,0.1);}
 
-.btn{width:100%;padding:12px;background:#4f46e5;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;transition:.3s;margin-top:4px;}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.btn{width:100%;padding:12px;background:#4f46e5;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;transition:.3s;margin-top:4px;font-family:'Poppins',sans-serif;}
 .btn:hover{background:#3730a3;}
 
 .link{font-size:13px;color:#4f46e5;cursor:pointer;text-decoration:underline;}
@@ -41,20 +43,21 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
 
 .footer-links{margin-top:16px;display:flex;justify-content:space-between;font-size:13px;}
 
-.msg{margin-top:14px;padding:12px;border-radius:8px;font-size:13px;display:none;}
+.msg{margin-top:14px;padding:12px;border-radius:8px;font-size:13px;display:none;line-height:1.5;}
 .msg.error{background:#fee2e2;color:#dc2626;}
 .msg.success{background:#dcfce7;color:#16a34a;}
 
-.temp-pass-box{
-  background:#fef9c3;border:1px solid #fde047;border-radius:8px;
-  padding:16px;margin-top:16px;display:none;text-align:center;
-}
+.temp-pass-box{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:16px;margin-top:16px;display:none;text-align:center;}
 .temp-pass-box p{font-size:13px;color:#555;margin-bottom:8px;}
 .temp-pass-box strong{font-size:20px;color:#1f2a3a;letter-spacing:2px;}
+
+.info-box{background:#ede9fe;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#4f46e5;line-height:1.5;}
+.info-box i{margin-right:4px;}
 
 @media(max-width:700px){
   .container{flex-direction:column;width:95%;min-height:auto;}
   .left{width:100%;padding:30px 20px;}
+  .input-row{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -64,7 +67,7 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
 
   <!-- LEFT -->
   <div class="left">
-    <img src="../public/17-178726_tecnologico-nacional-de-mexico-logo-png-transparent-png.png" alt="">
+    <img src="tecnm.png" alt="TecNM Logo">
     <h1>SGIAC-ISC</h1>
     <p>Sistema de Gestión de Inventario de Activos y Consumibles</p>
     <p style="margin-top:16px;font-size:12px;opacity:.6;">Instituto Tecnológico Nacional de México</p>
@@ -73,7 +76,7 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
   <!-- RIGHT -->
   <div class="right">
 
-    <!-- ── PANEL LOGIN ── -->
+    <!-- PANEL LOGIN -->
     <div class="panel active" id="panelLogin">
       <h2>Iniciar Sesión</h2>
       <p class="subtitle">Bienvenido de nuevo</p>
@@ -96,31 +99,35 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
       </div>
     </div>
 
-    <!-- ── PANEL REGISTRO ── -->
+    <!-- PANEL REGISTRO (solo alumnos) -->
     <div class="panel" id="panelRegister">
       <h2>Crear Cuenta</h2>
-      <p class="subtitle">Completa los datos para registrarte</p>
+      <p class="subtitle">Registro para alumnos</p>
 
-      <div class="input-group">
-        <label>Nombre completo</label>
-        <input type="text" id="regUsername" placeholder="Ej: Juan Pérez">
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        El registro es exclusivo para <strong>alumnos</strong>. Si eres docente o administrador, contacta al área de sistemas para obtener tus credenciales.
+      </div>
+
+      <div class="input-row">
+        <div class="input-group">
+          <label>Nombre(s) *</label>
+          <input type="text" id="regNombre" placeholder="Ej: Victor">
+        </div>
+        <div class="input-group">
+          <label>Apellido(s) *</label>
+          <input type="text" id="regApellido" placeholder="Ej: Sainz">
+        </div>
       </div>
       <div class="input-group">
-        <label>Correo electrónico</label>
-        <input type="email" id="regEmail" placeholder="correo@ejemplo.com">
+        <label>Correo institucional *</label>
+        <input type="email" id="regEmail" placeholder="hu000000000@lahuerta.tecmm.edu.mx">
       </div>
       <div class="input-group">
-        <label>Contraseña</label>
+        <label>Contraseña *</label>
         <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
       </div>
-      <div class="input-group">
-        <label>Rol</label>
-        <select id="regRole">
-          <option value="alumno">Alumno</option>
-          <option value="docente">Docente</option>
-          <option value="administrador">Administrador</option>
-        </select>
-      </div>
+
 
       <button class="btn" onclick="doRegister()">Crear cuenta</button>
       <div class="msg" id="registerMsg"></div>
@@ -130,7 +137,7 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
       </div>
     </div>
 
-    <!-- ── PANEL RECUPERAR ── -->
+    <!-- PANEL RECUPERAR -->
     <div class="panel" id="panelRecover">
       <h2>Recuperar Contraseña</h2>
       <p class="subtitle">Te daremos una contraseña temporal</p>
@@ -157,14 +164,16 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
   </div>
 </div>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <script>
 const API = "http://localhost:3000/api/auth";
 
-/* ── CAMBIAR PANEL ── */
+
 function showPanel(id) {
   document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-  // Limpiar mensajes
+
   document.querySelectorAll(".msg").forEach(m => { m.style.display="none"; m.textContent=""; });
   document.getElementById("tempPassBox").style.display = "none";
 }
@@ -176,7 +185,7 @@ function showMsg(id, text, type) {
   el.style.display = "block";
 }
 
-/* ── LOGIN ── */
+/* LOGIN */
 async function doLogin() {
   const email    = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
@@ -186,7 +195,7 @@ async function doLogin() {
   try {
     const res  = await fetch(`${API}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
@@ -203,26 +212,30 @@ async function doLogin() {
   }
 }
 
-/* ── REGISTRO ── */
+/* REGISTRO - solo alumnos, nombre + apellido */
 async function doRegister() {
-  const username = document.getElementById("regUsername").value.trim();
+  const nombre   = document.getElementById("regNombre").value.trim();
+  const apellido = document.getElementById("regApellido").value.trim();
   const email    = document.getElementById("regEmail").value.trim();
   const password = document.getElementById("regPassword").value;
-  const role     = document.getElementById("regRole").value;
 
-  if (!username || !email || !password) return showMsg("registerMsg", "Completa todos los campos", "error");
-  if (password.length < 6) return showMsg("registerMsg", "La contraseña debe tener al menos 6 caracteres", "error");
+  if (!nombre || !apellido || !email || !password)
+    return showMsg("registerMsg", "Completa todos los campos", "error");
+  if (password.length < 6)
+    return showMsg("registerMsg", "La contraseña debe tener al menos 6 caracteres", "error");
+
+  const username = `${nombre} ${apellido}`;
 
   try {
     const res  = await fetch(`${API}/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password, role })
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, email, password, role: "alumno" })
     });
     const data = await res.json();
 
     if (res.ok) {
-      showMsg("registerMsg", "✅ Cuenta creada correctamente. Ahora puedes iniciar sesión.", "success");
+      showMsg("registerMsg", "✅ Cuenta creada. Ahora puedes iniciar sesión.", "success");
       setTimeout(() => showPanel("panelLogin"), 2000);
     } else {
       showMsg("registerMsg", data.error || "Error al registrar", "error");
@@ -232,7 +245,7 @@ async function doRegister() {
   }
 }
 
-/* ── RECUPERAR CONTRASEÑA ── */
+/* RECUPERAR */
 async function doRecover() {
   const email = document.getElementById("recoverEmail").value.trim();
 
@@ -241,7 +254,7 @@ async function doRecover() {
   try {
     const res  = await fetch(`${API}/recover`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ email })
     });
     const data = await res.json();
@@ -258,7 +271,7 @@ async function doRecover() {
   }
 }
 
-/* ── ENTER KEY ── */
+/* ENTER KEY */
 document.addEventListener("keydown", e => {
   if (e.key !== "Enter") return;
   const active = document.querySelector(".panel.active").id;
