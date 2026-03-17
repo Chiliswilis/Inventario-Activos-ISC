@@ -106,17 +106,11 @@ tr:hover td{background:#fafafa;}
           <button class="btn-export admin-only" onclick="exportCSV()">
             <i class="fas fa-file-csv"></i> Exportar
           </button>
-          <!-- Nueva Solicitud: solo docente y admin, NO alumno -->
-          <button class="btn docente-plus" onclick="openModal()">
+          <!-- Nueva Solicitud: todos los roles pueden crear -->
+          <button class="btn" onclick="openModal()">
             <i class="fas fa-plus"></i> Nueva Solicitud
           </button>
         </div>
-      </div>
-
-      <!-- Aviso para alumnos: solo pueden ver sus solicitudes -->
-      <div class="info-box alumno-only" style="margin-bottom:16px;">
-        <i class="fas fa-info-circle"></i>
-        Para solicitar un préstamo o consumible, comunícate con tu docente encargado.
       </div>
 
       <div id="tableWrapper">
@@ -170,16 +164,6 @@ tr:hover td{background:#fafafa;}
 
 <script>
 function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide"); }
-
-// Mostrar aviso solo para alumnos antes de que common.js corra
-(function(){
-  try {
-    const u = JSON.parse(localStorage.getItem("user"));
-    if (u && u.role !== "alumno") {
-      document.querySelectorAll(".alumno-only").forEach(el => el.style.display = "none");
-    }
-  } catch {}
-})();
 </script>
 <script src="../js/solicitudes.js"></script>
 <script src="../js/common.js"></script>

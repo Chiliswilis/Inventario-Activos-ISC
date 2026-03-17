@@ -6,7 +6,6 @@
 <title>SGIAC-ISC | Reservas</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
@@ -146,7 +145,8 @@ tr:hover td{background:#fafafa;}
     <div class="panel">
       <div class="panel-header">
         <h3><i class="fas fa-flask" style="color:#4f46e5;margin-right:6px;"></i> Laboratorios Disponibles</h3>
-        <button class="btn" onclick="openNewModal()">
+        <!-- Solo docente y admin pueden hacer reservas -->
+        <button class="btn docente-plus" onclick="openNewModal()">
           <i class="fas fa-plus"></i> Nueva Reserva
         </button>
       </div>
@@ -782,7 +782,6 @@ document.querySelectorAll(".modal").forEach(m => {
 // ── INIT ──
 loadReservations();
 </script>
-
 <script src="../js/common.js"></script>
 </body>
 </html>
