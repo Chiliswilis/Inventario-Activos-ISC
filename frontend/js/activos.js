@@ -4,6 +4,14 @@ const catUrl = "http://localhost:3000/api/categories/assets";
 const assetsTableBody = document.getElementById("assetsTableBody");
 const assetCategory   = document.getElementById("assetCategory");
 
+// Rol actual — se lee una sola vez
+let currentRole = "alumno";
+try {
+  const u = JSON.parse(localStorage.getItem("user"));
+  if (u && u.role) currentRole = u.role;
+} catch {}
+const isAdmin = currentRole === "administrador";
+
 /* ── CATEGORÍAS ── */
 async function loadCategories() {
   try {
@@ -13,13 +21,10 @@ async function loadCategories() {
     assetCategory.innerHTML = '<option value="" disabled selected>Seleccione una categoría</option>';
     categories.forEach(c => {
       const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.name;
+      opt.value = c.id; opt.textContent = c.name;
       assetCategory.appendChild(opt);
     });
-  } catch {
-    console.warn("Categorías no disponibles");
-  }
+  } catch { console.warn("Categorías no disponibles"); }
 }
 
 /* ── LISTAR ── */
@@ -29,15 +34,6 @@ async function loadAssets() {
     if (!res.ok) throw new Error();
     const assets = await res.json();
     assetsTableBody.innerHTML = "";
-
-    // Determinar rol del usuario actual
-    let userRole = "alumno";
-    try {
-      const u = JSON.parse(localStorage.getItem("user"));
-      if (u && u.role) userRole = u.role;
-    } catch {}
-
-    const canEdit = userRole === "administrador" || userRole === "docente";
 
     if (!assets.length) {
       assetsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#9ca3af;">Sin activos registrados</td></tr>`;
@@ -49,8 +45,8 @@ async function loadAssets() {
       const estadoLabel = { available:"Disponible", borrowed:"Prestado", maintenance:"Mantenimiento" }[a.status] || a.status;
       const catName     = a.categories ? a.categories.name : (a.category_id || "—");
 
-      // Acciones: solo para docentes y admins
-      const acciones = canEdit
+      // Acciones: solo admin
+      const acciones = isAdmin
         ? `<i class="fas fa-edit"  title="Editar"   onclick="editAsset(${a.id})"></i>
            <i class="fas fa-trash" title="Eliminar" onclick="deleteAsset(${a.id})" style="color:#dc2626;"></i>`
         : `<span style="color:#9ca3af;font-size:12px;">Solo lectura</span>`;
@@ -92,7 +88,7 @@ async function saveAsset() {
   const method = id ? "PUT" : "POST";
 
   try {
-    const res = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    const res = await fetch(url, { method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
     if (!res.ok) { const e = await res.json(); alert("Error: " + (e.message || "No se pudo guardar")); return; }
     closeModal();
     loadAssets();
@@ -105,7 +101,6 @@ async function editAsset(id) {
     const res = await fetch(`${apiUrl}/${id}`);
     if (!res.ok) throw new Error();
     const a = await res.json();
-    
     openModal();
     document.getElementById("modalTitle").innerText   = "Editar Activo";
     document.getElementById("assetId").value          = a.id;
