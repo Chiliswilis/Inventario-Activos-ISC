@@ -30,6 +30,15 @@ async function loadAssets() {
     const assets = await res.json();
     assetsTableBody.innerHTML = "";
 
+    // Determinar rol del usuario actual
+    let userRole = "alumno";
+    try {
+      const u = JSON.parse(localStorage.getItem("user"));
+      if (u && u.role) userRole = u.role;
+    } catch {}
+
+    const canEdit = userRole === "administrador" || userRole === "docente";
+
     if (!assets.length) {
       assetsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#9ca3af;">Sin activos registrados</td></tr>`;
       return;
@@ -40,19 +49,22 @@ async function loadAssets() {
       const estadoLabel = { available:"Disponible", borrowed:"Prestado", maintenance:"Mantenimiento" }[a.status] || a.status;
       const catName     = a.categories ? a.categories.name : (a.category_id || "—");
 
+      // Acciones: solo para docentes y admins
+      const acciones = canEdit
+        ? `<i class="fas fa-edit"  title="Editar"   onclick="editAsset(${a.id})"></i>
+           <i class="fas fa-trash" title="Eliminar" onclick="deleteAsset(${a.id})" style="color:#dc2626;"></i>`
+        : `<span style="color:#9ca3af;font-size:12px;">Solo lectura</span>`;
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${a.id}</td>
         <td>${a.name}</td>
         <td>${catName}</td>
-        <td>${a.serial_number}</td>
-        <td>${a.location}</td>
+        <td>${a.serial_number || "—"}</td>
+        <td>${a.location || "—"}</td>
         <td><span style="color:${estadoColor};font-weight:500;">${estadoLabel}</span></td>
         <td>${a.quantity}</td>
-        <td class="actions">
-          <i class="fas fa-edit"  title="Editar"   onclick="editAsset(${a.id})"></i>
-          <i class="fas fa-trash" title="Eliminar" onclick="deleteAsset(${a.id})" style="color:#dc2626;"></i>
-        </td>`;
+        <td class="actions">${acciones}</td>`;
       assetsTableBody.appendChild(tr);
     });
   } catch {

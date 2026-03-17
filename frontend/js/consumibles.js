@@ -5,6 +5,14 @@ let allConsumables = [];
 let categories     = [];
 let activeCategory = "";
 
+// Determinar rol una sola vez
+let currentRole = "alumno";
+try {
+  const u = JSON.parse(localStorage.getItem("user"));
+  if (u && u.role) currentRole = u.role;
+} catch {}
+const canEdit = currentRole === "administrador" || currentRole === "docente";
+
 /* INIT */
 document.addEventListener("DOMContentLoaded", async () => {
   await loadCategories();
@@ -85,6 +93,13 @@ function renderTable(data) {
     const low     = c.quantity <= c.min_quantity;
     const catName = c.categories ? c.categories.name
                   : (categories.find(x => x.id == c.category_id)?.name || "—");
+
+    // Acciones según rol
+    const acciones = canEdit
+      ? `<i class="fas fa-edit edit-btn"    title="Editar"   onclick="openEdit(${c.id})"></i>
+         <i class="fas fa-trash delete-btn" title="Eliminar" onclick="deleteConsumable(${c.id})"></i>`
+      : `<span style="color:#9ca3af;font-size:12px;">Solo lectura</span>`;
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${c.id}</td>
@@ -98,10 +113,7 @@ function renderTable(data) {
       <td>${low
         ? `<span class="badge-low"><i class="fas fa-exclamation-triangle"></i> Stock bajo</span>`
         : `<span class="badge-ok"><i class="fas fa-check"></i> OK</span>`}</td>
-      <td class="actions">
-        <i class="fas fa-edit edit-btn"    title="Editar"   onclick="openEdit(${c.id})"></i>
-        <i class="fas fa-trash delete-btn" title="Eliminar" onclick="deleteConsumable(${c.id})"></i>
-      </td>`;
+      <td class="actions">${acciones}</td>`;
     tbody.appendChild(tr);
   });
 }
