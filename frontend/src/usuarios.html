@@ -19,48 +19,54 @@ body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
 .header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
 .header h2{font-size:18px;color:#1f2a3a;}
 .header-left{display:flex;align-items:center;gap:15px;}
-
 .menu-btn{font-size:20px;cursor:pointer;color:#374151;}
 .user{display:flex;align-items:center;gap:10px;font-size:14px;}
 .user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
-.content{padding:25px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:22px;}
+.content{padding:25px;overflow-y:auto;flex:1;}
 
-/* Panel general */
-.top-bar{display:flex;justify-content:space-between;align-items:center;background:white;border-radius:10px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-.top-bar h3{font-size:15px;font-weight:600;color:#1f2a3a;}
+.panel{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;}
+.panel-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #f3f4f6;}
+.panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
+
 .btn{background:#4f46e5;color:white;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;font-family:'Poppins',sans-serif;display:inline-flex;align-items:center;gap:6px;}
 .btn:hover{background:#3730a3;}
 
-/* Secciones por rol */
-.role-section{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;}
-.role-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #f3f4f6;}
-.role-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.role-icon.admin{background:#ede9fe;color:#7c3aed;}
-.role-icon.docente{background:#e0f2fe;color:#0369a1;}
-.role-icon.alumno{background:#dcfce7;color:#15803d;}
-.role-header-text h4{font-size:14px;font-weight:600;color:#1f2a3a;margin-bottom:2px;}
-.role-header-text span{font-size:12px;color:#6b7280;}
-.role-count{margin-left:auto;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;}
-.role-count.admin{background:#ede9fe;color:#7c3aed;}
-.role-count.docente{background:#e0f2fe;color:#0369a1;}
-.role-count.alumno{background:#dcfce7;color:#15803d;}
-
+/* Tabla única */
 table{width:100%;border-collapse:collapse;font-size:13px;}
-th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 16px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
-td{padding:11px 16px;border-bottom:1px solid #f3f4f6;color:#374151;}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:#fafafa;}
+th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 20px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:12px 20px;border-bottom:1px solid #f3f4f6;color:#374151;}
+tr.data-row:last-of-type td{border-bottom:none;}
+tr.data-row:hover td{background:#fafafa;}
 
-.badge-role{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
+/* Separador de grupo */
+tr.group-header td{
+  padding:10px 20px;
+  background:#f8f9fc;
+  border-top:2px solid #e5e7eb;
+  border-bottom:1px solid #e5e7eb;
+}
+tr.group-header:first-child td{border-top:none;}
+.group-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.group-label .grp-icon{width:22px;height:22px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+.group-label.admin{color:#7c3aed;} .group-label.admin .grp-icon{background:#ede9fe;}
+.group-label.docente{color:#0369a1;} .group-label.docente .grp-icon{background:#e0f2fe;}
+.group-label.alumno{color:#15803d;} .group-label.alumno .grp-icon{background:#dcfce7;}
+.group-count{margin-left:4px;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;}
+.group-count.admin{background:#ede9fe;color:#7c3aed;}
+.group-count.docente{background:#e0f2fe;color:#0369a1;}
+.group-count.alumno{background:#dcfce7;color:#15803d;}
+
+/* Badges */
+.badge-role{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
 .badge-admin{background:#ede9fe;color:#7c3aed;}
 .badge-docente{background:#e0f2fe;color:#0369a1;}
 .badge-alumno{background:#dcfce7;color:#15803d;}
 
-.action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:5px;font-size:14px;transition:0.2s;}
+/* Acciones */
+.action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:5px;font-size:13px;transition:0.2s;}
 .action-edit{color:#4f46e5;} .action-edit:hover{background:#ede9fe;}
 .action-delete{color:#dc2626;} .action-delete:hover{background:#fee2e2;}
-
-.empty-row td{text-align:center;color:#9ca3af;padding:24px;font-size:13px;}
+.empty-row td{text-align:center;color:#9ca3af;padding:16px;font-size:13px;font-style:italic;}
 
 /* Modal */
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
@@ -114,24 +120,12 @@ tr:hover td{background:#fafafa;}
   </div>
 
   <div class="content">
-
-    <!-- Barra superior con botón -->
-    <div class="top-bar">
-      <h3>Usuarios del Sistema</h3>
-      <button class="btn" onclick="openModal()">
-        <i class="fas fa-user-plus"></i> Nuevo Usuario
-      </button>
-    </div>
-
-    <!-- ── ADMINISTRADORES ── -->
-    <div class="role-section">
-      <div class="role-header">
-        <div class="role-icon admin"><i class="fas fa-shield-alt"></i></div>
-        <div class="role-header-text">
-          <h4>Administradores</h4>
-          <span>Acceso completo al sistema</span>
-        </div>
-        <span class="role-count admin" id="countAdmin">0</span>
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Usuarios del Sistema</h3>
+        <button class="btn" onclick="openModal()">
+          <i class="fas fa-user-plus"></i> Nuevo Usuario
+        </button>
       </div>
       <table>
         <thead>
@@ -143,60 +137,11 @@ tr:hover td{background:#fafafa;}
             <th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="tbodyAdmin"></tbody>
+        <tbody id="usersTableBody"></tbody>
       </table>
     </div>
-
-    <!-- ── DOCENTES ── -->
-    <div class="role-section">
-      <div class="role-header">
-        <div class="role-icon docente"><i class="fas fa-chalkboard-teacher"></i></div>
-        <div class="role-header-text">
-          <h4>Docentes</h4>
-          <span>Gestión de reservas y solicitudes</span>
-        </div>
-        <span class="role-count docente" id="countDocente">0</span>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyDocente"></tbody>
-      </table>
-    </div>
-
-    <!-- ── ALUMNOS ── -->
-    <div class="role-section">
-      <div class="role-header">
-        <div class="role-icon alumno"><i class="fas fa-user-graduate"></i></div>
-        <div class="role-header-text">
-          <h4>Alumnos</h4>
-          <span>Consulta y solicitudes de préstamo</span>
-        </div>
-        <span class="role-count alumno" id="countAlumno">0</span>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyAlumno"></tbody>
-      </table>
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /main -->
+  </div>
+</div>
 
 <!-- MODAL -->
 <div class="modal" id="userModal">
@@ -204,7 +149,6 @@ tr:hover td{background:#fafafa;}
     <button class="modal-close" onclick="closeModal()">&times;</button>
     <h3 id="modalTitle">Nuevo Usuario</h3>
     <input type="hidden" id="userId">
-
     <div class="form-group">
       <label>Nombre de usuario *</label>
       <input type="text" id="uUsername" placeholder="Ej: Juan Pérez">
@@ -226,7 +170,6 @@ tr:hover td{background:#fafafa;}
         <option value="administrador">Administrador</option>
       </select>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
       <button class="btn" style="flex:1;justify-content:center;" onclick="saveUser()">
@@ -243,61 +186,84 @@ function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide
 
 const apiUrl = "http://localhost:3000/api/users";
 
+const ORDER = ["administrador","docente","alumno"];
+
 const roleConfig = {
-  administrador: { label:"Administrador", badge:"badge-admin",   tbody:"tbodyAdmin",   count:"countAdmin" },
-  docente:       { label:"Docente",       badge:"badge-docente", tbody:"tbodyDocente", count:"countDocente" },
-  alumno:        { label:"Alumno",        badge:"badge-alumno",  tbody:"tbodyAlumno",  count:"countAlumno" }
+  administrador: { label:"Administrador", badge:"badge-admin",   icon:"fa-shield-alt",        cls:"admin"   },
+  docente:       { label:"Docente",       badge:"badge-docente", icon:"fa-chalkboard-teacher", cls:"docente" },
+  alumno:        { label:"Alumno",        badge:"badge-alumno",  icon:"fa-user-graduate",      cls:"alumno"  }
 };
 
-/* ── CARGAR Y SEPARAR POR ROL ── */
+/* ── CARGAR ── */
 async function loadUsers() {
-  // Limpiar tablas
-  ["tbodyAdmin","tbodyDocente","tbodyAlumno"].forEach(id => {
-    document.getElementById(id).innerHTML = "";
-  });
-
+  const tbody = document.getElementById("usersTableBody");
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:30px;">
+    <i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</td></tr>`;
   try {
     const res   = await fetch(apiUrl);
     const users = await res.json();
-
-    // Separar por rol
-    const byRole = { administrador:[], docente:[], alumno:[] };
-    users.forEach(u => {
-      if (byRole[u.role]) byRole[u.role].push(u);
-    });
-
-    // Renderizar cada tabla
-    Object.entries(byRole).forEach(([role, list]) => {
-      const cfg   = roleConfig[role];
-      const tbody = document.getElementById(cfg.tbody);
-      const count = document.getElementById(cfg.count);
-      count.textContent = list.length;
-
-      if (!list.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Sin ${cfg.label.toLowerCase()}s registrados</td></tr>`;
-        return;
-      }
-      list.forEach(u => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><strong>#${u.id}</strong></td>
-          <td>${esc(u.username)}</td>
-          <td>${esc(u.email || "—")}</td>
-          <td><span class="badge-role ${cfg.badge}">${cfg.label}</span></td>
-          <td>
-            <button class="action-btn action-edit"   title="Editar"   onclick="editUser(${u.id})"><i class="fas fa-edit"></i></button>
-            <button class="action-btn action-delete" title="Eliminar" onclick="deleteUser(${u.id})"><i class="fas fa-trash"></i></button>
-          </td>`;
-        tbody.appendChild(tr);
-      });
-    });
-
+    renderTable(users);
   } catch {
-    ["tbodyAdmin","tbodyDocente","tbodyAlumno"].forEach(id => {
-      document.getElementById(id).innerHTML =
-        `<tr class="empty-row"><td colspan="5" style="color:#dc2626;">Error al conectar con el servidor</td></tr>`;
-    });
+    document.getElementById("usersTableBody").innerHTML =
+      `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px;">
+        <i class="fas fa-exclamation-circle"></i> Error al conectar con el servidor</td></tr>`;
   }
+}
+
+/* ── RENDER tabla única agrupada ── */
+function renderTable(users) {
+  const tbody = document.getElementById("usersTableBody");
+  tbody.innerHTML = "";
+
+  // Agrupar manteniendo orden de llegada dentro de cada grupo
+  const groups = { administrador:[], docente:[], alumno:[] };
+  users.forEach(u => { if (groups[u.role]) groups[u.role].push(u); });
+
+  ORDER.forEach(role => {
+    const list = groups[role];
+    const cfg  = roleConfig[role];
+
+    // Fila de encabezado de grupo
+    const sep = document.createElement("tr");
+    sep.className = "group-header";
+    sep.innerHTML = `
+      <td colspan="5">
+        <span class="group-label ${cfg.cls}">
+          <span class="grp-icon"><i class="fas ${cfg.icon}"></i></span>
+          ${cfg.label}s
+          <span class="group-count ${cfg.cls}">${list.length}</span>
+        </span>
+      </td>`;
+    tbody.appendChild(sep);
+
+    if (!list.length) {
+      const empty = document.createElement("tr");
+      empty.className = "empty-row";
+      empty.innerHTML = `<td colspan="5">Sin ${cfg.label.toLowerCase()}s registrados</td>`;
+      tbody.appendChild(empty);
+      return;
+    }
+
+    // Usuarios del grupo — el más nuevo queda al final (orden de la API)
+    list.forEach(u => {
+      const tr = document.createElement("tr");
+      tr.className = "data-row";
+      tr.innerHTML = `
+        <td><strong>#${u.id}</strong></td>
+        <td>${esc(u.username)}</td>
+        <td>${esc(u.email || "—")}</td>
+        <td><span class="badge-role ${cfg.badge}">${cfg.label}</span></td>
+        <td>
+          <button class="action-btn action-edit"   title="Editar"   onclick="editUser(${u.id})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn action-delete" title="Eliminar" onclick="deleteUser(${u.id})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  });
 }
 
 /* ── MODAL ── */
@@ -344,14 +310,9 @@ async function saveUser() {
 
   try {
     const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
     });
-    if (!res.ok) {
-      const err = await res.json();
-      showToast("Error: " + (err.message || "No se pudo guardar"), "error"); return;
-    }
+    if (!res.ok) { const err = await res.json(); showToast("Error: "+(err.message||"No se pudo guardar"), "error"); return; }
     showToast(id ? "Usuario actualizado ✅" : "Usuario creado ✅", "success");
     closeModal();
     loadUsers();
@@ -371,7 +332,7 @@ async function editUser(id) {
 async function deleteUser(id) {
   if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
   try {
-    const res = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+    const res = await fetch(`${apiUrl}/${id}`, { method:"DELETE" });
     if (!res.ok) throw new Error();
     showToast("Usuario eliminado", "success");
     loadUsers();
@@ -384,18 +345,15 @@ function esc(str) {
 }
 function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
+  t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove("show"), 3000);
 }
 document.getElementById("userModal").addEventListener("click", e => {
-  if (e.target === document.getElementById("userModal"))
-    document.getElementById("userModal").classList.remove("open");
+  if (e.target === document.getElementById("userModal")) closeModal();
 });
 
 loadUsers();
 </script>
-
 <script src="../js/common.js"></script>
 </body>
 </html>
