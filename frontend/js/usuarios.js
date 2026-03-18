@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:3000/api/users";
+const apiUrl = "/api/users";
 
 const tbody = document.querySelector("#usersTable tbody");
 

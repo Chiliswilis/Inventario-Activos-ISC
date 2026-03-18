@@ -1,5 +1,5 @@
-const apiUrl = "http://localhost:3000/api/assets";
-const catUrl = "http://localhost:3000/api/categories/assets";
+const apiUrl = "/api/assets";
+const catUrl = "/api/categories/assets";
 
 const assetsTableBody = document.getElementById("assetsTableBody");
 const assetCategory   = document.getElementById("assetCategory");
