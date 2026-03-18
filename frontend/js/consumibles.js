@@ -1,5 +1,5 @@
-const API_URL = "http://localhost:3000/api/consumibles";
-const CAT_URL = "http://localhost:3000/api/categories/consumables";
+const API_URL = "/api/consumibles";
+const CAT_URL = "/api/categories/consumables";
 
 let allConsumables = [];
 let categories     = [];

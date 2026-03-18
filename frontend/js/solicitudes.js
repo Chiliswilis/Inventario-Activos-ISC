@@ -1,7 +1,7 @@
-const API       = "http://localhost:3000/api/requests";
-const USERS_URL = "http://localhost:3000/api/users";
-const ASSETS_URL= "http://localhost:3000/api/assets";
-const CONS_URL  = "http://localhost:3000/api/consumibles";
+const API       = "/api/requests";
+const USERS_URL = "/api/users";
+const ASSETS_URL= "/api/assets";
+const CONS_URL  = "/api/consumibles";
 
 let allRequests = [];
 let allUsers    = [];

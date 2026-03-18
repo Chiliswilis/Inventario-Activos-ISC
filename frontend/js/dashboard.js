@@ -1,4 +1,4 @@
-const STATS_URL = "http://localhost:3000/api/stats";
+const STATS_URL = "/api/stats";
 
 const statusLabel = {
   available:   { text: "Disponible",    color: "#16a34a" },
