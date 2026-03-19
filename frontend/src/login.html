@@ -284,4 +284,20 @@ document.addEventListener("keydown", e => {
 </script>
 
 </body>
-</html>
+</html><style>
+@media(max-width:700px){
+  body { align-items: flex-start; padding: 0; }
+  .container { width: 100%; min-height: 100vh; border-radius: 0; flex-direction: column; }
+  .left { width: 100%; padding: 24px 20px; min-height: auto; }
+  .left img { width: 160px !important; }
+  .left h1 { font-size: 20px; }
+  .left p { font-size: 12px; }
+  .right { padding: 24px 20px; }
+  .input-row { grid-template-columns: 1fr; }
+  .footer-links { flex-direction: column; gap: 8px; align-items: center; }
+}
+@media(max-width:400px){
+  .left { padding: 20px 16px; }
+  .right { padding: 20px 16px; }
+}
+</style>

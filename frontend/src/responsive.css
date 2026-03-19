@@ -1,0 +1,102 @@
+/* ============================================
+   SGIAC-ISC | responsive.css
+   Estilos móviles compartidos para todas las páginas
+   ============================================ */
+
+/* ── OVERLAY del sidebar en móvil ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+.sidebar-overlay.show { display: block; }
+
+@media (max-width: 768px) {
+
+  /* ── BODY y LAYOUT ── */
+  body { height: auto; min-height: 100vh; overflow-x: hidden; }
+
+  /* ── SIDEBAR como drawer ── */
+  .sidebar {
+    position: fixed !important;
+    top: 0; left: 0;
+    height: 100vh !important;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 260px !important;
+    margin-left: 0 !important;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* ── MAIN ocupa todo el ancho ── */
+  .main { width: 100%; min-height: 100vh; }
+
+  /* ── HEADER ── */
+  .header { padding: 0 15px; height: 56px; }
+  .header h2 { font-size: 15px; }
+  .header-left { gap: 10px; }
+  .user span { display: none; }
+
+  /* ── CONTENT padding reducido ── */
+  .content { padding: 15px; }
+
+  /* ── PANEL HEADER apilado en móvil ── */
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  .panel-header > div { width: 100%; justify-content: flex-end; }
+
+  /* ── TABLAS con scroll horizontal ── */
+  .table-wrapper-mobile {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 6px;
+  }
+  table { min-width: 500px; font-size: 12px; }
+  th, td { padding: 8px 10px; white-space: nowrap; }
+
+  /* ── MODALES full screen en móvil ── */
+  .modal { padding: 0 !important; align-items: flex-end !important; }
+  .modal-box, .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh !important;
+    overflow-y: auto;
+    padding: 20px !important;
+  }
+
+  /* ── BOTONES más grandes para touch ── */
+  .btn, .btn-export, .btn-success, .btn-danger,
+  .btn-warning, .btn-info, .btn-cancel {
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+
+  /* ── FORM ROWS en columna ── */
+  .form-row { grid-template-columns: 1fr !important; }
+
+  /* ── FILTERS en columna ── */
+  .filters { flex-direction: column; }
+  .filters input, .filters select { width: 100%; min-width: unset !important; }
+
+  /* ── ACTIONS CELL wrap ── */
+  .actions-cell { flex-wrap: wrap; gap: 4px; }
+
+  /* ── TOAST más pequeño ── */
+  .toast { bottom: 15px; right: 15px; left: 15px; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .header h2 { font-size: 13px; }
+  .content { padding: 10px; }
+  table { font-size: 11px; }
+  th, td { padding: 6px 8px; }
+}
