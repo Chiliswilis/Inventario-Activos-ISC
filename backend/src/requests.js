@@ -162,6 +162,25 @@ router.put("/:id/return", async (req, res) => {
   res.json(data[0]);
 });
 
+/* ── ACTUALIZAR STATUS (docente envía al admin) ── */
+router.put("/:id", async (req, res) => {
+  const { status } = req.body;
+  if (!status) return res.status(400).json({ message: "status es obligatorio" });
+
+  const validStatuses = ["pending", "pending_admin", "approved", "rejected", "returned"];
+  if (!validStatuses.includes(status))
+    return res.status(400).json({ message: "status inválido" });
+
+  const { data, error } = await supabase
+    .from("requests")
+    .update({ status })
+    .eq("id", req.params.id)
+    .select("id, status");
+
+  if (error) return res.status(500).json(error);
+  res.json(data[0]);
+});
+
 /* ── ELIMINAR ── */
 router.delete("/:id", async (req, res) => {
   const { error } = await supabase.from("requests").delete().eq("id", req.params.id);
