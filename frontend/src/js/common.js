@@ -10,9 +10,9 @@ function getUserRole()  { return getUser()?.role     || "alumno"; }
 function getUsername()  { return getUser()?.username || "Usuario"; }
 
 const rolePhotos = {
-  administrador: "public/Captura de pantalla 2026-03-15 131358.png",
-  docente:       "public/Captura de pantalla 2026-03-15 131947.png",
-  alumno:        "public/Captura de pantalla 2026-03-15 132051.png"
+  administrador: "public/Captura de pantalla 2026-03-18 201833.png",
+  docente:       "public/Captura de pantalla 2026-03-15 201617.png",
+  alumno:        "public/Captura de pantalla 2026-03-18 201757.png"
 };
 
 function applyProfilePhoto() {
