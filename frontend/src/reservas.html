@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SGIAC-ISC | Reservas</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../responsive.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{display:flex;height:100vh;background:#f1f3f9;color:#374151;}
+body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
 .sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;overflow-y:auto;flex-shrink:0;}
-.sidebar.hide{margin-left:-240px;}
+
 .logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
 .menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
 .menu a i{margin-right:10px;width:20px;}
@@ -112,6 +113,7 @@ tr:hover td{background:#fafafa;}
 </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="sidebar" id="sidebar">
   <div class="logo">SGIAC-ISC</div>
@@ -376,7 +378,16 @@ tr:hover td{background:#fafafa;}
 <div class="toast" id="toast"></div>
 
 <script>
-function toggleMenu(){ document.getElementById("sidebar").classList.toggle("hide"); }
+function toggleMenu(){
+  const s=document.getElementById("sidebar");
+  const o=document.getElementById("sidebarOverlay");
+  s.classList.toggle("open");
+  o.classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
 
 const API = "/api/reservations";
 const LABS_MAP = {
