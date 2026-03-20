@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGIAC-ISC | Usuarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../responsive.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;flex-shrink:0;overflow-y:auto;}
+
+.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
+.menu a i{margin-right:10px;width:20px;}
+.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
+.header h2{font-size:18px;color:#1f2a3a;}
+.header-left{display:flex;align-items:center;gap:15px;}
+.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:14px;}
+.user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
+.content{padding:25px;overflow-y:auto;flex:1;}
+
+.panel{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;}
+.panel-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #f3f4f6;}
+.panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
+
+.btn{background:#4f46e5;color:white;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;font-family:'Poppins',sans-serif;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{background:#3730a3;}
+
+/* Tabla única */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 20px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:12px 20px;border-bottom:1px solid #f3f4f6;color:#374151;}
+tr.data-row:last-of-type td{border-bottom:none;}
+tr.data-row:hover td{background:#fafafa;}
+
+/* Separador de grupo */
+tr.group-header td{
+  padding:10px 20px;
+  background:#f8f9fc;
+  border-top:2px solid #e5e7eb;
+  border-bottom:1px solid #e5e7eb;
+}
+tr.group-header:first-child td{border-top:none;}
+.group-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.group-label .grp-icon{width:22px;height:22px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+.group-label.admin{color:#7c3aed;} .group-label.admin .grp-icon{background:#ede9fe;}
+.group-label.docente{color:#0369a1;} .group-label.docente .grp-icon{background:#e0f2fe;}
+.group-label.alumno{color:#15803d;} .group-label.alumno .grp-icon{background:#dcfce7;}
+.group-count{margin-left:4px;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;}
+.group-count.admin{background:#ede9fe;color:#7c3aed;}
+.group-count.docente{background:#e0f2fe;color:#0369a1;}
+.group-count.alumno{background:#dcfce7;color:#15803d;}
+
+/* Badges */
+.badge-role{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
+.badge-admin{background:#ede9fe;color:#7c3aed;}
+.badge-docente{background:#e0f2fe;color:#0369a1;}
+.badge-alumno{background:#dcfce7;color:#15803d;}
+
+/* Acciones */
+.action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:5px;font-size:13px;transition:0.2s;}
+.action-edit{color:#4f46e5;} .action-edit:hover{background:#ede9fe;}
+.action-delete{color:#dc2626;} .action-delete:hover{background:#fee2e2;}
+.empty-row td{text-align:center;color:#9ca3af;padding:16px;font-size:13px;font-style:italic;}
+
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+.modal.open{display:flex;}
+.modal-box{background:white;padding:28px;border-radius:12px;width:440px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);}
+.modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:20px;}
+.modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#9ca3af;background:none;border:none;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
+.form-group input,.form-group select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:0.2s;color:#374151;}
+.form-group input:focus,.form-group select:focus{border-color:#4f46e5;}
+.modal-actions{display:flex;gap:10px;margin-top:6px;}
+.btn-cancel{flex:1;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:white;color:#374151;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
+.hint{font-size:11px;color:#9ca3af;margin-top:3px;}
+
+/* Toast */
+.toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:#10b981;}
+.toast.error{background:#ef4444;}
+
+@media(max-width:768px){.sidebar{position:fixed!important;top:0;left:0;height:100vh!important;transform:translateX(-100%);z-index:999;width:260px!important;margin-left:0!important;}.sidebar.open{transform:translateX(0);}}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <img src="public/logoTsj.png" alt="Logo TSJ" style="width: 150px; height: 90px; margin: 0 auto; display: block;">
+  <div class="logo">SGIAC-ISC</div>
+  <div class="menu">
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+    <a href="usuarios.html" class="active"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="header">
+    <div class="header-left">
+      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+      <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+    </div>
+    <div class="user">
+      <img src="https://i.pravatar.cc/40" alt="Avatar">
+      <span id="username">Cargando...</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Usuarios del Sistema</h3>
+        <button class="btn" onclick="openModal()">
+          <i class="fas fa-user-plus"></i> Nuevo Usuario
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="userModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3 id="modalTitle">Nuevo Usuario</h3>
+    <input type="hidden" id="userId">
+    <div class="form-group">
+      <label>Nombre de usuario *</label>
+      <input type="text" id="uUsername" placeholder="Ej: Juan Pérez">
+    </div>
+    <div class="form-group">
+      <label>Correo electrónico *</label>
+      <input type="email" id="uEmail" placeholder="correo@ejemplo.com">
+    </div>
+    <div class="form-group">
+      <label>Contraseña *</label>
+      <input type="password" id="uPassword" placeholder="Mínimo 6 caracteres">
+      <p class="hint" id="passHint" style="display:none;">Dejar vacío para no cambiar la contraseña actual</p>
+    </div>
+    <div class="form-group">
+      <label>Rol *</label>
+      <select id="uRole">
+        <option value="alumno">Alumno</option>
+        <option value="docente">Docente</option>
+        <option value="administrador">Administrador</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn" style="flex:1;justify-content:center;" onclick="saveUser()">
+        <i class="fas fa-save"></i> Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toggleMenu(){
+  const s=document.getElementById("sidebar");
+  const o=document.getElementById("sidebarOverlay");
+  s.classList.toggle("open");
+  o.classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+
+const apiUrl = "http://localhost:3000/api/users";
+
+const ORDER = ["administrador","docente","alumno"];
+
+const roleConfig = {
+  administrador: { label:"Administrador", badge:"badge-admin",   icon:"fa-shield-alt",        cls:"admin"   },
+  docente:       { label:"Docente",       badge:"badge-docente", icon:"fa-chalkboard-teacher", cls:"docente" },
+  alumno:        { label:"Alumno",        badge:"badge-alumno",  icon:"fa-user-graduate",      cls:"alumno"  }
+};
+
+/* ── CARGAR ── */
+async function loadUsers() {
+  const tbody = document.getElementById("usersTableBody");
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:30px;">
+    <i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</td></tr>`;
+  try {
+    const res   = await fetch(apiUrl);
+    const users = await res.json();
+    renderTable(users);
+  } catch {
+    document.getElementById("usersTableBody").innerHTML =
+      `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px;">
+        <i class="fas fa-exclamation-circle"></i> Error al conectar con el servidor</td></tr>`;
+  }
+}
+
+/* ── RENDER tabla única agrupada ── */
+function renderTable(users) {
+  const tbody = document.getElementById("usersTableBody");
+  tbody.innerHTML = "";
+
+  // Agrupar manteniendo orden de llegada dentro de cada grupo
+  const groups = { administrador:[], docente:[], alumno:[] };
+  users.forEach(u => { if (groups[u.role]) groups[u.role].push(u); });
+
+  ORDER.forEach(role => {
+    const list = groups[role];
+    const cfg  = roleConfig[role];
+
+    // Fila de encabezado de grupo
+    const sep = document.createElement("tr");
+    sep.className = "group-header";
+    sep.innerHTML = `
+      <td colspan="5">
+        <span class="group-label ${cfg.cls}">
+          <span class="grp-icon"><i class="fas ${cfg.icon}"></i></span>
+          ${cfg.label}s
+          <span class="group-count ${cfg.cls}">${list.length}</span>
+        </span>
+      </td>`;
+    tbody.appendChild(sep);
+
+    if (!list.length) {
+      const empty = document.createElement("tr");
+      empty.className = "empty-row";
+      empty.innerHTML = `<td colspan="5">Sin ${cfg.label.toLowerCase()}s registrados</td>`;
+      tbody.appendChild(empty);
+      return;
+    }
+
+    // Usuarios del grupo — el más nuevo queda al final (orden de la API)
+    list.forEach(u => {
+      const tr = document.createElement("tr");
+      tr.className = "data-row";
+      tr.innerHTML = `
+        <td><strong>#${u.id}</strong></td>
+        <td>${esc(u.username)}</td>
+        <td>${esc(u.email || "—")}</td>
+        <td><span class="badge-role ${cfg.badge}">${cfg.label}</span></td>
+        <td>
+          <button class="action-btn action-edit"   title="Editar"   onclick="editUser(${u.id})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn action-delete" title="Eliminar" onclick="deleteUser(${u.id})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+/* ── MODAL ── */
+function openModal(mode = "add", user = null) {
+  document.getElementById("userId").value    = "";
+  document.getElementById("uUsername").value = "";
+  document.getElementById("uEmail").value    = "";
+  document.getElementById("uPassword").value = "";
+  document.getElementById("uRole").value     = "alumno";
+  document.getElementById("passHint").style.display = "none";
+
+  if (mode === "edit" && user) {
+    document.getElementById("modalTitle").textContent = "Editar Usuario";
+    document.getElementById("userId").value           = user.id;
+    document.getElementById("uUsername").value        = user.username;
+    document.getElementById("uEmail").value           = user.email || "";
+    document.getElementById("uRole").value            = user.role;
+    document.getElementById("passHint").style.display = "block";
+  } else {
+    document.getElementById("modalTitle").textContent = "Nuevo Usuario";
+  }
+  document.getElementById("userModal").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("userModal").classList.remove("open");
+}
+
+/* ── GUARDAR ── */
+async function saveUser() {
+  const id       = document.getElementById("userId").value;
+  const username = document.getElementById("uUsername").value.trim();
+  const email    = document.getElementById("uEmail").value.trim();
+  const password = document.getElementById("uPassword").value;
+  const role     = document.getElementById("uRole").value;
+
+  if (!username || !email) { showToast("Nombre y correo son obligatorios", "error"); return; }
+  if (!id && !password)    { showToast("La contraseña es obligatoria para nuevos usuarios", "error"); return; }
+  if (password && password.length < 6) { showToast("La contraseña debe tener al menos 6 caracteres", "error"); return; }
+
+  const body   = { username, email, password, role };
+  const url    = id ? `${apiUrl}/${id}` : apiUrl;
+  const method = id ? "PUT" : "POST";
+
+  try {
+    const res = await fetch(url, {
+      method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
+    });
+    if (!res.ok) { const err = await res.json(); showToast("Error: "+(err.message||"No se pudo guardar"), "error"); return; }
+    showToast(id ? "Usuario actualizado ✅" : "Usuario creado ✅", "success");
+    closeModal();
+    loadUsers();
+  } catch { showToast("No se pudo conectar con el servidor", "error"); }
+}
+
+/* ── EDITAR ── */
+async function editUser(id) {
+  try {
+    const res  = await fetch(`${apiUrl}/${id}`);
+    const user = await res.json();
+    openModal("edit", user);
+  } catch { showToast("No se pudo cargar el usuario", "error"); }
+}
+
+/* ── ELIMINAR ── */
+async function deleteUser(id) {
+  if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
+  try {
+    const res = await fetch(`${apiUrl}/${id}`, { method:"DELETE" });
+    if (!res.ok) throw new Error();
+    showToast("Usuario eliminado", "success");
+    loadUsers();
+  } catch { showToast("No se pudo eliminar el usuario", "error"); }
+}
+
+/* ── UTILS ── */
+function esc(str) {
+  return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+document.getElementById("userModal").addEventListener("click", e => {
+  if (e.target === document.getElementById("userModal")) closeModal();
+});
+
+loadUsers();
+</script>
+<script src="../js/common.js"></script>
+</body>
+</html>

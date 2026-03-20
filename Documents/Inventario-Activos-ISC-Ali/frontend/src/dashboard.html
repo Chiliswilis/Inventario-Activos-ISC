@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGIAC-ISC | Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../responsive.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;flex-shrink:0;}
+
+.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
+.menu a i{margin-right:10px;width:20px;}
+.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
+.header h2{font-size:18px;color:#1f2a3a;}
+.header-left{display:flex;align-items:center;gap:15px;}
+.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:14px;color:#374151;}
+.user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
+
+/* CONTENT */
+.content{padding:25px;overflow-y:auto;flex:1;}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:25px;}
+.card{background:white;padding:20px 22px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;border-left:4px solid #4f46e5;}
+.card-info h3{font-size:28px;font-weight:600;color:#1f2a3a;margin-bottom:4px;}
+.card-info p{font-size:13px;color:#6b7280;}
+.card-icon{width:48px;height:48px;background:#ede9fe;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.card-icon i{font-size:20px;color:#4f46e5;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;}
+
+/* PANEL */
+.panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.panel-title{font-size:15px;font-weight:600;color:#1f2a3a;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
+
+/* ACTIVITY */
+.activity-item{padding:11px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;line-height:1.5;}
+.activity-item:last-child{border-bottom:none;}
+.activity-item .time{font-size:11px;color:#9ca3af;margin-top:3px;}
+
+/* LOADING */
+.loading-row td{text-align:center;color:#9ca3af;padding:30px;}
+
+/* RESPONSIVE */
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+@media(max-width:768px){.sidebar{position:fixed!important;top:0;left:0;height:100vh!important;transform:translateX(-100%);z-index:999;width:260px!important;margin-left:0!important;}.sidebar.open{transform:translateX(0);}.cards{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar" id="sidebar">
+  <img src="public/logoTsj.png" alt="Logo TSJ" style="width: 150px; height: 90px; margin: 0 auto; display: block;">
+  <div class="logo">SGIAC-ISC</div>
+  <div class="menu">
+    <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="reservas.html"><i class="fas fa-calendar"></i> Reservas</a>
+    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
+</div>
+
+
+<!-- MAIN -->
+
+<div class="main">
+
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+      <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+    </div>
+    <div class="user">
+      <img src="../public/Captura de pantalla 2026-03-15 131358.png" alt="Avatar">
+      <span id="username">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- CARDS -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardAssets">—</h3>
+          <p>Activos Totales</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-box"></i></div>
+      </div>
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardConsumables">—</h3>
+          <p>Consumibles</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-flask"></i></div>
+      </div>
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardRequests">—</h3>
+          <p>Solicitudes Pendientes</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+      </div>
+      <div class="card">
+        <div class="card-info">
+          <h3 id="cardReservations">—</h3>
+          <p>Reservas Hoy</p>
+        </div>
+        <div class="card-icon"><i class="fas fa-calendar"></i></div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+
+      <!-- ÚLTIMOS MOVIMIENTOS -->
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-exchange-alt" style="color:#4f46e5;margin-right:8px;"></i>Últimos Movimientos</div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Activo</th>
+              <th>Usuario</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="movementsBody">
+            <tr class="loading-row"><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ACTIVIDAD RECIENTE -->
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-bell" style="color:#4f46e5;margin-right:8px;"></i>Actividad Reciente</div>
+        <div id="activityContainer">
+          <div class="activity-item" style="color:#9ca3af;">Cargando...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+function toggleMenu(){
+  const s=document.getElementById("sidebar");
+  const o=document.getElementById("sidebarOverlay");
+  s.classList.toggle("open");
+  o.classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+</script>
+
+<script src="../js/dashboard.js"></script>
+<script src="../js/common.js"></script>
+</body>
+</html><style>
+@media(max-width:768px){
+  .cards { grid-template-columns: 1fr 1fr !important; gap: 12px; }
+  .grid { grid-template-columns: 1fr !important; gap: 14px; }
+  .card { padding: 14px 16px; }
+  .card-info h3 { font-size: 22px; }
+  .card-icon { width: 38px; height: 38px; }
+  .card-icon i { font-size: 16px; }
+  .panel { padding: 14px; }
+  .table-wrapper-mobile { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 400px; }
+}
+@media(max-width:400px){
+  .cards { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+  .card-info h3 { font-size: 18px; }
+}
+</style>

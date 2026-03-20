@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGIAC-ISC | Configuración</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../responsive.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
+.sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;flex-shrink:0;overflow-y:auto;}
+
+.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
+.menu a i{margin-right:10px;width:20px;}
+.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
+.header h2{font-size:18px;color:#1f2a3a;}
+.header-left{display:flex;align-items:center;gap:15px;}
+.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:14px;}
+.user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
+
+/* Layout de dos columnas */
+.content{padding:25px;overflow-y:auto;flex:1;}
+.config-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;min-height:100%;}
+
+/* Nav lateral de secciones */
+.config-nav{background:white;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);height:fit-content;position:sticky;top:0;}
+.config-nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:#6b7280;transition:0.2s;margin-bottom:2px;}
+.config-nav-item:hover{background:#f3f4f6;color:#374151;}
+.config-nav-item.active{background:#ede9fe;color:#7c3aed;font-weight:500;}
+.config-nav-item i{width:16px;text-align:center;font-size:14px;}
+.config-nav-divider{height:1px;background:#f3f4f6;margin:8px 0;}
+
+/* Paneles de contenido */
+.config-panels{display:flex;flex-direction:column;gap:18px;}
+.config-section{background:white;border-radius:10px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.config-section-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #f3f4f6;}
+.config-section-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.config-section-icon.purple{background:#ede9fe;color:#7c3aed;}
+.config-section-icon.blue{background:#dbeafe;color:#1d4ed8;}
+.config-section-icon.green{background:#dcfce7;color:#15803d;}
+.config-section-icon.red{background:#fee2e2;color:#dc2626;}
+.config-section-icon.orange{background:#ffedd5;color:#c2410c;}
+.config-section-icon.gray{background:#f3f4f6;color:#374151;}
+.config-section-header h3{font-size:15px;font-weight:600;color:#1f2a3a;margin-bottom:1px;}
+.config-section-header p{font-size:12px;color:#6b7280;}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{margin-bottom:0;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
+.form-group label span{color:#9ca3af;font-weight:400;font-size:12px;margin-left:4px;}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:7px;
+  font-size:14px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);
+}
+.form-group input[readonly]{background:#f8f9fc;color:#6b7280;cursor:default;}
+.form-group textarea{resize:none;height:70px;}
+
+/* Toggle switch */
+.toggle-group{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3f4f6;}
+.toggle-group:last-child{border-bottom:none;padding-bottom:0;}
+.toggle-info h4{font-size:13px;font-weight:500;color:#374151;margin-bottom:2px;}
+.toggle-info p{font-size:12px;color:#6b7280;}
+.toggle{position:relative;width:42px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#d1d5db;border-radius:24px;transition:0.3s;}
+.toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;}
+.toggle input:checked + .toggle-slider{background:#4f46e5;}
+.toggle input:checked + .toggle-slider:before{transform:translateX(18px);}
+
+/* Badges de estado */
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:500;}
+.status-ok{background:#dcfce7;color:#15803d;}
+.status-warning{background:#fef9c3;color:#a16207;}
+.status-error{background:#fee2e2;color:#dc2626;}
+
+/* DB info */
+.db-info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.db-field{background:#f8f9fc;border-radius:7px;padding:12px;}
+.db-field label{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;}
+.db-field span{font-size:13px;color:#374151;font-weight:500;}
+
+/* Roles info */
+.roles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.role-card{border-radius:8px;padding:14px;border:1px solid #f3f4f6;}
+.role-card.admin{background:#faf5ff;border-color:#e9d5ff;}
+.role-card.docente{background:#eff6ff;border-color:#bfdbfe;}
+.role-card.alumno{background:#f0fdf4;border-color:#bbf7d0;}
+.role-card h4{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.role-card.admin h4{color:#7c3aed;}
+.role-card.docente h4{color:#1d4ed8;}
+.role-card.alumno h4{color:#15803d;}
+.role-card ul{list-style:none;padding:0;}
+.role-card ul li{font-size:11px;color:#6b7280;padding:2px 0;display:flex;align-items:center;gap:5px;}
+.role-card ul li::before{content:"✓";font-size:10px;}
+.role-card.admin ul li::before{color:#7c3aed;}
+.role-card.docente ul li::before{color:#1d4ed8;}
+.role-card.alumno ul li::before{color:#15803d;}
+
+/* Labs tabla */
+.labs-table{width:100%;border-collapse:collapse;font-size:13px;}
+.labs-table th{background:#f8f9fc;color:#6b7280;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;}
+.labs-table td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#374151;}
+.labs-table tr:last-child td{border-bottom:none;}
+
+/* Botones */
+.btn{background:#4f46e5;color:white;border:none;padding:9px 18px;border-radius:7px;cursor:pointer;font-size:14px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{background:#3730a3;}
+.btn-secondary{background:#f3f4f6;color:#374151;border:none;padding:9px 18px;border-radius:7px;cursor:pointer;font-size:14px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-secondary:hover{background:#e5e7eb;}
+.btn-danger{background:#fee2e2;color:#dc2626;border:none;padding:9px 18px;border-radius:7px;cursor:pointer;font-size:14px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-danger:hover{background:#dc2626;color:white;}
+.btn-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+
+/* Toast */
+.toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:#10b981;}
+.toast.error{background:#ef4444;}
+.toast.info{background:#0891b2;}
+
+@media(max-width:900px){
+  .config-layout{grid-template-columns:1fr;}
+  .config-nav{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .roles-grid{grid-template-columns:1fr;}
+  .db-info{grid-template-columns:1fr;}
+}
+@media(max-width:768px){.sidebar{position:fixed!important;top:0;left:0;height:100vh!important;transform:translateX(-100%);z-index:999;width:260px!important;margin-left:0!important;}.sidebar.open{transform:translateX(0);}}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+    <img src="public/logoTsj.png" alt="Logo TSJ" style="width: 150px; height: 90px; margin: 0 auto; display: block;">
+  <div class="logo">SGIAC-ISC</div>
+  <div class="menu">
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a class="active" href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="header">
+    <div class="header-left">
+      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+      <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
+    </div>
+    <div class="user">
+      <img src="https://i.pravatar.cc/40" alt="Avatar">
+      <span id="username">Cargando...</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="config-layout">
+
+      <!-- Nav lateral -->
+      <div class="config-nav">
+        <div class="config-nav-item active" onclick="scrollTo('secGeneral')">
+          <i class="fas fa-sliders-h"></i> General
+        </div>
+        <div class="config-nav-item" onclick="scrollTo('secBD')">
+          <i class="fas fa-database"></i> Base de Datos
+        </div>
+        <div class="config-nav-item" onclick="scrollTo('secLabs')">
+          <i class="fas fa-flask"></i> Laboratorios
+        </div>
+        <div class="config-nav-divider"></div>
+        <div class="config-nav-item" onclick="scrollTo('secRoles')">
+          <i class="fas fa-user-shield"></i> Roles y Permisos
+        </div>
+        <div class="config-nav-item" onclick="scrollTo('secNotif')">
+          <i class="fas fa-bell"></i> Notificaciones
+        </div>
+        <div class="config-nav-divider"></div>
+        <div class="config-nav-item" onclick="scrollTo('secSistema')">
+          <i class="fas fa-info-circle"></i> Información
+        </div>
+      </div>
+
+      <!-- Paneles -->
+      <div class="config-panels">
+
+        <!-- ── GENERAL ── -->
+        <div class="config-section" id="secGeneral">
+          <div class="config-section-header">
+            <div class="config-section-icon purple"><i class="fas fa-sliders-h"></i></div>
+            <div>
+              <h3>Configuración General</h3>
+              <p>Ajustes principales del sistema SGIAC-ISC</p>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre del Sistema</label>
+              <input type="text" id="cfgNombre" value="SGIAC-ISC">
+            </div>
+            <div class="form-group">
+              <label>Institución</label>
+              <input type="text" id="cfgInstitucion" value="TecMM Campus La Huerta">
+            </div>
+            <div class="form-group">
+              <label>Máximo de reservas activas <span>por alumno</span></label>
+              <input type="number" id="cfgMaxReservas" value="3" min="1" max="10">
+            </div>
+            <div class="form-group">
+              <label>Tiempo mínimo de reserva <span>en horas</span></label>
+              <input type="number" id="cfgMinHoras" value="1" min="1">
+            </div>
+            <div class="form-group full">
+              <label>Descripción / Misión del sistema</label>
+              <textarea id="cfgDescripcion">Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.</textarea>
+            </div>
+          </div>
+          <div class="btn-actions">
+            <button class="btn" onclick="saveGeneral()"><i class="fas fa-save"></i> Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- ── BASE DE DATOS ── -->
+        <div class="config-section" id="secBD">
+          <div class="config-section-header">
+            <div class="config-section-icon blue"><i class="fas fa-database"></i></div>
+            <div>
+              <h3>Base de Datos</h3>
+              <p>Conexión a Supabase PostgreSQL</p>
+            </div>
+          </div>
+          <div class="db-info">
+            <div class="db-field">
+              <label>Proveedor</label>
+              <span>Supabase (PostgreSQL)</span>
+            </div>
+            <div class="db-field">
+              <label>Estado</label>
+              <span id="dbStatus"><span class="status-badge status-warning"><i class="fas fa-circle"></i> Sin verificar</span></span>
+            </div>
+            <div class="db-field">
+              <label>Proyecto URL</label>
+              <span style="font-size:12px;word-break:break-all;">Configurado en .env</span>
+            </div>
+            <div class="db-field">
+              <label>Tablas activas</label>
+              <span>users · assets · consumables · requests · reservations · logs · categories</span>
+            </div>
+          </div>
+          <div class="btn-actions">
+            <button class="btn-secondary" onclick="testConnection()"><i class="fas fa-plug"></i> Probar conexión</button>
+          </div>
+        </div>
+
+        <!-- ── LABORATORIOS ── -->
+        <div class="config-section" id="secLabs">
+          <div class="config-section-header">
+            <div class="config-section-icon green"><i class="fas fa-flask"></i></div>
+            <div>
+              <h3>Laboratorios Registrados</h3>
+              <p>Espacios disponibles para reserva</p>
+            </div>
+          </div>
+          <table class="labs-table">
+            <thead>
+              <tr>
+                <th>Edificio</th>
+                <th>Laboratorio</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Edificio A</strong></td>
+                <td>Laboratorio de Ciencias Básicas</td>
+                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>Edificio A</strong></td>
+                <td>Laboratorio A</td>
+                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>Edificio B</strong></td>
+                <td>Laboratorio A</td>
+                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>Edificio B</strong></td>
+                <td>Laboratorio B</td>
+                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px;color:#9ca3af;margin-top:12px;">
+            <i class="fas fa-info-circle"></i> Para agregar nuevos laboratorios, contacta al administrador del sistema o edita el backend.
+          </p>
+        </div>
+
+        <!-- ── ROLES Y PERMISOS ── -->
+        <div class="config-section" id="secRoles">
+          <div class="config-section-header">
+            <div class="config-section-icon orange"><i class="fas fa-user-shield"></i></div>
+            <div>
+              <h3>Roles y Permisos</h3>
+              <p>Acceso y capacidades por rol en el sistema</p>
+            </div>
+          </div>
+          <div class="roles-grid">
+            <div class="role-card admin">
+              <h4><i class="fas fa-shield-alt"></i> Administrador</h4>
+              <ul>
+                <li>Ver y gestionar todos los módulos</li>
+                <li>Crear/editar/eliminar usuarios</li>
+                <li>Agregar activos y consumibles</li>
+                <li>Aprobar y rechazar solicitudes</li>
+                <li>Generar reportes y exportar</li>
+                <li>Configurar el sistema</li>
+              </ul>
+            </div>
+            <div class="role-card docente">
+              <h4><i class="fas fa-chalkboard-teacher"></i> Docente</h4>
+              <ul>
+                <li>Ver activos y consumibles</li>
+                <li>Aprobar reservas de alumnos</li>
+                <li>Llenar bitácora de entrada/salida</li>
+                <li>Gestionar solicitudes asignadas</li>
+              </ul>
+            </div>
+            <div class="role-card alumno">
+              <h4><i class="fas fa-user-graduate"></i> Alumno</h4>
+              <ul>
+                <li>Ver activos y consumibles</li>
+                <li>Crear solicitudes de préstamo</li>
+                <li>Solicitar reservas de laboratorio</li>
+                <li>Ver estado de sus solicitudes</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── NOTIFICACIONES ── -->
+        <div class="config-section" id="secNotif">
+          <div class="config-section-header">
+            <div class="config-section-icon gray"><i class="fas fa-bell"></i></div>
+            <div>
+              <h3>Notificaciones</h3>
+              <p>Configurar alertas y avisos del sistema</p>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Email de notificaciones</label>
+            <input type="email" id="cfgEmail" value="adminWilly@gmail.com">
+          </div>
+
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <h4>Alerta de stock bajo</h4>
+              <p>Notificar cuando un consumible llegue al mínimo</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="togStock" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <h4>Nueva solicitud pendiente</h4>
+              <p>Avisar al docente cuando un alumno solicite algo</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="togSolicitud" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <h4>Reserva aprobada</h4>
+              <p>Notificar al alumno cuando su reserva sea aprobada</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="togReserva" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <h4>Registro de actividad (logs)</h4>
+              <p>Guardar en bitácora todas las acciones del sistema</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="togLogs" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="btn-actions">
+            <button class="btn" onclick="saveNotif()"><i class="fas fa-save"></i> Guardar preferencias</button>
+          </div>
+        </div>
+
+        <!-- ── INFORMACIÓN DEL SISTEMA ── -->
+        <div class="config-section" id="secSistema">
+          <div class="config-section-header">
+            <div class="config-section-icon gray"><i class="fas fa-info-circle"></i></div>
+            <div>
+              <h3>Información del Sistema</h3>
+              <p>Versión y datos técnicos</p>
+            </div>
+          </div>
+          <div class="db-info">
+            <div class="db-field">
+              <label>Versión</label>
+              <span>SGIAC-ISC v1.0</span>
+            </div>
+            <div class="db-field">
+              <label>Backend</label>
+              <span>Node.js + Express</span>
+            </div>
+            <div class="db-field">
+              <label>Base de datos</label>
+              <span>Supabase (PostgreSQL 15)</span>
+            </div>
+            <div class="db-field">
+              <label>Frontend</label>
+              <span>HTML · CSS · JavaScript</span>
+            </div>
+            <div class="db-field">
+              <label>Desarrollado por</label>
+              <span>Equipo ISC — TecMM La Huerta</span>
+            </div>
+            <div class="db-field">
+              <label>Ciclo escolar</label>
+              <span>2025–2026</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /config-panels -->
+    </div><!-- /config-layout -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toggleMenu(){
+  const s=document.getElementById("sidebar");
+  const o=document.getElementById("sidebarOverlay");
+  s.classList.toggle("open");
+  o.classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.querySelectorAll(".config-nav-item").forEach(el => el.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+}
+
+function saveGeneral() {
+  showToast("Configuración general guardada ✅", "success");
+}
+
+function saveNotif() {
+  showToast("Preferencias de notificaciones guardadas ✅", "success");
+}
+
+async function testConnection() {
+  showToast("Probando conexión...", "info");
+  try {
+    const res = await fetch("http://localhost:3000/api/users");
+    if (res.ok) {
+      document.getElementById("dbStatus").innerHTML =
+        `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
+      showToast("Conexión exitosa a Supabase ✅", "success");
+    } else {
+      throw new Error();
+    }
+  } catch {
+    document.getElementById("dbStatus").innerHTML =
+      `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
+    showToast("No se pudo conectar al servidor", "error");
+  }
+}
+
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+</script>
+<script src="../js/common.js"></script>
+</body>
+</html><style>
+@media(max-width:768px){
+  .config-layout { grid-template-columns: 1fr !important; }
+  .config-nav { display: none; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .roles-grid { grid-template-columns: 1fr !important; }
+  .db-info { grid-template-columns: 1fr !important; }
+  .btn-actions { flex-direction: column; }
+  .config-section { padding: 16px; }
+}
+</style>
