@@ -1,61 +1,79 @@
-const API       = "/api/requests";
-const USERS_URL = "/api/users";
-const ASSETS_URL= "/api/assets";
-const CONS_URL  = "/api/consumibles";
+// ============================================================
+// SGIAC-ISC | solicitudes.js  (v3)
+// ============================================================
 
-let allRequests = [];
-let allUsers    = [];
-let currentUser = null;
+const API        = "/api/requests";
+const USERS_URL  = "/api/users";
+const ASSETS_URL = "/api/assets";
+const CONS_URL   = "/api/consumibles";
+const LABS_URL   = "/api/labs";
+
+let allRequests  = [];
+let allUsers     = [];
+let allAssets    = [];
+let allCons      = [];
+let allLabs      = [];
+let currentUser  = null;
+
+// For the new request modal
+let itemRows     = [];   // [{rowId, type, itemId, qty}]
+let rowCounter   = 0;
 
 const statusMap = {
-  pending:          { text:"Pendiente",         cls:"badge-pending",  icon:"fa-clock"        },
-  pending_admin:    { text:"Enviada al Admin",   cls:"badge-info",     icon:"fa-paper-plane"  },
-  approved:         { text:"Aprobada",           cls:"badge-approved", icon:"fa-check-circle" },
-  rejected:         { text:"Rechazada",          cls:"badge-rejected", icon:"fa-times-circle" },
-  returned:         { text:"Devuelta",           cls:"badge-returned", icon:"fa-undo"         }
+  pending:       { text:"Pendiente",        cls:"badge-pending",  icon:"fa-clock"        },
+  pending_admin: { text:"Enviada al Admin", cls:"badge-info",     icon:"fa-paper-plane"  },
+  approved:      { text:"Aprobada",         cls:"badge-approved", icon:"fa-check-circle" },
+  rejected:      { text:"Rechazada",        cls:"badge-rejected", icon:"fa-times-circle" },
+  returned:      { text:"Devuelta",         cls:"badge-returned", icon:"fa-undo"         }
 };
 
+// ── INIT ──────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  await loadUsers();
+  await Promise.all([loadUsers(), loadAssets(), loadCons(), loadLabs()]);
   await loadRequests();
-  await loadItemsByType();
 });
 
-/* ── CARGAR USUARIOS ── */
-async function loadUsers() {
-  try {
-    const res = await fetch(USERS_URL);
-    allUsers  = await res.json();
-  } catch {}
-}
+// ── CATÁLOGOS ─────────────────────────────────────────────────
+async function loadUsers()  { try { const r = await fetch(USERS_URL);  allUsers  = await r.json(); } catch {} }
+async function loadAssets() { try { const r = await fetch(ASSETS_URL); allAssets = await r.json(); } catch {} }
+async function loadCons()   { try { const r = await fetch(CONS_URL);   allCons   = await r.json(); } catch {} }
+async function loadLabs()   { try { const r = await fetch(LABS_URL);   allLabs   = await r.json(); } catch {} }
 
-/* ── LISTAR ── */
+// ── LISTAR ───────────────────────────────────────────────────
 async function loadRequests() {
   showLoading();
   try {
-    const res = await fetch(API);
+    const res  = await fetch(API);
     if (!res.ok) throw new Error();
-    let data = await res.json();
+    let data   = await res.json();
 
-    // Filtrar según rol
     if (currentUser.role === "alumno") {
       data = data.filter(r => String(r.user_id) === String(currentUser.id));
     } else if (currentUser.role === "docente") {
-      // Docente ve las que le enviaron sus alumnos (docente_id = él)
-      // y las que ya envió al admin
       data = data.filter(r => String(r.docente_id) === String(currentUser.id));
     }
-    // Admin ve todas
 
     allRequests = data;
-    renderTable(data);
-  } catch {
-    showError("No se pudieron cargar las solicitudes");
-  }
+    applyFilters();
+  } catch { showError("No se pudieron cargar las solicitudes"); }
 }
 
-/* ── RENDER ── */
+// ── FILTROS ──────────────────────────────────────────────────
+function applyFilters() {
+  const st      = document.getElementById("filterStatus")?.value || "";
+  const type    = document.getElementById("filterType")?.value   || "";
+  const search  = (document.getElementById("searchAlumno")?.value || "").toLowerCase().trim();
+
+  let data = [...allRequests];
+  if (st)     data = data.filter(r => r.status === st);
+  if (type)   data = data.filter(r => r.request_type === type);
+  if (search) data = data.filter(r => (r.users?.username || "").toLowerCase().includes(search));
+
+  renderTable(data);
+}
+
+// ── TABLA ─────────────────────────────────────────────────────
 function renderTable(data) {
   const wrap = document.getElementById("tableWrapper");
   if (!data.length) {
@@ -63,99 +81,453 @@ function renderTable(data) {
     return;
   }
 
-  wrap.innerHTML = `
-    <table>
-      <thead><tr>
-        <th>ID</th><th>Solicitante</th><th>Docente</th><th>Ítem</th>
-        <th>Tipo</th><th>Cant.</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
-      </tr></thead>
-      <tbody id="reqBody"></tbody>
-    </table>`;
+  const role = currentUser.role;
 
-  const tbody = document.getElementById("reqBody");
-  data.forEach(r => {
+  const rows = data.map(r => {
     const st      = statusMap[r.status] || { text: r.status, cls:"badge-pending", icon:"fa-clock" };
     const usuario = r.users?.username   || "—";
     const docente = r.docente?.username || "—";
-    const item    = r.assets?.name || r.consumables?.name || "—";
-    const tipo    = r.request_type === "consumable" ? "Consumible" : "Activo";
-    const fecha   = r.request_date ? new Date(r.request_date).toLocaleDateString("es-MX") : "—";
-    const role    = currentUser.role;
+    const fecha   = r.request_date ? new Date(r.request_date).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}) : "—";
 
+    // Ítems (multi o legacy)
+    let itemText = "—";
+    if (r.request_items?.length) {
+      itemText = r.request_items.map(it => {
+        const n = it.assets?.name || it.consumables?.name || "Ítem";
+        return `${n} ×${it.quantity}`;
+      }).join(", ");
+    } else if (r.assets)      itemText = r.assets.name;
+    else if (r.consumables)  itemText = r.consumables.name;
+
+    const typeLabel = { asset:"Activo", consumable:"Consumible", laboratorio:"Laboratorio" }[r.request_type] || r.request_type;
+    const typeCls   = { asset:"background:#f0fdf4;color:#15803d", consumable:"background:#fef9c3;color:#a16207", laboratorio:"background:#ede9fe;color:#7c3aed" }[r.request_type] || "";
+
+    // Rechazo
+    let rejInfo = "";
+    if (r.status === "rejected" && r.rejected_reason) {
+      rejInfo = `<br><small style="color:#dc2626;font-size:11px;"><i class="fas fa-times-circle"></i> ${r.rejected_reason}</small>`;
+      if (r.rejected_at) rejInfo += `<br><small style="color:#9ca3af;font-size:10px;">${new Date(r.rejected_at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"})}</small>`;
+    }
+
+    // Acciones
     let acciones = "";
 
-    // DOCENTE: puede enviar al admin las que están pendientes dirigidas a él
+    // Docente: enviar al admin (sus solicitudes pendientes)
     if (role === "docente" && r.status === "pending") {
-      acciones += `
-        <button class="action-btn action-approve" title="Enviar al Administrador" onclick="sendToAdmin(${r.id})">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-        <button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})">
-          <i class="fas fa-times"></i>
-        </button>`;
+      acciones += `<button class="action-btn action-send" title="Enviar al Administrador" onclick="sendToAdmin(${r.id})"><i class="fas fa-paper-plane"></i></button>`;
+      acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
 
-    // ADMIN: puede aprobar/rechazar las que el docente envió
+    // Admin: aprobar/rechazar las pending_admin
     if (role === "administrador" && r.status === "pending_admin") {
-      acciones += `
-        <button class="action-btn action-approve" title="Aprobar con fecha" onclick="openApproveModal(${r.id})">
-          <i class="fas fa-check"></i>
-        </button>
-        <button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})">
-          <i class="fas fa-times"></i>
-        </button>`;
+      acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
+      acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
 
-    // DOCENTE: puede registrar devolución de las aprobadas
-    if (role === "docente" && r.status === "approved") {
-      acciones += `
-        <button class="action-btn action-return" title="Registrar devolución" onclick="openReturnModal(${r.id})">
-          <i class="fas fa-undo"></i>
-        </button>`;
+    // Docente/Admin: devolución en aprobadas
+    if ((role === "docente" || role === "administrador") && r.status === "approved") {
+      acciones += `<button class="action-btn action-return" title="Registrar devolución" onclick="openReturnModal(${r.id})"><i class="fas fa-undo"></i></button>`;
     }
 
-    // Ver respuesta admin si existe
+    // Ver respuesta admin
     if (r.admin_message || r.pickup_date) {
-      acciones += `
-        <button class="action-btn action-info" title="Ver respuesta del administrador" onclick="showAdminResponse(${r.id})">
-          <i class="fas fa-info-circle"></i>
-        </button>`;
+      acciones += `<button class="action-btn action-info" title="Ver detalle" onclick="showAdminResponse(${r.id})"><i class="fas fa-info-circle"></i></button>`;
     }
 
-    // Admin puede eliminar cualquiera
-    if (role === "administrador") {
-      acciones += `
-        <button class="action-btn action-delete" title="Eliminar" onclick="deleteRequest(${r.id})">
-          <i class="fas fa-trash"></i>
-        </button>`;
+    // Eliminar: admin puede eliminar rechazadas, devueltas y cualquiera
+    if (role === "administrador" && ["rejected","returned","pending","pending_admin"].includes(r.status)) {
+      acciones += `<button class="action-btn action-delete" title="Eliminar" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
     }
 
-    const incidentBadge = r.incident
-      ? `<span title="Reportó incidente" style="color:#f59e0b;margin-left:4px;"><i class="fas fa-exclamation-triangle"></i></span>`
+    const incident = r.incident
+      ? `<span title="Incidente reportado" style="color:#f59e0b;margin-left:4px;"><i class="fas fa-exclamation-triangle"></i></span>`
       : "";
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.id}</td>
-      <td>${usuario}</td>
+    return ` <tr>
+      <td><strong>#${r.id}</strong><br><small style="color:#9ca3af;font-size:11px;">${fecha}</small></td>
+      <td>${usuario}<br><small style="color:#9ca3af;font-size:11px;">${r.users?.role||""}</small></td>
       <td>${docente}</td>
-      <td>${item}${incidentBadge}</td>
-      <td><span style="font-size:11px;background:#ede9fe;color:#4f46e5;padding:2px 8px;border-radius:10px;">${tipo}</span></td>
-      <td>${r.quantity_requested}</td>
-      <td>${fecha}</td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;${typeCls}">${typeLabel}</span><br><small style="color:#6b7280;font-size:11px;">${r.purpose||""}</small></td>
+      <td>${itemText}${incident}${rejInfo}</td>
       <td><span class="badge ${st.cls}"><i class="fas ${st.icon}"></i> ${st.text}</span></td>
-      <td style="white-space:nowrap;">${acciones || "—"}</td>`;
-    tbody.appendChild(tr);
-  });
+      <td style="white-space:nowrap;">${acciones || "—"}</td>
+    </tr>`;
+  }).join("");
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#/Fecha</th><th>Solicitante</th><th>Docente</th>
+        <th>Tipo</th><th>Ítems</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
-/* ── DOCENTE ENVÍA AL ADMIN ── */
+// ── MODAL NUEVA SOLICITUD ─────────────────────────────────────
+function openModal() {
+  itemRows   = [];
+  rowCounter = 0;
+
+  // ── Solicitante según rol ──
+  const selUser = document.getElementById("reqUser");
+  selUser.innerHTML = "";
+
+  if (currentUser.role === "alumno") {
+    // Solo él mismo o docentes
+    const self = document.createElement("option");
+    self.value = currentUser.id; self.textContent = `${currentUser.username} (yo)`;
+    selUser.appendChild(self);
+    allUsers.filter(u => u.role === "docente").forEach(u => {
+      const o = document.createElement("option");
+      o.value = u.id; o.textContent = `${u.username} (docente)`;
+      selUser.appendChild(o);
+    });
+  } else if (currentUser.role === "docente") {
+    // Solo él mismo y otros docentes
+    allUsers.filter(u => u.role === "docente").forEach(u => {
+      const o = document.createElement("option");
+      o.value = u.id; o.textContent = u.id == currentUser.id ? `${u.username} (yo)` : `${u.username} (docente)`;
+      selUser.appendChild(o);
+    });
+  } else {
+    // Admin: admins y docentes
+    allUsers.filter(u => ["administrador","docente"].includes(u.role)).forEach(u => {
+      const o = document.createElement("option");
+      o.value = u.id; o.textContent = `${u.username} (${u.role})`;
+      selUser.appendChild(o);
+    });
+  }
+
+  // ── Docente encargado (solo para alumno) ──
+  const grpDocente = document.getElementById("docenteGroup");
+  const selDocente = document.getElementById("reqDocente");
+  if (currentUser.role === "alumno") {
+    grpDocente.style.display = "block";
+    selDocente.innerHTML = `<option value="">-- Selecciona docente encargado --</option>`;
+    allUsers.filter(u => u.role === "docente").forEach(u => {
+      const o = document.createElement("option"); o.value = u.id; o.textContent = u.username;
+      selDocente.appendChild(o);
+    });
+  } else {
+    grpDocente.style.display = "none";
+  }
+
+  // ── Tipo ──
+  document.getElementById("reqType").value = "asset";
+  document.getElementById("reqPurpose").value = "";
+  document.getElementById("reqNotes").value   = "";
+
+  onTypeChange();
+  document.getElementById("requestModal").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("requestModal").classList.remove("open");
+}
+
+// ── CAMBIO DE TIPO ────────────────────────────────────────────
+function onTypeChange() {
+  const type      = document.getElementById("reqType").value;
+  const itemsSec  = document.getElementById("itemsSection");
+  const labSec    = document.getElementById("labSection");
+
+  if (type === "laboratorio") {
+    itemsSec.style.display = "none";
+    labSec.style.display   = "block";
+    buildLabSelector();
+  } else {
+    itemsSec.style.display = "block";
+    labSec.style.display   = "none";
+    // Limpiar y agregar fila inicial
+    document.getElementById("itemsContainer").innerHTML = "";
+    itemRows = []; rowCounter = 0;
+    addItemRow();
+  }
+}
+
+// ── LABS ──────────────────────────────────────────────────────
+function buildLabSelector() {
+  const sel = document.getElementById("reqLab");
+  sel.innerHTML = `<option value="">-- Selecciona laboratorio --</option>`;
+  const grouped = allLabs.reduce((acc, l) => {
+    (acc[l.edificio] = acc[l.edificio] || []).push(l); return acc;
+  }, {});
+  for (const [edif, ls] of Object.entries(grouped)) {
+    const og = document.createElement("optgroup"); og.label = edif;
+    ls.forEach(l => {
+      const op = document.createElement("option"); op.value = l.id;
+      op.textContent = l.nombre;
+      op.dataset.open  = l.open_time;
+      op.dataset.close = l.close_time;
+      og.appendChild(op);
+    });
+    sel.appendChild(og);
+  }
+  sel.onchange = () => {
+    const op = sel.selectedOptions[0];
+    if (!op?.dataset.open) return;
+    ["reqHoraInicio","reqHoraFin"].forEach(id => {
+      const inp = document.getElementById(id);
+      inp.min = op.dataset.open; inp.max = op.dataset.close;
+    });
+  };
+
+  // Fecha mínima = hoy, sin fines de semana
+  const todayStr = new Date().toISOString().split("T")[0];
+  document.getElementById("reqFecha").min = todayStr;
+}
+
+function validateWeekend(input) {
+  if (!input.value) return;
+  const d = new Date(input.value + "T12:00:00");
+  if (d.getDay() === 0 || d.getDay() === 6) {
+    showToast("No se permiten reservas en fines de semana", "error");
+    input.value = "";
+  }
+}
+
+// ── ROWS DE ÍTEMS (multi-ítem) ────────────────────────────────
+function addItemRow() {
+  const type = document.getElementById("reqType").value;
+  const id   = `row_${++rowCounter}`;
+  itemRows.push({ rowId: id });
+
+  const container = document.getElementById("itemsContainer");
+  const div = document.createElement("div");
+  div.className = "item-row"; div.id = id;
+
+  // Build initial options (all assets/consumables)
+  const list = type === "asset" ? buildAssetOptions() : buildConsOptions();
+
+  div.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 90px 28px;gap:8px;align-items:center;margin-bottom:8px;">
+      <select id="sel_${id}" onchange="onItemSelect('${id}','${type}')" style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;">
+        <option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>
+        ${list}
+      </select>
+      <input type="number" id="qty_${id}" value="1" min="1" max="1"
+        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;"
+        ${type === "asset" ? 'readonly title="Cada activo es único por serie"' : ''}>
+      <button onclick="removeItemRow('${id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
+        <i class="fas fa-times"></i></button>
+    </div>
+    <div id="info_${id}" style="font-size:11px;color:#9ca3af;margin-bottom:4px;display:none;padding:0 0 6px 4px;"></div>`;
+
+  container.appendChild(div);
+}
+
+function buildAssetOptions(excludeIds = []) {
+  // excludeIds: array of asset IDs already selected in other rows
+  return allAssets
+    .filter(a => a.status === "available" && !excludeIds.includes(a.id))
+    .map(a => `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}">${a.name} — Serie: ${a.serial_number||"S/N"}</option>`)
+    .join("");
+}
+
+function buildConsOptions() {
+  return allCons
+    .filter(c => c.quantity > 0)
+    .map(c => `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}">${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`)
+    .join("");
+}
+
+function onItemSelect(rowId, type) {
+  const sel     = document.getElementById(`sel_${rowId}`);
+  const qtyInp  = document.getElementById(`qty_${rowId}`);
+  const infoDiv = document.getElementById(`info_${rowId}`);
+  const opt     = sel.selectedOptions[0];
+  if (!opt?.value) { infoDiv.style.display = "none"; return; }
+
+  if (type === "asset") {
+    qtyInp.value = "1"; qtyInp.max = "1";
+    infoDiv.style.display = "block";
+    infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong> · Para pedir más unidades del mismo modelo, agrega otra fila.`;
+
+    // Remove this asset from other dropdowns to avoid duplicate selection
+    const selectedId = parseInt(opt.value);
+    document.querySelectorAll("#itemsContainer .item-row select").forEach(otherSel => {
+      if (otherSel.id !== sel.id) {
+        const otherOptions = otherSel.querySelectorAll("option");
+        otherOptions.forEach(opt => {
+          if (parseInt(opt.value) === selectedId) opt.remove();
+        });
+      }
+    });
+  } else {
+    // Consumible: cantidad máxima = stock disponible
+    const maxQty = parseInt(opt.dataset.qty) || 1;
+    qtyInp.max   = maxQty; qtyInp.readOnly = false;
+    infoDiv.style.display = "block";
+    infoDiv.innerHTML = `<i class="fas fa-boxes" style="color:#10b981;"></i> Disponible: <strong>${maxQty} ${opt.dataset.unit||"u"}</strong>`;
+    qtyInp.oninput = () => { if (parseInt(qtyInp.value) > maxQty) qtyInp.value = maxQty; };
+  }
+}
+
+function removeItemRow(rowId) {
+  const row = document.getElementById(rowId);
+  if (row) {
+    const sel = row.querySelector("select");
+    const removedId = parseInt(sel.value);
+    row.remove();
+    itemRows = itemRows.filter(r => r.rowId !== rowId);
+    // Re-add the removed asset to all other dropdowns (if asset type)
+    if (document.getElementById("reqType").value === "asset" && removedId) {
+      const asset = allAssets.find(a => a.id === removedId);
+      if (asset) {
+        const option = `<option value="${asset.id}" data-serial="${asset.serial_number||""}" data-name="${asset.name}">${asset.name} — Serie: ${asset.serial_number||"S/N"}</option>`;
+        document.querySelectorAll("#itemsContainer .item-row select").forEach(otherSel => {
+          otherSel.insertAdjacentHTML("beforeend", option);
+        });
+      }
+    }
+  }
+}
+
+// ── GUARDAR SOLICITUD ─────────────────────────────────────────
+async function saveRequest() {
+  const user_id = document.getElementById("reqUser").value;
+  const type    = document.getElementById("reqType").value;
+  const purpose = document.getElementById("reqPurpose").value.trim();
+  const notes   = document.getElementById("reqNotes").value.trim();
+
+  if (!user_id) { showToast("Selecciona un solicitante", "error"); return; }
+  if (!purpose) { showToast("El propósito es obligatorio", "error"); return; }
+
+  // Docente encargado
+  let docente_id = null;
+  if (currentUser.role === "alumno") {
+    docente_id = document.getElementById("reqDocente").value || null;
+    if (!docente_id) { showToast("Selecciona un docente encargado", "error"); return; }
+  } else if (currentUser.role === "docente") {
+    docente_id = currentUser.id;
+  }
+
+  // ── LABORATORIO → crear reserva directa ──
+  if (type === "laboratorio") {
+    const lab_id      = document.getElementById("reqLab").value;
+    const fecha_uso   = document.getElementById("reqFecha").value;
+    const horaInicio  = document.getElementById("reqHoraInicio").value;
+    const horaFin     = document.getElementById("reqHoraFin").value;
+
+    if (!lab_id || !fecha_uso || !horaInicio || !horaFin) {
+      showToast("Completa laboratorio, fecha y horario", "error"); return;
+    }
+
+    // Recolectar ítems adicionales del lab (activos/consumibles para la práctica)
+    const labItems = collectLabItems();
+
+    const body = {
+      alumno_id:  parseInt(user_id),
+      docente_id: docente_id ? parseInt(docente_id) : null,
+      lab_id:     parseInt(lab_id),
+      fecha_uso, hora_inicio: horaInicio, hora_fin: horaFin,
+      proposito:    purpose,
+      consumables:  labItems.filter(i => i.consumable_id).map(i => ({ consumable_id: i.consumable_id, quantity_requested: i.quantity })),
+      assets:       labItems.filter(i => i.asset_id).map(i => ({ asset_id: i.asset_id }))
+    };
+
+    const res = await fetch("/api/reservations", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json(); showToast(e.message || "Error", "error"); return; }
+    showToast("Reserva de laboratorio creada ✅", "success");
+    closeModal(); await loadRequests(); return;
+  }
+
+  // ── ACTIVOS / CONSUMIBLES ──
+  const items = collectItems(type);
+  if (!items) return; // error ya mostrado
+
+  const body = {
+    user_id:      parseInt(user_id),
+    docente_id:   docente_id ? parseInt(docente_id) : null,
+    request_type: type,
+    purpose, notes,
+    items
+  };
+
+  try {
+    const res = await fetch(API, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json(); showToast("Error: "+(e.message||"No se pudo guardar"), "error"); return; }
+    showToast("Solicitud creada exitosamente ✅", "success");
+    closeModal(); await loadRequests();
+  } catch { showToast("No se pudo conectar con el servidor", "error"); }
+}
+
+function collectItems(type) {
+  const rows = document.querySelectorAll("#itemsContainer .item-row");
+  if (!rows.length) { showToast("Agrega al menos un ítem", "error"); return null; }
+
+  const items = [];
+  // Verificar que no se repita el mismo activo en otra fila
+  const usedAssets = new Set();
+
+  for (const row of rows) {
+    const sel = row.querySelector("select");
+    const qty = parseInt(row.querySelector("input[type=number]").value) || 1;
+    if (!sel.value) { showToast("Selecciona un ítem en todas las filas", "error"); return null; }
+
+    if (type === "asset") {
+      if (usedAssets.has(sel.value)) {
+        showToast("No puedes repetir el mismo activo. Agrega una nueva fila para cada unidad.", "error"); return null;
+      }
+      usedAssets.add(sel.value);
+      items.push({ asset_id: parseInt(sel.value), quantity: 1 });
+    } else {
+      items.push({ consumable_id: parseInt(sel.value), quantity: qty });
+    }
+  }
+  return items;
+}
+
+// Ítems adicionales cuando el tipo es laboratorio
+function collectLabItems() {
+  const rows = document.querySelectorAll("#labItemsContainer .item-row");
+  const items = [];
+  rows.forEach(row => {
+    const sel  = row.querySelector("select");
+    const qty  = parseInt(row.querySelector("input[type=number]").value) || 1;
+    const typ  = row.dataset.type;
+    if (!sel?.value) return;
+    if (typ === "asset")      items.push({ asset_id:      parseInt(sel.value), quantity: 1 });
+    if (typ === "consumable") items.push({ consumable_id: parseInt(sel.value), quantity: qty });
+  });
+  return items;
+}
+
+let labRowCounter = 0;
+function addLabItemRow(type) {
+  const id  = `lrow_${++labRowCounter}`;
+  const con = document.getElementById("labItemsContainer");
+  const list = type === "asset" ? buildAssetOptions() : buildConsOptions();
+  const div = document.createElement("div");
+  div.className = "item-row"; div.id = id; div.dataset.type = type;
+  div.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 90px 28px;gap:8px;align-items:center;margin-bottom:8px;">
+      <select id="sel_${id}" onchange="onItemSelect('${id}','${type}')" style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;">
+        <option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>${list}
+      </select>
+      <input type="number" id="qty_${id}" value="1" min="1" max="${type==="asset"?1:9999}"
+        ${type==="asset"?"readonly":""}
+        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;">
+      <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
+        <i class="fas fa-times"></i></button>
+    </div>
+    <div id="info_${id}" style="font-size:11px;color:#9ca3af;margin-bottom:4px;display:none;padding:0 0 6px 4px;"></div>`;
+  con.appendChild(div);
+}
+
+// ── DOCENTE ENVÍA AL ADMIN ────────────────────────────────────
 async function sendToAdmin(id) {
   if (!confirm("¿Enviar esta solicitud al Administrador?")) return;
   try {
     const res = await fetch(`${API}/${id}`, {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
+      method: "PUT", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ status: "pending_admin" })
     });
     if (!res.ok) throw new Error();
@@ -164,338 +536,228 @@ async function sendToAdmin(id) {
   } catch { showToast("Error al enviar la solicitud", "error"); }
 }
 
-/* ── MODAL NUEVA SOLICITUD ── */
-function openModal() {
-  document.getElementById("modalTitle").textContent = "Nueva Solicitud";
-  document.getElementById("requestId").value  = "";
-  document.getElementById("reqType").value    = "asset";
-  document.getElementById("reqQty").value     = "1";
-  document.getElementById("reqNotes").value   = "";
-
-  // Select de usuario solicitante
-  const selUser = document.getElementById("reqUser");
-  selUser.innerHTML = `<option value="" disabled selected>Seleccione usuario</option>`;
-
-  if (currentUser.role === "alumno") {
-    // Alumno solo se ve a sí mismo
-    const opt = document.createElement("option");
-    opt.value = currentUser.id;
-    opt.textContent = currentUser.username;
-    opt.selected = true;
-    selUser.appendChild(opt);
-    selUser.disabled = true;
-  } else {
-    selUser.disabled = false;
-    allUsers.forEach(u => {
-      const opt = document.createElement("option");
-      opt.value = u.id;
-      opt.textContent = `${u.username} (${u.role})`;
-      selUser.appendChild(opt);
-    });
-  }
-
-  // Select de docente (solo visible para alumnos)
-  const docenteGroup = document.getElementById("docenteGroup");
-  const selDocente   = document.getElementById("reqDocente");
-
-  if (currentUser.role === "alumno") {
-    docenteGroup.style.display = "block";
-    selDocente.innerHTML = `<option value="" disabled selected>Seleccione su docente</option>`;
-    allUsers.filter(u => u.role === "docente").forEach(u => {
-      const opt = document.createElement("option");
-      opt.value = u.id;
-      opt.textContent = u.username;
-      selDocente.appendChild(opt);
-    });
-  } else {
-    docenteGroup.style.display = "none";
-  }
-
-  loadItemsByType();
-  document.getElementById("requestModal").classList.add("open");
-}
-
-function closeModal() {
-  document.querySelectorAll(".modal").forEach(m => m.classList.remove("open"));
-}
-
-/* ── MODAL APROBAR (admin) ── */
-function openApproveModal(id) {
-  let modal = document.getElementById("approveModal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "approveModal";
-    modal.className = "modal";
-    modal.innerHTML = `
-      <div class="modal-box">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-        <h3><i class="fas fa-check-circle" style="color:#16a34a;margin-right:8px;"></i>Aprobar Solicitud</h3>
-        <input type="hidden" id="approveId">
-        <div class="form-group">
-          <label>Fecha y hora de recogida *</label>
-          <input type="datetime-local" id="pickupDate">
-        </div>
-        <div class="form-group">
-          <label>Lugar de recogida *</label>
-          <input type="text" id="pickupLocation" value="Laboratorio de Sistemas A">
-        </div>
-        <div class="form-group">
-          <label>Mensaje para el docente</label>
-          <textarea id="adminMsg" placeholder="Indicaciones adicionales..."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="btn" style="flex:1;background:#16a34a;" onclick="submitApprove()">
-            <i class="fas fa-check"></i> Confirmar aprobación
-          </button>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
-  }
-  document.getElementById("approveId").value  = id;
-  document.getElementById("pickupDate").value = "";
-  document.getElementById("adminMsg").value   = "";
-  modal.classList.add("open");
-}
-
-async function submitApprove() {
-  const id              = document.getElementById("approveId").value;
-  const pickup_date     = document.getElementById("pickupDate").value;
-  const pickup_location = document.getElementById("pickupLocation").value.trim();
-  const admin_message   = document.getElementById("adminMsg").value.trim();
-
-  if (!pickup_date || !pickup_location) {
-    showToast("Fecha y lugar son obligatorios", "error"); return;
-  }
-
-  try {
-    const res = await fetch(`${API}/${id}/approve`, {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ pickup_date, pickup_location, admin_message })
-    });
-    if (!res.ok) throw new Error();
-    showToast("Solicitud aprobada ✅", "success");
-    closeModal();
-    await loadRequests();
-  } catch { showToast("Error al aprobar", "error"); }
-}
-
-/* ── MODAL RECHAZAR ── */
+// ── RECHAZAR ─────────────────────────────────────────────────
 function openRejectModal(id) {
   let modal = document.getElementById("rejectModal");
   if (!modal) {
     modal = document.createElement("div");
-    modal.id = "rejectModal";
-    modal.className = "modal";
+    modal.id = "rejectModal"; modal.className = "modal";
     modal.innerHTML = `
       <div class="modal-box">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-        <h3><i class="fas fa-times-circle" style="color:#dc2626;margin-right:8px;"></i>Rechazar Solicitud</h3>
+        <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('open')">&times;</button>
+        <h3>Rechazar Solicitud</h3>
         <input type="hidden" id="rejectId">
         <div class="form-group">
-          <label>Motivo del rechazo</label>
-          <textarea id="rejectMsg" placeholder="Explica el motivo..."></textarea>
+          <label>Razón del rechazo *</label>
+          <textarea id="rejectReason" placeholder="Explica el motivo..." style="height:80px;resize:none;width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="btn" style="flex:1;background:#dc2626;" onclick="submitReject()">
-            <i class="fas fa-times"></i> Rechazar
-          </button>
+          <button class="btn-cancel" onclick="document.getElementById('rejectModal').classList.remove('open')">Cancelar</button>
+          <button class="btn" style="flex:1;background:#dc2626;" onclick="submitReject()"><i class="fas fa-times"></i> Rechazar</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
-  document.getElementById("rejectId").value  = id;
-  document.getElementById("rejectMsg").value = "";
+  document.getElementById("rejectId").value    = id;
+  document.getElementById("rejectReason").value = "";
   modal.classList.add("open");
 }
 
 async function submitReject() {
-  const id  = document.getElementById("rejectId").value;
-  const msg = document.getElementById("rejectMsg").value.trim();
+  const id     = document.getElementById("rejectId").value;
+  const reason = document.getElementById("rejectReason").value.trim();
+  if (!reason) { showToast("La razón del rechazo es obligatoria", "error"); return; }
   try {
     const res = await fetch(`${API}/${id}/reject`, {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ admin_message: msg || "Solicitud rechazada" })
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ rejected_by: currentUser.id, rejected_reason: reason, admin_message: reason })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud rechazada", "success");
-    closeModal();
+    showToast("Solicitud rechazada", "info");
+    document.getElementById("rejectModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al rechazar", "error"); }
 }
 
-/* ── MODAL DEVOLUCIÓN (docente) ── */
-function openReturnModal(id) {
-  let modal = document.getElementById("returnModal");
+// ── APROBAR (Admin) ───────────────────────────────────────────
+function openApproveModal(id) {
+  let modal = document.getElementById("approveModal");
   if (!modal) {
     modal = document.createElement("div");
-    modal.id = "returnModal";
-    modal.className = "modal";
+    modal.id = "approveModal"; modal.className = "modal";
     modal.innerHTML = `
       <div class="modal-box">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-        <h3><i class="fas fa-undo" style="color:#4f46e5;margin-right:8px;"></i>Registrar Devolución</h3>
-        <input type="hidden" id="returnId">
+        <button class="modal-close" onclick="document.getElementById('approveModal').classList.remove('open')">&times;</button>
+        <h3>Aprobar Solicitud</h3>
+        <input type="hidden" id="approveId">
         <div class="form-group">
-          <label>¿Hubo algún incidente?</label>
-          <select id="incidentSelect" onchange="toggleIncidentFields()">
-            <option value="no">No — Sin incidentes</option>
-            <option value="yes">Sí — Hubo un incidente</option>
-          </select>
+          <label>Fecha y hora de entrega *</label>
+          <input type="datetime-local" id="approvePickupDate" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;">
         </div>
-        <div id="incidentFields" style="display:none;">
-          <div class="form-group">
-            <label>Causa del incidente *</label>
-            <textarea id="incidentCause" placeholder="Describe qué pasó..."></textarea>
-          </div>
-          <div class="form-group">
-            <label>Solución propuesta *</label>
-            <textarea id="incidentSolution" placeholder="¿Cómo se puede reponer o reparar?"></textarea>
-          </div>
+        <div class="form-group">
+          <label>Lugar de entrega *</label>
+          <input type="text" id="approvePickupLocation" placeholder="Ej. Laboratorio de Sistemas" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;">
+        </div>
+        <div class="form-group">
+          <label>Mensaje al solicitante</label>
+          <textarea id="approveMessage" placeholder="Indicaciones adicionales..." style="width:100%;height:64px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="btn" style="flex:1;" onclick="submitReturn()">
-            <i class="fas fa-check"></i> Confirmar devolución
-          </button>
+          <button class="btn-cancel" onclick="document.getElementById('approveModal').classList.remove('open')">Cancelar</button>
+          <button class="btn" style="flex:1;background:#16a34a;" onclick="submitApprove()"><i class="fas fa-check"></i> Aprobar</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
-  document.getElementById("returnId").value       = id;
-  document.getElementById("incidentSelect").value = "no";
-  document.getElementById("incidentFields").style.display = "none";
+  document.getElementById("approveId").value              = id;
+  document.getElementById("approvePickupDate").value      = "";
+  document.getElementById("approvePickupLocation").value  = "";
+  document.getElementById("approveMessage").value         = "";
   modal.classList.add("open");
 }
 
-function toggleIncidentFields() {
-  const val = document.getElementById("incidentSelect").value;
-  document.getElementById("incidentFields").style.display = val === "yes" ? "block" : "none";
+async function submitApprove() {
+  const id  = document.getElementById("approveId").value;
+  const pd  = document.getElementById("approvePickupDate").value;
+  const pl  = document.getElementById("approvePickupLocation").value.trim();
+  const msg = document.getElementById("approveMessage").value.trim();
+  if (!pd || !pl) { showToast("Fecha y lugar son obligatorios", "error"); return; }
+  try {
+    const res = await fetch(`${API}/${id}/approve`, {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ pickup_date: pd, pickup_location: pl, admin_message: msg })
+    });
+    if (!res.ok) throw new Error();
+    showToast("Solicitud aprobada con éxito ✅", "success");
+    document.getElementById("approveModal").classList.remove("open");
+    await loadRequests();
+  } catch { showToast("Error al aprobar", "error"); }
+}
+
+// ── DEVOLUCIÓN ────────────────────────────────────────────────
+function openReturnModal(id) {
+  const r = allRequests.find(x => x.id === id);
+  let modal = document.getElementById("returnModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "returnModal"; modal.className = "modal";
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  }
+
+  const items = r?.request_items || [];
+  const itemsHtml = items.map(it => {
+    const name = it.assets?.name || it.consumables?.name || "Ítem";
+    const isAsset = !!it.assets;
+    return `<div style="background:#f8f9fc;border-radius:6px;padding:8px;margin-bottom:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;" data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
+      <span style="font-size:13px;font-weight:500;color:#374151;">${name}</span>
+      ${isAsset ? `<select style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:'Poppins',sans-serif;">
+        <option value="bueno">Bueno</option><option value="dañado">Dañado</option><option value="perdido">Perdido</option>
+      </select>` : `<span style="font-size:12px;color:#9ca3af;">Consumible</span>`}
+    </div>`;
+  }).join("") || `<p style="font-size:13px;color:#9ca3af;">Sin ítems registrados</p>`;
+
+  modal.innerHTML = `
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('returnModal').classList.remove('open')">&times;</button>
+      <h3>Registrar Devolución</h3>
+      <input type="hidden" id="returnId" value="${id}">
+      ${items.length ? `<div style="margin-bottom:12px;"><p style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Condición de ítems</p>${itemsHtml}</div>` : ""}
+      <div class="form-group">
+        <label><input type="checkbox" id="returnIncident" onchange="document.getElementById('incidentFields').style.display=this.checked?'block':'none'"> Reportar incidente</label>
+      </div>
+      <div id="incidentFields" style="display:none;">
+        <div class="form-group">
+          <label>Causa</label>
+          <textarea id="incidentCause" placeholder="Describe lo ocurrido..." style="width:100%;height:60px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Solución</label>
+          <textarea id="incidentSolution" placeholder="Cómo se resolvió..." style="width:100%;height:60px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="document.getElementById('returnModal').classList.remove('open')">Cancelar</button>
+        <button class="btn" style="flex:1;" onclick="submitReturn()"><i class="fas fa-undo"></i> Confirmar devolución</button>
+      </div>
+    </div>`;
+  modal.classList.add("open");
 }
 
 async function submitReturn() {
-  const id       = document.getElementById("returnId").value;
-  const incident = document.getElementById("incidentSelect").value === "yes";
-  const cause    = document.getElementById("incidentCause")?.value.trim();
-  const solution = document.getElementById("incidentSolution")?.value.trim();
+  const id        = document.getElementById("returnId").value;
+  const incident  = document.getElementById("returnIncident").checked;
+  const cause     = document.getElementById("incidentCause")?.value.trim();
+  const solution  = document.getElementById("incidentSolution")?.value.trim();
+  if (incident && (!cause || !solution)) { showToast("Describe causa y solución del incidente", "error"); return; }
 
-  if (incident && (!cause || !solution)) {
-    showToast("Debes describir la causa y solución", "error"); return;
-  }
+  const items_condition = [];
+  document.querySelectorAll("#returnModal [data-item-id]").forEach(row => {
+    const sel = row.querySelector("select");
+    if (!sel) return;
+    items_condition.push({
+      item_id:          parseInt(row.dataset.itemId),
+      asset_id:         parseInt(row.dataset.assetId)||null,
+      return_condition: sel.value
+    });
+  });
 
   try {
     const res = await fetch(`${API}/${id}/return`, {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution })
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution, items_condition })
     });
     if (!res.ok) throw new Error();
-    showToast(incident ? "Devolución con incidente registrada ⚠️" : "Devolución registrada ✅", "success");
-    closeModal();
+    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅", "success");
+    document.getElementById("returnModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al registrar devolución", "error"); }
 }
 
-/* ── VER RESPUESTA ADMIN ── */
+// ── VER DETALLE / RESPUESTA ADMIN ────────────────────────────
 function showAdminResponse(id) {
   const r = allRequests.find(x => x.id === id);
   if (!r) return;
-
   let modal = document.getElementById("infoModal");
   if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "infoModal";
-    modal.className = "modal";
-    modal.innerHTML = `
-      <div class="modal-box">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-        <h3><i class="fas fa-info-circle" style="color:#4f46e5;margin-right:8px;"></i>Respuesta del Administrador</h3>
-        <div id="infoContent"></div>
-        <div class="modal-actions" style="margin-top:16px;">
-          <button class="btn" style="width:100%;" onclick="closeModal()">Cerrar</button>
-        </div>
-      </div>`;
+    modal = document.createElement("div"); modal.id = "infoModal"; modal.className = "modal";
+    modal.innerHTML = `<div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('infoModal').classList.remove('open')">&times;</button>
+      <h3><i class="fas fa-info-circle" style="color:#4f46e5;margin-right:8px;"></i>Detalle</h3>
+      <div id="infoContent"></div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn" style="width:100%;" onclick="document.getElementById('infoModal').classList.remove('open')">Cerrar</button>
+      </div></div>`;
     document.body.appendChild(modal);
-    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
-
-  const pickupDate = r.pickup_date
-    ? new Date(r.pickup_date).toLocaleString("es-MX", { dateStyle:"long", timeStyle:"short" })
-    : null;
+  const pickupDate = r.pickup_date ? new Date(r.pickup_date).toLocaleString("es-MX",{dateStyle:"long",timeStyle:"short"}) : null;
+  const rejAt      = r.rejected_at ? new Date(r.rejected_at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}) : null;
 
   document.getElementById("infoContent").innerHTML = `
-    <div style="background:#f0fdf4;border-radius:8px;padding:16px;margin-bottom:12px;">
-      <p style="font-size:13px;color:#15803d;font-weight:600;margin-bottom:10px;">
-        <i class="fas fa-check-circle"></i> Solicitud Aprobada
-      </p>
-      ${pickupDate ? `<p style="font-size:13px;color:#374151;margin-bottom:6px;">
-        <i class="fas fa-calendar" style="color:#4f46e5;width:18px;"></i>
-        <strong>Fecha y hora:</strong> ${pickupDate}</p>` : ""}
-      ${r.pickup_location ? `<p style="font-size:13px;color:#374151;margin-bottom:6px;">
-        <i class="fas fa-map-marker-alt" style="color:#4f46e5;width:18px;"></i>
-        <strong>Lugar:</strong> ${r.pickup_location}</p>` : ""}
-      ${r.admin_message ? `<p style="font-size:13px;color:#374151;margin-top:8px;padding-top:8px;border-top:1px solid #bbf7d0;">
-        <i class="fas fa-comment" style="color:#4f46e5;width:18px;"></i>
-        <strong>Mensaje:</strong> ${r.admin_message}</p>` : ""}
-    </div>
-    ${r.incident ? `
-    <div style="background:#fef9c3;border-radius:8px;padding:16px;">
-      <p style="font-size:13px;color:#a16207;font-weight:600;margin-bottom:8px;">
-        <i class="fas fa-exclamation-triangle"></i> Incidente Reportado
-      </p>
+    ${r.status === "rejected" ? `<div style="background:#fff1f2;border:1px solid #fecaca;border-radius:8px;padding:14px;margin-bottom:12px;">
+      <p style="font-size:13px;color:#dc2626;font-weight:600;margin-bottom:8px;"><i class="fas fa-times-circle"></i> Rechazado</p>
+      <p style="font-size:13px;color:#374151;margin-bottom:4px;"><strong>Razón:</strong> ${r.rejected_reason||r.admin_message||"—"}</p>
+      ${r.rejected_user ? `<p style="font-size:13px;"><strong>Por:</strong> ${r.rejected_user.username}</p>` : ""}
+      ${rejAt ? `<p style="font-size:12px;color:#9ca3af;margin-top:4px;">${rejAt}</p>` : ""}
+    </div>` : ""}
+    ${pickupDate ? `<div style="background:#f0fdf4;border-radius:8px;padding:14px;margin-bottom:12px;">
+      <p style="font-size:13px;color:#15803d;font-weight:600;margin-bottom:8px;"><i class="fas fa-check-circle"></i> Aprobado</p>
+      <p style="font-size:13px;color:#374151;margin-bottom:4px;"><i class="fas fa-calendar" style="color:#4f46e5;width:18px;"></i> <strong>Fecha:</strong> ${pickupDate}</p>
+      ${r.pickup_location ? `<p style="font-size:13px;color:#374151;margin-bottom:4px;"><i class="fas fa-map-marker-alt" style="color:#4f46e5;width:18px;"></i> <strong>Lugar:</strong> ${r.pickup_location}</p>` : ""}
+      ${r.admin_message ? `<p style="font-size:13px;color:#374151;margin-top:8px;"><i class="fas fa-comment" style="color:#4f46e5;width:18px;"></i> ${r.admin_message}</p>` : ""}
+    </div>` : ""}
+    ${r.incident ? `<div style="background:#fef9c3;border-radius:8px;padding:14px;">
+      <p style="font-size:13px;color:#a16207;font-weight:600;margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i> Incidente</p>
       <p style="font-size:13px;color:#374151;margin-bottom:4px;"><strong>Causa:</strong> ${r.incident_cause||"—"}</p>
       <p style="font-size:13px;color:#374151;"><strong>Solución:</strong> ${r.incident_solution||"—"}</p>
     </div>` : ""}`;
-
   modal.classList.add("open");
 }
 
-/* ── GUARDAR NUEVA SOLICITUD ── */
-async function saveRequest() {
-  const user_id    = document.getElementById("reqUser").value;
-  const docente_id = currentUser.role === "alumno"
-    ? document.getElementById("reqDocente").value
-    : (currentUser.role === "docente" ? currentUser.id : null);
-  const type    = document.getElementById("reqType").value;
-  const itemId  = document.getElementById("reqItem").value;
-  const qty     = parseInt(document.getElementById("reqQty").value);
-  const notes   = document.getElementById("reqNotes").value.trim();
-
-  if (!user_id || !itemId) { showToast("Usuario e ítem son obligatorios", "error"); return; }
-  if (currentUser.role === "alumno" && !docente_id) {
-    showToast("Debes seleccionar un docente", "error"); return;
-  }
-
-  const body = {
-    user_id,
-    docente_id: docente_id || null,
-    asset_id:      type === "asset"      ? itemId : null,
-    consumable_id: type === "consumable" ? itemId : null,
-    quantity_requested: qty || 1,
-    notes,
-    request_type: type
-  };
-
-  try {
-    const res = await fetch(API, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) { const e = await res.json(); showToast("Error: "+(e.message||"No se pudo guardar"), "error"); return; }
-    showToast("Solicitud creada ✅", "success");
-    closeModal();
-    await loadRequests();
-  } catch { showToast("No se pudo conectar con el servidor", "error"); }
-}
-
-/* ── ELIMINAR ── */
+// ── ELIMINAR ─────────────────────────────────────────────────
 async function deleteRequest(id) {
   if (!confirm("¿Eliminar esta solicitud?")) return;
   try {
@@ -506,37 +768,19 @@ async function deleteRequest(id) {
   } catch { showToast("No se pudo eliminar", "error"); }
 }
 
-/* ── SELECT ÍTEMS ── */
-async function loadItemsByType() {
-  const type = document.getElementById("reqType")?.value || "asset";
-  const url  = type === "asset" ? ASSETS_URL : CONS_URL;
-  try {
-    const res   = await fetch(url);
-    const items = await res.json();
-    const sel   = document.getElementById("reqItem");
-    sel.innerHTML = `<option value="" disabled selected>Seleccione ítem</option>`;
-    items.forEach(i => {
-      const opt = document.createElement("option");
-      opt.value = i.id; opt.textContent = i.name;
-      sel.appendChild(opt);
-    });
-  } catch {}
-}
-
-/* ── EXPORTAR ── */
+// ── EXPORTAR CSV ──────────────────────────────────────────────
 function exportCSV() {
-  let csv = "ID,Solicitante,Docente,Ítem,Tipo,Cantidad,Fecha,Estado\n";
+  let csv = "ID,Solicitante,Docente,Tipo,Propósito,Estado,Fecha\n";
   allRequests.forEach(r => {
-    const item  = r.assets?.name || r.consumables?.name || "";
     const fecha = r.request_date ? new Date(r.request_date).toLocaleDateString("es-MX") : "";
-    csv += `${r.id},"${r.users?.username||""}","${r.docente?.username||""}","${item}","${r.request_type}",${r.quantity_requested},"${fecha}","${statusMap[r.status]?.text||r.status}"\n`;
+    csv += `${r.id},"${r.users?.username||""}","${r.docente?.username||""}","${r.request_type}","${r.purpose||""}","${statusMap[r.status]?.text||r.status}","${fecha}"\n`;
   });
   const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "solicitudes.csv"; a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "solicitudes.csv"; a.click();
   showToast("Exportado ✅", "success");
 }
 
+// ── UTILS ─────────────────────────────────────────────────────
 function showLoading() {
   document.getElementById("tableWrapper").innerHTML =
     `<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>`;
@@ -550,6 +794,3 @@ function showToast(msg, type="success") {
   t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove("show"), 3500);
 }
-document.getElementById("requestModal")?.addEventListener("click", function(e) {
-  if (e.target === this) closeModal();
-});

@@ -34,8 +34,6 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
 .btn-danger:hover{background:#dc2626;}
 .btn-info{background:#0891b2;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;}
 .btn-info:hover{background:#0e7490;}
-
-/* Labs grid */
 .labs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
 .lab-status-card{background:#f8f9fc;border-radius:8px;padding:14px;border:1px solid #e5e7eb;transition:0.2s;}
 .lab-status-card.occupied{border-color:#fca5a5;background:#fff5f5;}
@@ -46,12 +44,9 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
 .pill-available{background:#dcfce7;color:#15803d;}
 .pill-occupied{background:#fee2e2;color:#dc2626;}
 .pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
-
-/* Filtros */
 .filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
 .filters select,.filters input{padding:7px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;}
 .filters select:focus,.filters input:focus{border-color:#4f46e5;}
-
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
 td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:top;}
@@ -65,11 +60,9 @@ tr:hover td{background:#fafafa;}
 .badge-cancelled{background:#fee2e2;color:#dc2626;}
 .empty-state{text-align:center;padding:40px;color:#9ca3af;}
 .empty-state i{font-size:36px;margin-bottom:10px;display:block;}
-
-/* Modal */
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:flex-start;z-index:1000;padding:20px;overflow-y:auto;}
 .modal.open{display:flex;}
-.modal-box{background:white;padding:28px;border-radius:12px;width:100%;max-width:520px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);margin:auto;}
+.modal-box{background:white;padding:28px;border-radius:12px;width:100%;max-width:560px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);margin:auto;}
 .modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:18px;}
 .modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#9ca3af;background:none;border:none;}
 .form-group{margin-bottom:12px;}
@@ -82,23 +75,24 @@ tr:hover td{background:#fafafa;}
 .modal-actions{display:flex;gap:10px;margin-top:8px;}
 .btn-cancel{flex:1;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:white;color:#374151;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
 .hint{font-size:11px;color:#9ca3af;margin-top:3px;}
-
-/* Consumibles en reserva */
 .cons-row{display:grid;grid-template-columns:1fr 80px 28px;gap:8px;align-items:center;margin-bottom:6px;}
 .cons-row select,.cons-row input{padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;}
+.asset-row{display:grid;grid-template-columns:1fr 28px;gap:8px;align-items:center;margin-bottom:6px;}
+.asset-row select{padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;}
 .btn-remove-c{background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;}
 .btn-add-c{background:none;border:1px dashed #d1d5db;color:#6b7280;padding:6px;border-radius:6px;cursor:pointer;font-size:13px;width:100%;text-align:center;font-family:'Poppins',sans-serif;}
 .btn-add-c:hover{background:#f3f4f6;}
-
-/* Sobrante */
+.add-btns{display:flex;gap:8px;}
+.add-btns button{flex:1;}
+.material-tabs{display:flex;gap:6px;margin-bottom:10px;}
+.material-tab{padding:5px 12px;border-radius:16px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:white;color:#6b7280;font-family:'Poppins',sans-serif;transition:0.2s;}
+.material-tab.active{background:#4f46e5;color:white;border-color:#4f46e5;}
 .leftover-row{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;background:#f8f9fc;border-radius:6px;padding:8px;margin-bottom:6px;}
 .leftover-row .item-name{font-size:13px;color:#374151;}
 .leftover-row input{padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;}
-
 .toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.success{background:#10b981;}.toast.error{background:#ef4444;}.toast.info{background:#0891b2;}
-
 @media(max-width:768px){
   .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:999;width:260px;}
   .sidebar.open{transform:translateX(0);}
@@ -136,12 +130,12 @@ tr:hover td{background:#fafafa;}
   </div>
 
   <div class="content">
-
     <!-- Estado de laboratorios -->
     <div class="panel">
       <div class="panel-header">
         <h3><i class="fas fa-flask" style="color:#4f46e5;margin-right:6px;"></i> Laboratorios</h3>
-        <button class="btn docente-plus" onclick="openNewModal()"><i class="fas fa-plus"></i> Nueva Reserva</button>
+        <!-- Botón visible para todos (alumno también puede reservar) -->
+        <button class="btn" onclick="openNewModal()"><i class="fas fa-plus"></i> Nueva Reserva</button>
       </div>
       <div class="labs-grid" id="labsGrid">
         <div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>
@@ -177,10 +171,18 @@ tr:hover td{background:#fafafa;}
     <button class="modal-close" onclick="closeModal('newModal')">&times;</button>
     <h3>Nueva Reserva</h3>
 
+    <!-- Alumno solicitante: visible para docente y admin -->
     <div class="form-group" id="grpAlumno" style="display:none;">
       <label>Alumno solicitante *</label>
       <select id="newAlumno"></select>
     </div>
+
+    <!-- Docente responsable: visible para todos (alumno elige quién lo manda) -->
+    <div class="form-group" id="grpDocente">
+      <label>Docente responsable *</label>
+      <select id="newDocente"></select>
+    </div>
+
     <div class="form-group">
       <label>Laboratorio *</label>
       <select id="newLab" onchange="onLabChange()"></select>
@@ -205,9 +207,26 @@ tr:hover td{background:#fafafa;}
       <textarea id="newProposito" placeholder="Descripción de la práctica o actividad..."></textarea>
     </div>
 
-    <div class="section-sep">Consumibles (opcional)</div>
-    <div id="consContainer"></div>
-    <button class="btn-add-c" onclick="addConsRow()"><i class="fas fa-plus"></i> Agregar consumible</button>
+    <!-- Sección de material: tabs para elegir tipo -->
+    <div class="section-sep">Material para la práctica <span style="font-weight:400;font-size:11px;color:#9ca3af;">(opcional)</span></div>
+    <div class="material-tabs">
+      <button class="material-tab active" id="tabNone"    onclick="setMaterialTab('none')">Sin material</button>
+      <button class="material-tab"        id="tabAssets"  onclick="setMaterialTab('assets')"><i class="fas fa-box"></i> Activos</button>
+      <button class="material-tab"        id="tabCons"    onclick="setMaterialTab('consumables')"><i class="fas fa-flask"></i> Consumibles</button>
+      <button class="material-tab"        id="tabBoth"    onclick="setMaterialTab('both')"><i class="fas fa-layer-group"></i> Ambos</button>
+    </div>
+
+    <!-- Activos -->
+    <div id="assetsSection" style="display:none;">
+      <div id="assetsContainer"></div>
+      <button class="btn-add-c" onclick="addAssetRow()"><i class="fas fa-plus"></i> Agregar activo</button>
+    </div>
+
+    <!-- Consumibles -->
+    <div id="consSection" style="display:none;">
+      <div id="consContainer"></div>
+      <button class="btn-add-c" onclick="addConsRow()"><i class="fas fa-plus"></i> Agregar consumible</button>
+    </div>
 
     <div class="modal-actions" style="margin-top:14px;">
       <button class="btn-cancel" onclick="closeModal('newModal')">Cancelar</button>
@@ -247,7 +266,7 @@ tr:hover td{background:#fafafa;}
   </div>
 </div>
 
-<!-- ══ MODAL LIBERAR (firma salida + sobrantes) ══ -->
+<!-- ══ MODAL LIBERAR ══ -->
 <div class="modal" id="releaseModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('releaseModal')">&times;</button>
@@ -288,28 +307,34 @@ const API      = "/api/reservations";
 let allReservations = [];
 let labs        = [];
 let consumables = [];
+let assets      = [];
 let users       = [];
 let currentUser = null;
-let consRowCount = 0;
+let consRowCount  = 0;
+let assetRowCount = 0;
+let currentMaterialTab = "none";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  currentUser = JSON.parse(localStorage.getItem("user") || "null");
   await loadCatalogs();
   renderLabsGrid();
   await loadReservations();
 });
 
 async function loadCatalogs() {
-  const [labsRes, consRes, usersRes] = await Promise.all([
+  const [labsRes, consRes, usersRes, assetsRes] = await Promise.all([
     fetch("/api/labs").then(r => r.json()),
     fetch("/api/consumibles").then(r => r.json()),
-    fetch("/api/users").then(r => r.json())
+    fetch("/api/users").then(r => r.json()),
+    fetch("/api/assets").then(r => r.json())
   ]);
-  labs        = Array.isArray(labsRes)  ? labsRes  : [];
-  consumables = Array.isArray(consRes)  ? consRes  : [];
-  users       = Array.isArray(usersRes) ? usersRes : [];
+  labs        = Array.isArray(labsRes)   ? labsRes   : [];
+  consumables = Array.isArray(consRes)   ? consRes   : [];
+  users       = Array.isArray(usersRes)  ? usersRes  : [];
+  assets      = Array.isArray(assetsRes) ? assetsRes : [];
 }
 
-// ── LABS GRID (estado ocupado/disponible) ──
+// ── LABS GRID ──
 function renderLabsGrid() {
   const occupied = new Set(
     allReservations
@@ -333,7 +358,6 @@ function renderLabsGrid() {
 
 function today() { return new Date().toISOString().split("T")[0]; }
 
-// ── CARGAR RESERVAS ──
 async function loadReservations() {
   const res = await fetch(API);
   allReservations = await res.json();
@@ -374,6 +398,10 @@ function renderTable(data) {
       ? r.reservation_consumables.map(c => `${c.consumables?.name} ×${c.quantity_requested}`).join(", ")
       : "—";
 
+    // Nombre de quien hizo la reserva (alumno o docente)
+    const solicitante = r.alumno?.username || "—";
+    const docente     = r.docente?.username || "—";
+
     let acciones = "";
     if (role === "docente" && r.status === "pending") {
       acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
@@ -394,7 +422,8 @@ function renderTable(data) {
 
     return `<tr>
       <td>${labName}</td>
-      <td>${r.docente?.username || "—"}<br><small style="color:#6b7280;">${r.grupo ? r.grupo + " · " + r.semestre : ""}</small></td>
+      <td>${solicitante}</td>
+      <td>${docente}<br><small style="color:#6b7280;">${r.grupo ? r.grupo + " · " + r.semestre : ""}</small></td>
       <td>${formatDate(r.fecha_uso)}<br><small style="color:#6b7280;">${r.hora_inicio} – ${r.hora_fin}</small></td>
       <td><small style="color:#6b7280;">${consText}</small></td>
       <td>${statusMap[r.status] || r.status}</td>
@@ -405,7 +434,7 @@ function renderTable(data) {
   wrap.innerHTML = `
     <table>
       <thead><tr>
-        <th>Laboratorio</th><th>Docente / Grupo</th>
+        <th>Laboratorio</th><th>Solicitante</th><th>Docente / Grupo</th>
         <th>Fecha y hora</th><th>Consumibles</th>
         <th>Estado</th><th>Acciones</th>
       </tr></thead>
@@ -415,7 +444,7 @@ function renderTable(data) {
 
 // ── NUEVA RESERVA ──
 function openNewModal() {
-  // Llenar labs
+  // Labs
   const sel = document.getElementById("newLab");
   sel.innerHTML = `<option value="">-- Selecciona laboratorio --</option>`;
   const grouped = labs.reduce((acc, l) => { (acc[l.edificio] = acc[l.edificio] || []).push(l); return acc; }, {});
@@ -433,25 +462,162 @@ function openNewModal() {
 
   // Fecha mínima = hoy
   const todayStr = today();
-  document.getElementById("newFecha").min = todayStr;
+  document.getElementById("newFecha").min   = todayStr;
   document.getElementById("newFecha").value = "";
+  document.getElementById("newHoraInicio").value = "";
+  document.getElementById("newHoraFin").value    = "";
+  document.getElementById("newProposito").value  = "";
 
-  // Limpiar consumibles
-  document.getElementById("consContainer").innerHTML = "";
-  consRowCount = 0;
+  // Limpiar material
+  document.getElementById("assetsContainer").innerHTML = "";
+  document.getElementById("consContainer").innerHTML   = "";
+  consRowCount  = 0;
+  assetRowCount = 0;
+  setMaterialTab("none");
 
-  // Alumno (solo si docente/admin)
-  const grpAlumno = document.getElementById("grpAlumno");
-  if (currentUser?.role !== "alumno") {
-    grpAlumno.style.display = "block";
-    const alumnos = users.filter(u => u.role === "alumno");
-    document.getElementById("newAlumno").innerHTML =
-      `<option value="">-- Alumno --</option>` + alumnos.map(a => `<option value="${a.id}">${a.username}</option>`).join("");
+  const role     = currentUser?.role;
+  const docentes = users.filter(u => u.role === "docente");
+  const alumnos  = users.filter(u => u.role === "alumno");
+
+  const grpAlumno  = document.getElementById("grpAlumno");
+  const grpDocente = document.getElementById("grpDocente");
+  const selAlumno  = document.getElementById("newAlumno");
+  const selDocente = document.getElementById("newDocente");
+
+  if (role === "alumno") {
+    // Alumno: se pone a sí mismo como solicitante (oculto),
+    // y elige al docente en cuyo nombre aparta el lab.
+    grpAlumno.style.display  = "none";
+    grpDocente.style.display = "block";
+    grpDocente.querySelector("label").textContent = "Docente en cuyo nombre reservas *";
+    selDocente.innerHTML =
+      `<option value="">-- Selecciona docente --</option>` +
+      docentes.map(d => `<option value="${d.id}">${d.username}</option>`).join("");
+
+  } else if (role === "docente") {
+    // Docente: puede reservar para sí mismo o para otro docente.
+    // El campo alumno se oculta (el docente ES el alumno_id en este flujo,
+    // o se puede dejar en blanco si el backend lo admite; aquí usamos el propio id).
+    grpAlumno.style.display  = "none";
+    grpDocente.style.display = "block";
+    grpDocente.querySelector("label").textContent = "Docente responsable *";
+    // Preselecciona al docente logueado; también puede elegir otro
+    selDocente.innerHTML =
+      docentes.map(d =>
+        `<option value="${d.id}" ${d.id === currentUser.id ? "selected" : ""}>${d.username}${d.id === currentUser.id ? " (tú)" : ""}</option>`
+      ).join("");
+
   } else {
-    grpAlumno.style.display = "none";
+    // Admin: elige alumno Y docente libremente
+    grpAlumno.style.display  = "block";
+    grpDocente.style.display = "block";
+    grpDocente.querySelector("label").textContent = "Docente responsable *";
+    selAlumno.innerHTML =
+      `<option value="">-- Alumno --</option>` +
+      alumnos.map(a => `<option value="${a.id}">${a.username}</option>`).join("");
+    selDocente.innerHTML =
+      `<option value="">-- Docente responsable --</option>` +
+      docentes.map(d => `<option value="${d.id}">${d.username}</option>`).join("");
   }
 
   document.getElementById("newModal").classList.add("open");
+}
+
+// ── TABS DE MATERIAL ──
+function setMaterialTab(tab) {
+  currentMaterialTab = tab;
+  ["none","assets","consumables","both"].forEach(t => {
+    document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1))
+      ?.classList.toggle("active", t === tab);
+  });
+  document.getElementById("assetsSection").style.display =
+    (tab === "assets" || tab === "both") ? "block" : "none";
+  document.getElementById("consSection").style.display =
+    (tab === "consumables" || tab === "both") ? "block" : "none";
+}
+
+// ── OBTENER IDs ya seleccionados en filas de activos ──
+function getSelectedAssetIds() {
+  const ids = new Set();
+  document.querySelectorAll("#assetsContainer .asset-row select").forEach(sel => {
+    if (sel.value) ids.add(parseInt(sel.value));
+  });
+  return ids;
+}
+
+// ── ACTUALIZAR todas las filas de activos para ocultar ya seleccionados ──
+function refreshAssetOptions() {
+  const selected = getSelectedAssetIds();
+  document.querySelectorAll("#assetsContainer .asset-row select").forEach(sel => {
+    const currentVal = sel.value;
+    // Activos disponibles + el que ya tiene esta fila
+    const available = assets.filter(a =>
+      a.status === "available" && (!selected.has(a.id) || a.id === parseInt(currentVal))
+    );
+    sel.innerHTML = `<option value="">-- Activo --</option>` +
+      available.map(a =>
+        `<option value="${a.id}" ${a.id === parseInt(currentVal) ? "selected" : ""}>${a.name} — ${a.serial_number}</option>`
+      ).join("");
+  });
+}
+
+function addAssetRow() {
+  const id  = `asset_${++assetRowCount}`;
+  const row = document.createElement("div");
+  row.className = "asset-row"; row.id = id;
+
+  // Calcular disponibles (excluir ya seleccionados)
+  const selected  = getSelectedAssetIds();
+  const available = assets.filter(a => a.status === "available" && !selected.has(a.id));
+
+  row.innerHTML = `
+    <select onchange="refreshAssetOptions()">
+      <option value="">-- Activo --</option>
+      ${available.map(a => `<option value="${a.id}">${a.name} — ${a.serial_number}</option>`).join("")}
+    </select>
+    <button class="btn-remove-c" onclick="document.getElementById('${id}').remove(); refreshAssetOptions()">
+      <i class="fas fa-times"></i>
+    </button>`;
+  document.getElementById("assetsContainer").appendChild(row);
+}
+
+// ── OBTENER IDs de consumibles ya seleccionados ──
+function getSelectedConsIds() {
+  const ids = new Set();
+  document.querySelectorAll("#consContainer .cons-row select").forEach(sel => {
+    if (sel.value) ids.add(parseInt(sel.value));
+  });
+  return ids;
+}
+
+function refreshConsOptions() {
+  const selected = getSelectedConsIds();
+  document.querySelectorAll("#consContainer .cons-row select").forEach(sel => {
+    const currentVal = sel.value;
+    const available  = consumables.filter(c => !selected.has(c.id) || c.id === parseInt(currentVal));
+    sel.innerHTML = `<option value="">-- Consumible --</option>` +
+      available.map(c =>
+        `<option value="${c.id}" ${c.id === parseInt(currentVal) ? "selected" : ""}>${c.name} (${c.quantity} ${c.unit})</option>`
+      ).join("");
+  });
+}
+
+function addConsRow() {
+  const id  = `cons_${++consRowCount}`;
+  const row = document.createElement("div");
+  row.className = "cons-row"; row.id = id;
+  const selected  = getSelectedConsIds();
+  const available = consumables.filter(c => !selected.has(c.id));
+  row.innerHTML = `
+    <select onchange="refreshConsOptions()">
+      <option value="">-- Consumible --</option>
+      ${available.map(c => `<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}
+    </select>
+    <input type="number" value="1" min="1" placeholder="Cant.">
+    <button class="btn-remove-c" onclick="document.getElementById('${id}').remove(); refreshConsOptions()">
+      <i class="fas fa-times"></i>
+    </button>`;
+  document.getElementById("consContainer").appendChild(row);
 }
 
 function validateWeekend(input) {
@@ -472,36 +638,33 @@ function onLabChange() {
   document.getElementById("newHoraFin").max    = opt.dataset.close;
 }
 
-function addConsRow() {
-  const id  = `cons_${++consRowCount}`;
-  const row = document.createElement("div");
-  row.className = "cons-row"; row.id = id;
-  row.innerHTML = `
-    <select>
-      <option value="">-- Consumible --</option>
-      ${consumables.map(c => `<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}
-    </select>
-    <input type="number" value="1" min="1" placeholder="Cant.">
-    <button class="btn-remove-c" onclick="document.getElementById('${id}').remove()"><i class="fas fa-times"></i></button>`;
-  document.getElementById("consContainer").appendChild(row);
-}
-
 async function saveReservation() {
-  const lab_id       = document.getElementById("newLab").value;
-  const fecha_uso    = document.getElementById("newFecha").value;
-  const hora_inicio  = document.getElementById("newHoraInicio").value;
-  const hora_fin     = document.getElementById("newHoraFin").value;
-  const proposito    = document.getElementById("newProposito").value.trim();
+  const lab_id      = document.getElementById("newLab").value;
+  const fecha_uso   = document.getElementById("newFecha").value;
+  const hora_inicio = document.getElementById("newHoraInicio").value;
+  const hora_fin    = document.getElementById("newHoraFin").value;
+  const proposito   = document.getElementById("newProposito").value.trim();
 
   if (!lab_id || !fecha_uso || !hora_inicio || !hora_fin || !proposito) {
     showToast("Completa todos los campos obligatorios", "error"); return;
   }
 
-  let alumno_id = currentUser?.id;
-  if (currentUser?.role !== "alumno") {
+  const role = currentUser?.role;
+
+  // ── alumno_id ──
+  // Alumno: él mismo. Docente: él mismo (quien físicamente reserva). Admin: elige de lista.
+  let alumno_id;
+  if (role === "alumno" || role === "docente") {
+    alumno_id = currentUser.id;
+  } else {
     alumno_id = parseInt(document.getElementById("newAlumno").value);
     if (!alumno_id) { showToast("Selecciona un alumno", "error"); return; }
   }
+
+  // ── docente_id ──
+  // Alumno elige al docente en cuyo nombre aparta. Docente elige él u otro. Admin elige.
+  const docente_id = parseInt(document.getElementById("newDocente").value);
+  if (!docente_id) { showToast("Selecciona el docente responsable", "error"); return; }
 
   // Consumibles
   const consumablesArr = [];
@@ -511,12 +674,20 @@ async function saveReservation() {
     if (cid) consumablesArr.push({ consumable_id: parseInt(cid), quantity_requested: qty });
   });
 
+  // Activos (los enviamos como items adicionales en el body, el backend los puede recibir)
+  const assetsArr = [];
+  document.querySelectorAll("#assetsContainer .asset-row").forEach(row => {
+    const aid = row.querySelector("select").value;
+    if (aid) assetsArr.push({ asset_id: parseInt(aid) });
+  });
+
   const body = {
     alumno_id,
-    docente_id: currentUser?.role === "docente" ? currentUser.id : null,
-    lab_id: parseInt(lab_id),
+    docente_id,
+    lab_id:     parseInt(lab_id),
     fecha_uso, hora_inicio, hora_fin, proposito,
-    consumables: consumablesArr
+    consumables: consumablesArr,
+    assets:      assetsArr
   };
 
   const res = await fetch(API, {
@@ -532,7 +703,9 @@ async function saveReservation() {
 // ── APROBAR ──
 function openApprove(id) {
   document.getElementById("approveId").value = id;
-  ["approveGrupo","approveSemestre","approveEncargado","approveMessage"].forEach(f => document.getElementById(f).value = "");
+  ["approveGrupo","approveSemestre","approveEncargado","approveMessage"].forEach(f =>
+    document.getElementById(f).value = ""
+  );
   document.getElementById("approveModal").classList.add("open");
 }
 async function approveReservation() {
@@ -587,7 +760,10 @@ async function releaseReservation() {
   const id = document.getElementById("releaseId").value;
   const leftover_items = [];
   document.querySelectorAll("#leftoverList .leftover-row").forEach(row => {
-    leftover_items.push({ reservation_consumable_id: parseInt(row.dataset.rcId), leftover_qty: parseInt(row.querySelector("input").value) || 0 });
+    leftover_items.push({
+      reservation_consumable_id: parseInt(row.dataset.rcId),
+      leftover_qty: parseInt(row.querySelector("input").value) || 0
+    });
   });
   const res = await fetch(`${API}/${id}/release`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
