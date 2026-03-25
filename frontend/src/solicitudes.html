@@ -11,7 +11,6 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
 .sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;flex-shrink:0;}
-
 .logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
 .menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
 .menu a i{margin-right:10px;width:20px;}
@@ -25,16 +24,21 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
 .user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
 .content{padding:25px;overflow-y:auto;flex:1;}
 .panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
 .btn{background:#4f46e5;color:white;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;font-family:'Poppins',sans-serif;}
 .btn:hover{background:#3730a3;}
 .btn-export{background:#10b981;color:white;border:none;padding:9px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;}
 .btn-export:hover{background:#059669;}
 
+/* Filtros */
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.filters select,.filters input{padding:7px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;}
+.filters select:focus,.filters input:focus{border-color:#4f46e5;}
+
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
-td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:top;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafafa;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
@@ -43,38 +47,78 @@ tr:hover td{background:#fafafa;}
 .badge-approved{background:#dcfce7;color:#15803d;}
 .badge-rejected{background:#fee2e2;color:#dc2626;}
 .badge-returned{background:#e0f2fe;color:#0369a1;}
+.badge-lab{background:#ede9fe;color:#7c3aed;}
 .action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:5px;font-size:14px;transition:0.2s;}
-.action-approve{color:#16a34a;} .action-approve:hover{background:#dcfce7;}
-.action-reject{color:#dc2626;}  .action-reject:hover{background:#fee2e2;}
-.action-return{color:#4f46e5;}  .action-return:hover{background:#ede9fe;}
-.action-delete{color:#6b7280;}  .action-delete:hover{background:#f3f4f6;}
-.action-info{color:#0891b2;}    .action-info:hover{background:#e0f2fe;}
+.action-approve{color:#16a34a;}.action-approve:hover{background:#dcfce7;}
+.action-reject{color:#dc2626;}.action-reject:hover{background:#fee2e2;}
+.action-return{color:#4f46e5;}.action-return:hover{background:#ede9fe;}
+.action-delete{color:#6b7280;}.action-delete:hover{background:#f3f4f6;}
+.action-info{color:#0891b2;}.action-info:hover{background:#e0f2fe;}
+.action-send{color:#d97706;}.action-send:hover{background:#fef3c7;}
 .empty-state{text-align:center;padding:40px;color:#9ca3af;}
 .empty-state i{font-size:36px;margin-bottom:10px;display:block;}
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:flex-start;z-index:1000;padding:20px;overflow-y:auto;}
 .modal.open{display:flex;}
-.modal-box{background:white;padding:28px;border-radius:12px;width:460px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;}
-.modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:20px;}
+.modal-box{background:white;padding:28px;border-radius:12px;width:100%;max-width:540px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);margin:auto;}
+.modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:18px;}
 .modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#9ca3af;background:none;border:none;}
-.form-group{margin-bottom:14px;}
+.form-group{margin-bottom:12px;}
 .form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
 .form-group select,.form-group input,.form-group textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:0.2s;color:#374151;}
 .form-group select:focus,.form-group input:focus,.form-group textarea:focus{border-color:#4f46e5;}
-.form-group textarea{resize:none;height:60px;}
-.modal-actions{display:flex;gap:10px;margin-top:6px;}
+.form-group textarea{resize:none;height:64px;}
+.modal-actions{display:flex;gap:10px;margin-top:8px;}
 .btn-cancel{flex:1;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:white;color:#374151;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
+.section-sep{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #f3f4f6;padding-bottom:5px;margin:14px 0 10px;}
+
+/* Items dinámicos */
+.items-container{border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:12px;}
+.item-row{display:grid;grid-template-columns:1fr 1fr 60px 32px;gap:8px;align-items:center;margin-bottom:8px;}
+.item-row:last-child{margin-bottom:0;}
+.item-row select,.item-row input{padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;}
+.item-row select:focus,.item-row input:focus{border-color:#4f46e5;}
+.btn-remove-item{background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;}
+.btn-remove-item:hover{background:#fee2e2;border-radius:4px;}
+.btn-add-item{background:none;border:1px dashed #d1d5db;color:#6b7280;padding:7px;border-radius:6px;cursor:pointer;font-size:13px;width:100%;text-align:center;transition:0.2s;font-family:'Poppins',sans-serif;}
+.btn-add-item:hover{background:#f3f4f6;border-color:#9ca3af;}
+
+/* Detail card */
+.detail-section{margin-bottom:14px;}
+.detail-section h4{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.detail-item{background:#f8f9fc;border-radius:6px;padding:10px;}
+.detail-item .label{font-size:11px;color:#9ca3af;margin-bottom:2px;}
+.detail-item .value{font-size:13px;color:#374151;font-weight:500;}
+.reject-box{background:#fff1f2;border:1px solid #fecaca;border-radius:8px;padding:12px;margin-top:8px;}
+.reject-box .rej-title{font-size:12px;font-weight:600;color:#dc2626;margin-bottom:6px;}
+.reject-box .rej-info{font-size:12px;color:#374151;margin-bottom:3px;}
+.items-list{list-style:none;padding:0;}
+.items-list li{font-size:13px;color:#374151;padding:5px 0;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;}
+.items-list li:last-child{border-bottom:none;}
+
+/* Return modal */
+.condition-row{display:grid;grid-template-columns:2fr 1fr 2fr;gap:8px;align-items:center;background:#f8f9fc;border-radius:6px;padding:8px;margin-bottom:6px;}
+.condition-row .item-name{font-size:12px;color:#374151;font-weight:500;}
+.condition-row select,.condition-row input{padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:'Poppins',sans-serif;outline:none;}
+
 .toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:#10b981;} .toast.error{background:#ef4444;}
-.info-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 16px;font-size:13px;color:#0369a1;display:flex;align-items:center;gap:8px;}
-@media(max-width:768px){.sidebar{position:fixed!important;top:0;left:0;height:100vh!important;transform:translateX(-100%);z-index:999;width:260px!important;margin-left:0!important;}.sidebar.open{transform:translateX(0);}}
+.toast.success{background:#10b981;}.toast.error{background:#ef4444;}.toast.info{background:#0891b2;}
+
+@media(max-width:768px){
+  .sidebar{position:fixed!important;top:0;left:0;height:100vh!important;transform:translateX(-100%);z-index:999;width:260px!important;}
+  .sidebar.open{transform:translateX(0);}
+  .item-row{grid-template-columns:1fr 60px 32px;}
+  .detail-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
 <div class="sidebar" id="sidebar">
-  <img src="public/logoTsj.png" alt="Logo TSJ" style="width: 150px; height: 90px; margin: 0 auto; display: block;">
+  <img src="public/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
   <div class="logo">SGIAC-ISC</div>
   <div class="menu">
     <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
@@ -95,7 +139,7 @@ tr:hover td{background:#fafafa;}
       <h2><i class="fas fa-clipboard-list"></i> Solicitudes</h2>
     </div>
     <div class="user">
-      <img src="https://i.pravatar.cc/40" alt="Avatar">
+      <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
       <span id="username">Cargando...</span>
     </div>
   </div>
@@ -105,79 +149,718 @@ tr:hover td{background:#fafafa;}
       <div class="panel-header">
         <h3>Gestión de Solicitudes</h3>
         <div style="display:flex;gap:8px;">
-          <!-- Exportar: solo admin -->
-          <button class="btn-export admin-only" onclick="exportCSV()">
-            <i class="fas fa-file-csv"></i> Exportar
-          </button>
-          <!-- Nueva Solicitud: todos los roles pueden crear -->
-          <button class="btn" onclick="openModal()">
-            <i class="fas fa-plus"></i> Nueva Solicitud
-          </button>
+          <button class="btn-export admin-only" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar</button>
+          <button class="btn" onclick="openNewModal()"><i class="fas fa-plus"></i> Nueva Solicitud</button>
         </div>
       </div>
 
+      <!-- Filtros -->
+      <div class="filters">
+        <select id="filterStatus" onchange="applyFilters()">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendiente (docente)</option>
+          <option value="pending_admin">Pendiente (admin)</option>
+          <option value="approved">Aprobado</option>
+          <option value="rejected">Rechazado</option>
+          <option value="returned">Devuelto</option>
+        </select>
+        <select id="filterType" onchange="applyFilters()">
+          <option value="">Todos los tipos</option>
+          <option value="asset">Activo</option>
+          <option value="consumable">Consumible</option>
+          <option value="laboratorio">Laboratorio</option>
+        </select>
+      </div>
+
       <div id="tableWrapper">
-        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando solicitudes...</p></div>
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL NUEVA SOLICITUD (solo docente/admin) -->
+<!-- ══ MODAL NUEVA SOLICITUD ══ -->
 <div class="modal" id="requestModal">
   <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3 id="modalTitle">Nueva Solicitud</h3>
-    <input type="hidden" id="requestId">
-    <div class="form-group">
+    <button class="modal-close" onclick="closeModal('requestModal')">&times;</button>
+    <h3>Nueva Solicitud</h3>
+
+    <div class="form-group" id="grpSolicitante">
       <label>Solicitante *</label>
       <select id="reqUser"></select>
     </div>
-    <div class="form-group" id="docenteGroup" style="display:none;">
+    <div class="form-group" id="grpDocente" style="display:none;">
       <label>Docente encargado *</label>
       <select id="reqDocente"></select>
     </div>
     <div class="form-group">
       <label>Tipo de ítem</label>
-      <select id="reqType" onchange="loadItemsByType()">
+      <select id="reqType" onchange="onTypeChange()">
         <option value="asset">Activo</option>
         <option value="consumable">Consumible</option>
+        <option value="laboratorio">Laboratorio</option>
       </select>
     </div>
     <div class="form-group">
-      <label>Ítem *</label>
-      <select id="reqItem"></select>
+      <label>Propósito / descripción de uso *</label>
+      <textarea id="reqPurpose" placeholder="¿Para qué se necesita este material?"></textarea>
     </div>
-    <div class="form-group">
-      <label>Cantidad</label>
-      <input type="number" id="reqQty" value="1" min="1">
+
+    <!-- Items dinámicos (activo/consumible) -->
+    <div id="itemsSection">
+      <div class="section-sep">Ítems solicitados</div>
+      <div class="items-container" id="itemsContainer"></div>
+      <button class="btn-add-item" onclick="addItemRow()"><i class="fas fa-plus"></i> Agregar ítem</button>
     </div>
+
+    <!-- Laboratorio (se muestra si tipo = laboratorio) -->
+    <div id="labSection" style="display:none;">
+      <div class="section-sep">Laboratorio</div>
+      <div class="form-group">
+        <label>Laboratorio *</label>
+        <select id="reqLab"></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label>Fecha de uso *</label>
+          <input type="date" id="reqFecha" min="">
+        </div>
+        <div class="form-group">
+          <label>Hora inicio *</label>
+          <input type="time" id="reqHoraInicio" step="1800">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Hora fin *</label>
+        <input type="time" id="reqHoraFin" step="1800">
+      </div>
+    </div>
+
     <div class="form-group">
-      <label>Notas</label>
+      <label>Notas adicionales</label>
       <textarea id="reqNotes" placeholder="Observaciones opcionales..."></textarea>
     </div>
+
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-cancel" onclick="closeModal('requestModal')">Cancelar</button>
       <button class="btn" style="flex:1;" onclick="saveRequest()"><i class="fas fa-save"></i> Guardar</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ MODAL APROBAR ══ -->
+<div class="modal" id="approveModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('approveModal')">&times;</button>
+    <h3>Aprobar Solicitud</h3>
+    <input type="hidden" id="approveId">
+    <div class="form-group">
+      <label>Fecha y lugar de entrega *</label>
+      <input type="datetime-local" id="approvePickupDate">
+    </div>
+    <div class="form-group">
+      <label>Lugar de entrega *</label>
+      <input type="text" id="approvePickupLocation" placeholder="Ej. Laboratorio de Sistemas A">
+    </div>
+    <div class="form-group">
+      <label>Mensaje al solicitante</label>
+      <textarea id="approveMessage" placeholder="Indicaciones adicionales..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('approveModal')">Cancelar</button>
+      <button class="btn" style="flex:1;background:#16a34a;" onclick="approveRequest()"><i class="fas fa-check"></i> Aprobar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL RECHAZAR ══ -->
+<div class="modal" id="rejectModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('rejectModal')">&times;</button>
+    <h3>Rechazar Solicitud</h3>
+    <input type="hidden" id="rejectId">
+    <div class="form-group">
+      <label>Razón del rechazo *</label>
+      <textarea id="rejectReason" placeholder="Explica el motivo del rechazo..." style="height:80px;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('rejectModal')">Cancelar</button>
+      <button class="btn" style="flex:1;background:#dc2626;" onclick="rejectRequest()"><i class="fas fa-times"></i> Rechazar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DEVOLUCIÓN ══ -->
+<div class="modal" id="returnModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('returnModal')">&times;</button>
+    <h3>Registrar Devolución</h3>
+    <input type="hidden" id="returnId">
+    <div id="returnItemsSection">
+      <div class="section-sep">Condición de ítems devueltos</div>
+      <div id="returnItemsList"></div>
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <label><input type="checkbox" id="returnIncident" onchange="toggleIncident()"> Reportar incidente</label>
+    </div>
+    <div id="incidentSection" style="display:none;">
+      <div class="form-group">
+        <label>Causa del incidente</label>
+        <textarea id="incidentCause" placeholder="Describe lo que ocurrió..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Solución / acción tomada</label>
+        <textarea id="incidentSolution" placeholder="Cómo se resolvió..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('returnModal')">Cancelar</button>
+      <button class="btn" style="flex:1;" onclick="saveReturn()"><i class="fas fa-undo"></i> Confirmar devolución</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALLE ══ -->
+<div class="modal" id="detailModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('detailModal')">&times;</button>
+    <h3>Detalle de Solicitud</h3>
+    <div id="detailContent"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-function toggleMenu(){
-  const s=document.getElementById("sidebar");
-  const o=document.getElementById("sidebarOverlay");
-  s.classList.toggle("open");
-  o.classList.toggle("show");
+const API      = "/api/requests";
+let allRequests = [];
+let assets      = [];
+let consumables = [];
+let users       = [];
+let docentes    = [];
+let labs        = [];
+let currentUser = null;
+
+// ── INIT ──
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCatalogs();
+  await loadRequests();
+  // Filtro admin: mostrar pendientes por defecto
+  if (currentUser?.role === "administrador") {
+    document.getElementById("filterStatus").value = "pending_admin";
+    applyFilters();
+  }
+});
+
+async function loadCatalogs() {
+  const [assetsRes, consRes, usersRes, labsRes] = await Promise.all([
+    fetch("/api/assets").then(r => r.json()),
+    fetch("/api/consumibles").then(r => r.json()),
+    fetch("/api/users").then(r => r.json()),
+    fetch("/api/labs").then(r => r.json())
+  ]);
+  assets      = Array.isArray(assetsRes) ? assetsRes : [];
+  consumables = Array.isArray(consRes)   ? consRes   : [];
+  users       = Array.isArray(usersRes)  ? usersRes  : [];
+  labs        = Array.isArray(labsRes)   ? labsRes   : [];
+  docentes    = users.filter(u => u.role === "docente");
 }
-function closeSidebar(){
+
+async function loadRequests() {
+  const res  = await fetch(API);
+  allRequests = await res.json();
+  applyFilters();
+}
+
+function applyFilters() {
+  const st   = document.getElementById("filterStatus").value;
+  const type = document.getElementById("filterType").value;
+  let data = [...allRequests];
+  if (st)   data = data.filter(r => r.status === st);
+  if (type) data = data.filter(r => r.request_type === type);
+  renderTable(data);
+}
+
+// ── TABLA ──
+function renderTable(data) {
+  const wrap = document.getElementById("tableWrapper");
+  if (!data.length) {
+    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Sin solicitudes</p></div>`;
+    return;
+  }
+
+  const role = currentUser?.role;
+
+  const rows = data.map(r => {
+    const statusMap = {
+      pending:       '<span class="badge badge-pending">Pend. Docente</span>',
+      pending_admin: '<span class="badge badge-info">Pend. Admin</span>',
+      approved:      '<span class="badge badge-approved">Aprobado</span>',
+      rejected:      '<span class="badge badge-rejected">Rechazado</span>',
+      returned:      '<span class="badge badge-returned">Devuelto</span>'
+    };
+    const typeMap = {
+      asset:       '<span class="badge" style="background:#f0fdf4;color:#15803d;">Activo</span>',
+      consumable:  '<span class="badge" style="background:#fef9c3;color:#a16207;">Consumible</span>',
+      laboratorio: '<span class="badge badge-lab">Laboratorio</span>'
+    };
+
+    // Items: primero buscar en request_items, si no legacy
+    let itemsText = "—";
+    if (r.request_items && r.request_items.length > 0) {
+      itemsText = r.request_items.map(it => {
+        const name = it.assets?.name || it.consumables?.name || "Ítem";
+        return `${name} (×${it.quantity})`;
+      }).join("<br>");
+    } else if (r.assets) {
+      itemsText = r.assets.name;
+    } else if (r.consumables) {
+      itemsText = r.consumables.name;
+    }
+
+    // Rechazo info
+    let rejInfo = "";
+    if (r.status === "rejected" && r.rejected_reason) {
+      rejInfo = `<br><small style="color:#dc2626;"><i class="fas fa-times-circle"></i> ${r.rejected_reason}</small>`;
+      if (r.rejected_at) rejInfo += `<br><small style="color:#9ca3af;">${formatDateTime(r.rejected_at)}</small>`;
+    }
+
+    // Acciones
+    let acciones = `<button class="action-btn action-info" onclick="openDetail(${r.id})" title="Ver detalle"><i class="fas fa-eye"></i></button>`;
+
+    if (role === "docente" && r.status === "pending" && r.user_id === currentUser?.id) {
+      acciones += `<button class="action-btn action-send" onclick="sendToAdmin(${r.id})" title="Enviar al admin"><i class="fas fa-paper-plane"></i></button>`;
+    }
+    if (role === "administrador" && r.status === "pending_admin") {
+      acciones += `<button class="action-btn action-approve" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+      acciones += `<button class="action-btn action-reject" onclick="openReject(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
+    }
+    if ((role === "docente" || role === "administrador") && r.status === "approved") {
+      acciones += `<button class="action-btn action-return" onclick="openReturn(${r.id})" title="Registrar devolución"><i class="fas fa-undo"></i></button>`;
+    }
+    if (role === "administrador") {
+      acciones += `<button class="action-btn action-delete" onclick="deleteRequest(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
+    }
+
+    const fecha = formatDateTime(r.request_date);
+
+    return `<tr>
+      <td><strong>#${r.id}</strong><br><small style="color:#9ca3af;">${fecha}</small></td>
+      <td>${r.users?.username || "—"}<br><small style="color:#9ca3af;">${r.users?.role || ""}</small></td>
+      <td>${typeMap[r.request_type] || r.request_type}<br><small style="color:#6b7280;font-size:11px;">${r.purpose || ""}</small></td>
+      <td>${itemsText}${rejInfo}</td>
+      <td>${statusMap[r.status] || r.status}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap;">${acciones}</div></td>
+    </tr>`;
+  }).join("");
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#/Fecha</th><th>Solicitante</th><th>Tipo/Propósito</th>
+        <th>Ítems</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── MODAL NUEVA SOLICITUD ──
+function openNewModal() {
+  // Llenar selector de solicitantes según rol
+  const solSelect = document.getElementById("reqUser");
+  solSelect.innerHTML = "";
+  const grpDocente = document.getElementById("grpDocente");
+
+  if (currentUser?.role === "alumno") {
+    solSelect.innerHTML = `<option value="${currentUser.id}">${currentUser.username}</option>`;
+    grpDocente.style.display = "block";
+    const docSel = document.getElementById("reqDocente");
+    docSel.innerHTML = `<option value="">-- Selecciona docente --</option>` +
+      docentes.map(d => `<option value="${d.id}">${d.username}</option>`).join("");
+  } else if (currentUser?.role === "docente") {
+    solSelect.innerHTML = `<option value="${currentUser.id}">${currentUser.username}</option>`;
+    grpDocente.style.display = "none";
+  } else {
+    // admin puede seleccionar cualquiera
+    solSelect.innerHTML = users.map(u => `<option value="${u.id}">${u.username} (${u.role})</option>`).join("");
+    grpDocente.style.display = "none";
+  }
+
+  // Fecha mínima = hoy, sin fines de semana
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  document.getElementById("reqFecha").min = todayStr;
+  document.getElementById("reqFecha").addEventListener("input", validateWeekend);
+
+  onTypeChange();
+  document.getElementById("requestModal").classList.add("open");
+}
+
+function validateWeekend(e) {
+  const d = new Date(e.target.value + "T12:00:00");
+  if (d.getDay() === 0 || d.getDay() === 6) {
+    showToast("No se permiten reservas en fines de semana", "error");
+    e.target.value = "";
+  }
+}
+
+function onTypeChange() {
+  const type = document.getElementById("reqType").value;
+  document.getElementById("itemsSection").style.display = type === "laboratorio" ? "none" : "block";
+  document.getElementById("labSection").style.display   = type === "laboratorio" ? "block" : "none";
+  if (type !== "laboratorio" && document.getElementById("itemsContainer").children.length === 0) {
+    addItemRow();
+  }
+  if (type === "laboratorio") {
+    const sel = document.getElementById("reqLab");
+    sel.innerHTML = `<option value="">-- Selecciona laboratorio --</option>`;
+    // Agrupar por edificio
+    const grouped = labs.reduce((acc, l) => {
+      (acc[l.edificio] = acc[l.edificio] || []).push(l);
+      return acc;
+    }, {});
+    for (const [edif, ls] of Object.entries(grouped)) {
+      const og = document.createElement("optgroup");
+      og.label = edif;
+      ls.forEach(l => {
+        const op = document.createElement("option");
+        op.value = l.id;
+        op.textContent = `${l.nombre} (${l.open_time}–${l.close_time})`;
+        op.dataset.open  = l.open_time;
+        op.dataset.close = l.close_time;
+        og.appendChild(op);
+      });
+      sel.appendChild(og);
+    }
+    // Actualizar restricciones de hora al cambiar lab
+    sel.onchange = () => {
+      const opt = sel.selectedOptions[0];
+      if (!opt?.dataset.open) return;
+      document.getElementById("reqHoraInicio").min = opt.dataset.open;
+      document.getElementById("reqHoraInicio").max = opt.dataset.close;
+      document.getElementById("reqHoraFin").min    = opt.dataset.open;
+      document.getElementById("reqHoraFin").max    = opt.dataset.close;
+    };
+  }
+}
+
+let itemRowCount = 0;
+function addItemRow() {
+  const type = document.getElementById("reqType").value;
+  const list = type === "asset" ? assets : consumables;
+  const id   = `item_${++itemRowCount}`;
+  const row  = document.createElement("div");
+  row.className = "item-row";
+  row.id = id;
+  row.innerHTML = `
+    <select name="item_id" onchange="void(0)">
+      <option value="">-- Ítem --</option>
+      ${list.map(i => `<option value="${i.id}">${i.name}</option>`).join("")}
+    </select>
+    <select name="item_type" style="display:none"><option value="${type}">${type}</option></select>
+    <input type="number" name="qty" value="1" min="1" placeholder="Cant.">
+    <button class="btn-remove-item" onclick="removeItemRow('${id}')"><i class="fas fa-times"></i></button>`;
+  document.getElementById("itemsContainer").appendChild(row);
+}
+
+function removeItemRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+async function saveRequest() {
+  const user_id = document.getElementById("reqUser").value;
+  const type    = document.getElementById("reqType").value;
+  const purpose = document.getElementById("reqPurpose").value.trim();
+  const notes   = document.getElementById("reqNotes").value.trim();
+
+  if (!user_id) { showToast("Selecciona un solicitante", "error"); return; }
+  if (!purpose) { showToast("El propósito es obligatorio", "error"); return; }
+
+  const body = { user_id: parseInt(user_id), request_type: type, purpose, notes };
+
+  // Docente encargado (alumno)
+  const docenteEl = document.getElementById("reqDocente");
+  if (docenteEl && document.getElementById("grpDocente").style.display !== "none") {
+    body.docente_id = parseInt(docenteEl.value) || null;
+  }
+
+  if (type === "laboratorio") {
+    const lab_id     = document.getElementById("reqLab").value;
+    const fecha_uso  = document.getElementById("reqFecha").value;
+    const horaInicio = document.getElementById("reqHoraInicio").value;
+    const horaFin    = document.getElementById("reqHoraFin").value;
+    if (!lab_id || !fecha_uso || !horaInicio || !horaFin) {
+      showToast("Completa laboratorio, fecha y horario", "error"); return;
+    }
+    // Enviar como reserva directa
+    const resv = await fetch("/api/reservations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        alumno_id:  parseInt(user_id),
+        docente_id: body.docente_id || (currentUser?.role === "docente" ? currentUser.id : null),
+        lab_id: parseInt(lab_id),
+        fecha_uso, hora_inicio: horaInicio, hora_fin: horaFin,
+        proposito: purpose
+      })
+    });
+    if (!resv.ok) { const e = await resv.json(); showToast(e.message || "Error", "error"); return; }
+    showToast("Reserva de laboratorio creada ✅", "success");
+    closeModal("requestModal");
+    await loadRequests();
+    return;
+  }
+
+  // Multi-item
+  const rows = document.querySelectorAll("#itemsContainer .item-row");
+  const items = [];
+  for (const row of rows) {
+    const item_id = row.querySelector("[name=item_id]").value;
+    const qty     = parseInt(row.querySelector("[name=qty]").value) || 1;
+    if (!item_id) { showToast("Selecciona un ítem en todos los campos", "error"); return; }
+    if (type === "asset")      items.push({ asset_id:      parseInt(item_id), quantity: qty });
+    if (type === "consumable") items.push({ consumable_id: parseInt(item_id), quantity: qty });
+  }
+  if (!items.length) { showToast("Agrega al menos un ítem", "error"); return; }
+  body.items = items;
+
+  const res = await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json(); showToast(e.message || "Error al guardar", "error"); return; }
+  showToast("Solicitud creada exitosamente ✅", "success");
+  closeModal("requestModal");
+  await loadRequests();
+}
+
+// ── ENVIAR AL ADMIN ──
+async function sendToAdmin(id) {
+  if (!confirm("¿Enviar esta solicitud al administrador?")) return;
+  await fetch(`${API}/${id}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "pending_admin" })
+  });
+  showToast("Solicitud enviada al administrador ✅", "success");
+  loadRequests();
+}
+
+// ── APROBAR ──
+function openApprove(id) {
+  document.getElementById("approveId").value = id;
+  document.getElementById("approvePickupDate").value = "";
+  document.getElementById("approvePickupLocation").value = "Laboratorio de Sistemas A";
+  document.getElementById("approveMessage").value = "";
+  document.getElementById("approveModal").classList.add("open");
+}
+
+async function approveRequest() {
+  const id  = document.getElementById("approveId").value;
+  const pd  = document.getElementById("approvePickupDate").value;
+  const pl  = document.getElementById("approvePickupLocation").value.trim();
+  const msg = document.getElementById("approveMessage").value.trim();
+  if (!pd || !pl) { showToast("Fecha y lugar son obligatorios", "error"); return; }
+  const res = await fetch(`${API}/${id}/approve`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pickup_date: pd, pickup_location: pl, admin_message: msg })
+  });
+  if (!res.ok) { showToast("Error al aprobar", "error"); return; }
+  showToast("Solicitud aprobada con éxito ✅", "success");
+  closeModal("approveModal");
+  loadRequests();
+}
+
+// ── RECHAZAR ──
+function openReject(id) {
+  document.getElementById("rejectId").value = id;
+  document.getElementById("rejectReason").value = "";
+  document.getElementById("rejectModal").classList.add("open");
+}
+
+async function rejectRequest() {
+  const id     = document.getElementById("rejectId").value;
+  const reason = document.getElementById("rejectReason").value.trim();
+  if (!reason) { showToast("La razón del rechazo es obligatoria", "error"); return; }
+  const res = await fetch(`${API}/${id}/reject`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rejected_by: currentUser?.id, rejected_reason: reason, admin_message: reason })
+  });
+  if (!res.ok) { showToast("Error al rechazar", "error"); return; }
+  showToast("Solicitud rechazada", "info");
+  closeModal("rejectModal");
+  loadRequests();
+}
+
+// ── DEVOLUCIÓN ──
+let returnData = null;
+function openReturn(id) {
+  returnData = allRequests.find(r => r.id === id);
+  document.getElementById("returnId").value = id;
+  document.getElementById("returnIncident").checked = false;
+  document.getElementById("incidentSection").style.display = "none";
+
+  const listEl = document.getElementById("returnItemsList");
+  listEl.innerHTML = "";
+
+  const items = returnData?.request_items || [];
+  if (items.length > 0) {
+    items.forEach(it => {
+      const name = it.assets?.name || it.consumables?.name || "Ítem";
+      const isAsset = !!it.assets;
+      listEl.innerHTML += `
+        <div class="condition-row" data-item-id="${it.id}" data-asset-id="${it.assets?.id || ""}">
+          <span class="item-name">${name}</span>
+          ${isAsset ? `<select name="condition">
+            <option value="bueno">Bueno</option>
+            <option value="dañado">Dañado</option>
+            <option value="perdido">Perdido</option>
+          </select>` : `<span style="font-size:12px;color:#9ca3af;">Consumible</span>`}
+          ${isAsset ? `<input type="text" name="serial" placeholder="Serie nueva (si aplica)">` : `<span></span>`}
+        </div>`;
+    });
+    document.getElementById("returnItemsSection").style.display = "block";
+  } else {
+    document.getElementById("returnItemsSection").style.display = "none";
+  }
+
+  document.getElementById("returnModal").classList.add("open");
+}
+
+function toggleIncident() {
+  const checked = document.getElementById("returnIncident").checked;
+  document.getElementById("incidentSection").style.display = checked ? "block" : "none";
+}
+
+async function saveReturn() {
+  const id        = document.getElementById("returnId").value;
+  const incident  = document.getElementById("returnIncident").checked;
+  const cause     = document.getElementById("incidentCause").value.trim();
+  const solution  = document.getElementById("incidentSolution").value.trim();
+
+  const items_condition = [];
+  document.querySelectorAll("#returnItemsList .condition-row").forEach(row => {
+    const condSel = row.querySelector("[name=condition]");
+    if (!condSel) return;
+    items_condition.push({
+      item_id:            parseInt(row.dataset.itemId),
+      asset_id:           parseInt(row.dataset.assetId) || null,
+      return_condition:   condSel.value,
+      replacement_serial: row.querySelector("[name=serial]")?.value.trim() || null
+    });
+  });
+
+  const res = await fetch(`${API}/${id}/return`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution, items_condition })
+  });
+  if (!res.ok) { showToast("Error al registrar devolución", "error"); return; }
+  showToast("Devolución registrada con éxito ✅", "success");
+  closeModal("returnModal");
+  loadRequests();
+}
+
+// ── DETALLE ──
+function openDetail(id) {
+  const r = allRequests.find(x => x.id === id);
+  if (!r) return;
+  const statusLabel = { pending:"Pend. Docente", pending_admin:"Pend. Admin", approved:"Aprobado", rejected:"Rechazado", returned:"Devuelto" };
+
+  let itemsHtml = "";
+  if (r.request_items && r.request_items.length > 0) {
+    itemsHtml = `<ul class="items-list">` + r.request_items.map(it => {
+      const name = it.assets?.name || it.consumables?.name || "Ítem";
+      const cond = it.return_condition ? ` · <em>${it.return_condition}</em>` : "";
+      const serial = it.replacement_serial ? ` · Serie nueva: ${it.replacement_serial}` : "";
+      return `<li><span>${name}</span><span>×${it.quantity}${cond}${serial}</span></li>`;
+    }).join("") + `</ul>`;
+  } else {
+    itemsHtml = `<p style="font-size:13px;color:#6b7280;">${r.assets?.name || r.consumables?.name || "—"}</p>`;
+  }
+
+  let rejHtml = "";
+  if (r.status === "rejected") {
+    rejHtml = `<div class="reject-box">
+      <div class="rej-title"><i class="fas fa-times-circle"></i> Rechazado</div>
+      <div class="rej-info"><strong>Razón:</strong> ${r.rejected_reason || r.admin_message || "—"}</div>
+      ${r.rejected_user ? `<div class="rej-info"><strong>Por:</strong> ${r.rejected_user.username}</div>` : ""}
+      ${r.rejected_at ? `<div class="rej-info"><strong>Fecha:</strong> ${formatDateTime(r.rejected_at)}</div>` : ""}
+    </div>`;
+  }
+
+  document.getElementById("detailContent").innerHTML = `
+    <div class="detail-section">
+      <h4>General</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="label">Solicitante</div><div class="value">${r.users?.username || "—"}</div></div>
+        <div class="detail-item"><div class="label">Estado</div><div class="value">${statusLabel[r.status] || r.status}</div></div>
+        <div class="detail-item"><div class="label">Tipo</div><div class="value">${r.request_type}</div></div>
+        <div class="detail-item"><div class="label">Fecha solicitud</div><div class="value">${formatDateTime(r.request_date)}</div></div>
+        ${r.approval_date ? `<div class="detail-item"><div class="label">Aprobado</div><div class="value">${formatDateTime(r.approval_date)}</div></div>` : ""}
+        ${r.return_date   ? `<div class="detail-item"><div class="label">Devuelto</div><div class="value">${formatDateTime(r.return_date)}</div></div>`   : ""}
+      </div>
+    </div>
+    ${r.purpose ? `<div class="detail-section"><h4>Propósito</h4><p style="font-size:13px;color:#374151;">${r.purpose}</p></div>` : ""}
+    <div class="detail-section"><h4>Ítems</h4>${itemsHtml}</div>
+    ${r.pickup_date ? `<div class="detail-section"><h4>Entrega</h4>
+      <p style="font-size:13px;color:#374151;">${formatDateTime(r.pickup_date)} · ${r.pickup_location || ""}</p>
+      ${r.admin_message ? `<p style="font-size:12px;color:#6b7280;margin-top:4px;">${r.admin_message}</p>` : ""}
+    </div>` : ""}
+    ${rejHtml}
+    ${r.incident ? `<div class="detail-section"><h4>Incidente</h4>
+      <p style="font-size:13px;"><strong>Causa:</strong> ${r.incident_cause || "—"}</p>
+      <p style="font-size:13px;"><strong>Solución:</strong> ${r.incident_solution || "—"}</p>
+    </div>` : ""}`;
+
+  document.getElementById("detailModal").classList.add("open");
+}
+
+// ── ELIMINAR ──
+async function deleteRequest(id) {
+  if (!confirm("¿Eliminar esta solicitud?")) return;
+  await fetch(`${API}/${id}`, { method: "DELETE" });
+  showToast("Solicitud eliminada", "info");
+  loadRequests();
+}
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  const headers = ["ID","Solicitante","Tipo","Propósito","Estado","Fecha Solicitud","Fecha Aprobación","Fecha Devolución"];
+  const rows    = allRequests.map(r => [
+    r.id, r.users?.username || "", r.request_type, r.purpose || "",
+    r.status, r.request_date || "", r.approval_date || "", r.return_date || ""
+  ]);
+  const csv  = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a"); a.href = url; a.download = "solicitudes.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── UTILS ──
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+function toggleMenu() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar() {
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
+function formatDateTime(dt) {
+  if (!dt) return "—";
+  return new Date(dt).toLocaleString("es-MX", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+}
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+document.querySelectorAll(".modal").forEach(m => {
+  m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
+});
 </script>
-<script src="../js/solicitudes.js"></script>
 <script src="../js/common.js"></script>
 </body>
 </html>
