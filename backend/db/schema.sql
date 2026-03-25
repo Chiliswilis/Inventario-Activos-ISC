@@ -1,106 +1,101 @@
--- ============================================
--- SGIAC-ISC | Schema completo corregido
--- Ejecutar en Supabase → SQL Editor
--- ============================================
+-- ============================================================
+-- SGIAC-ISC · Migración Fase 1
+-- Ejecutar en Supabase > SQL Editor
+-- ============================================================
 
--- 1. TIPO ENUM para roles
-CREATE TYPE user_role AS ENUM ('administrador', 'docente', 'alumno');
-
--- 2. USUARIOS
-CREATE TABLE public.users (
-  id            SERIAL PRIMARY KEY,
-  username      VARCHAR NOT NULL UNIQUE,
-  password_hash VARCHAR NOT NULL,
-  email         VARCHAR UNIQUE,
-  role          user_role DEFAULT 'alumno',
-  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 3. CATEGORÍAS
-CREATE TABLE public.categories (
+-- 1. TABLA labs (centraliza todos los laboratorios)
+CREATE TABLE IF NOT EXISTS public.labs (
   id          SERIAL PRIMARY KEY,
-  name        VARCHAR NOT NULL,
-  description TEXT,
-  type        VARCHAR NOT NULL CHECK (type IN ('asset', 'consumable'))
+  edificio    VARCHAR NOT NULL,
+  nombre      VARCHAR NOT NULL,
+  capacidad   INTEGER DEFAULT 30,
+  open_time   TIME    NOT NULL DEFAULT '07:00',
+  close_time  TIME    NOT NULL DEFAULT '22:00',
+  activo      BOOLEAN NOT NULL DEFAULT true,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(edificio, nombre)
 );
 
--- 4. ACTIVOS
-CREATE TABLE public.assets (
-  id            SERIAL PRIMARY KEY,
-  name          VARCHAR NOT NULL,
-  description   TEXT,
-  category_id   INTEGER REFERENCES public.categories(id),
-  serial_number VARCHAR UNIQUE,
-  location      VARCHAR,
-  status        VARCHAR DEFAULT 'available' CHECK (status IN ('available', 'borrowed', 'maintenance')),
-  quantity      INTEGER DEFAULT 1 CHECK (quantity >= 0),
-  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Datos iniciales (ampliar según necesidad)
+INSERT INTO public.labs (edificio, nombre, capacidad, open_time, close_time) VALUES
+  ('Edificio A', 'Laboratorio de Ciencias Básicas', 35, '07:00', '21:00'),
+  ('Edificio A', 'Laboratorio A',                   30, '07:00', '21:00'),
+  ('Edificio B', 'Laboratorio A',                   30, '07:00', '21:00'),
+  ('Edificio B', 'Laboratorio B',                   25, '07:00', '21:00')
+ON CONFLICT (edificio, nombre) DO NOTHING;
+
+-- 2. TABLA request_items (multi-ítem por solicitud)
+CREATE TABLE IF NOT EXISTS public.request_items (
+  id                  SERIAL PRIMARY KEY,
+  request_id          INTEGER NOT NULL REFERENCES public.requests(id) ON DELETE CASCADE,
+  asset_id            INTEGER REFERENCES public.assets(id),
+  consumable_id       INTEGER REFERENCES public.consumables(id),
+  quantity            INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  return_condition    VARCHAR CHECK (return_condition IN ('bueno','dañado','perdido')),
+  replacement_serial  VARCHAR,
+  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. CONSUMIBLES
-CREATE TABLE public.consumables (
-  id           SERIAL PRIMARY KEY,
-  name         VARCHAR NOT NULL,
-  description  TEXT,
-  category_id  INTEGER REFERENCES public.categories(id),
-  quantity     INTEGER DEFAULT 0 CHECK (quantity >= 0),
-  min_quantity INTEGER DEFAULT 0 CHECK (min_quantity >= 0),
-  unit         VARCHAR DEFAULT 'units',
-  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- 3. TABLA reservation_consumables (multi-consumible por reserva)
+CREATE TABLE IF NOT EXISTS public.reservation_consumables (
+  id                  SERIAL PRIMARY KEY,
+  reservation_id      INTEGER NOT NULL REFERENCES public.reservations(id) ON DELETE CASCADE,
+  consumable_id       INTEGER NOT NULL REFERENCES public.consumables(id),
+  quantity_requested  INTEGER NOT NULL DEFAULT 1 CHECK (quantity_requested > 0),
+  quantity_delivered  INTEGER,
+  leftover_qty        INTEGER,
+  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. SOLICITUDES
-CREATE TABLE public.requests (
-  id                 SERIAL PRIMARY KEY,
-  user_id            INTEGER REFERENCES public.users(id),
-  asset_id           INTEGER REFERENCES public.assets(id),
-  consumable_id      INTEGER REFERENCES public.consumables(id),
-  quantity_requested INTEGER DEFAULT 1 CHECK (quantity_requested > 0),
-  status             VARCHAR DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
-  request_date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  approval_date      TIMESTAMP,
-  return_date        TIMESTAMP,
-  notes              TEXT
-);
+-- 4. ALTER requests: nuevos campos
+ALTER TABLE public.requests
+  ADD COLUMN IF NOT EXISTS purpose        TEXT,
+  ADD COLUMN IF NOT EXISTS rejected_by    INTEGER REFERENCES public.users(id),
+  ADD COLUMN IF NOT EXISTS rejected_reason TEXT,
+  ADD COLUMN IF NOT EXISTS rejected_at    TIMESTAMP;
 
--- 7. RESERVACIONES
-CREATE TABLE public.reservations (
-  id         SERIAL PRIMARY KEY,
-  user_id    INTEGER REFERENCES public.users(id),
-  lab_name   VARCHAR NOT NULL,
-  start_time TIMESTAMP NOT NULL,
-  end_time   TIMESTAMP NOT NULL,
-  status     VARCHAR DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
-  purpose    TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Ampliar el CHECK de request_type para incluir 'laboratorio'
+ALTER TABLE public.requests
+  DROP CONSTRAINT IF EXISTS requests_request_type_check;
+ALTER TABLE public.requests
+  ADD CONSTRAINT requests_request_type_check
+  CHECK (request_type IN ('asset','consumable','laboratorio'));
 
--- 8. LOGS
-CREATE TABLE public.logs (
-  id         SERIAL PRIMARY KEY,
-  user_id    INTEGER REFERENCES public.users(id),
-  action     VARCHAR NOT NULL,
-  table_name VARCHAR,
-  record_id  INTEGER,
-  details    TEXT,
-  timestamp  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- 5. ALTER reservations: agregar lab_id FK, mantener columnas legacy como nullable
+ALTER TABLE public.reservations
+  ADD COLUMN IF NOT EXISTS lab_id INTEGER REFERENCES public.labs(id);
 
--- ============================================
--- CATEGORÍAS INICIALES
--- ============================================
-INSERT INTO public.categories (name, description, type) VALUES
-('Equipos de Escritorio y Laptops',  'Torres, CPUs, monitores, laptops y cargadores',                         'asset'),
-('Servidores',                        'Equipos de rack o torre para almacenamiento y procesamiento',            'asset'),
-('Componentes Internos',              'CPUs, GPUs, RAM, HDD, SSD',                                             'asset'),
-('Equipos de Conectividad',           'Routers, switches, hubs, firewalls, access points',                     'asset'),
-('Infraestructura de Red',            'Racks, UPS, no-breaks, reguladores de voltaje',                         'asset'),
-('Periféricos de Entrada/Salida',     'Teclados, ratones, impresoras, escáneres, cámaras web',                 'asset'),
-('Almacenamiento Externo',            'Discos duros portátiles, unidades flash USB',                           'asset'),
-('Multimedia',                        'Diademas, micrófonos, altavoces',                                       'asset'),
-('Mobiliario',                        'Escritorios, sillas ergonómicas, estanterías, mesas de trabajo',        'asset'),
-('Cables y Conectores',               'Cables UTP, HDMI, poder, conectores RJ45',                              'consumable'),
-('Herramientas de Mantenimiento',     'Herramientas de limpieza, pasta térmica, destornilladores',             'consumable'),
-('Servicios en la Nube',              'Suscripciones a plataformas de almacenamiento o servicios de terceros', 'consumable');
+-- Poblar lab_id desde los datos existentes (si los hay)
+UPDATE public.reservations r
+SET lab_id = l.id
+FROM public.labs l
+WHERE l.edificio = r.edificio AND l.nombre = r.laboratorio
+  AND r.lab_id IS NULL;
+
+-- Las columnas edificio/laboratorio/consumable_id/consumable_cantidad/consumable_entrega
+-- quedan en la tabla pero se dejan de usar en código nuevo.
+-- entrada_fecha/salida_fecha también se ocultan en UI pero no se borran (histórico).
+
+-- 6. ALTER assets: condición y valor 'dañado' en status
+ALTER TABLE public.assets
+  ADD COLUMN IF NOT EXISTS condition_notes TEXT;
+
+ALTER TABLE public.assets
+  DROP CONSTRAINT IF EXISTS assets_status_check;
+ALTER TABLE public.assets
+  ADD CONSTRAINT assets_status_check
+  CHECK (status IN ('available','borrowed','maintenance','damaged'));
+
+-- 7. ALTER users: límites de préstamo
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS max_active_loans    INTEGER DEFAULT 3,
+  ADD COLUMN IF NOT EXISTS max_consumable_qty  INTEGER DEFAULT 10;
+
+-- 8. ALTER logs: tipo e id de ítem
+ALTER TABLE public.logs
+  ADD COLUMN IF NOT EXISTS item_type VARCHAR,
+  ADD COLUMN IF NOT EXISTS item_id   INTEGER;
+
+-- ============================================================
+-- FIN DE MIGRACIÓN
+-- ============================================================
