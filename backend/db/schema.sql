@@ -1,101 +1,160 @@
--- ============================================================
--- SGIAC-ISC · Migración Fase 1
--- Ejecutar en Supabase > SQL Editor
--- ============================================================
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
--- 1. TABLA labs (centraliza todos los laboratorios)
-CREATE TABLE IF NOT EXISTS public.labs (
-  id          SERIAL PRIMARY KEY,
-  edificio    VARCHAR NOT NULL,
-  nombre      VARCHAR NOT NULL,
-  capacidad   INTEGER DEFAULT 30,
-  open_time   TIME    NOT NULL DEFAULT '07:00',
-  close_time  TIME    NOT NULL DEFAULT '22:00',
-  activo      BOOLEAN NOT NULL DEFAULT true,
-  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(edificio, nombre)
+CREATE TABLE public.assets (
+  id integer NOT NULL DEFAULT nextval('assets_id_seq'::regclass),
+  name character varying NOT NULL,
+  description text,
+  category_id integer,
+  serial_number character varying UNIQUE,
+  location character varying,
+  status character varying DEFAULT 'available'::character varying CHECK (status::text = ANY (ARRAY['available'::character varying, 'borrowed'::character varying, 'maintenance'::character varying, 'damaged'::character varying]::text[])),
+  quantity integer DEFAULT 1 CHECK (quantity >= 0),
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  condition_notes text,
+  CONSTRAINT assets_pkey PRIMARY KEY (id),
+  CONSTRAINT assets_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
-
--- Datos iniciales (ampliar según necesidad)
-INSERT INTO public.labs (edificio, nombre, capacidad, open_time, close_time) VALUES
-  ('Edificio A', 'Laboratorio de Ciencias Básicas', 35, '07:00', '21:00'),
-  ('Edificio A', 'Laboratorio A',                   30, '07:00', '21:00'),
-  ('Edificio B', 'Laboratorio A',                   30, '07:00', '21:00'),
-  ('Edificio B', 'Laboratorio B',                   25, '07:00', '21:00')
-ON CONFLICT (edificio, nombre) DO NOTHING;
-
--- 2. TABLA request_items (multi-ítem por solicitud)
-CREATE TABLE IF NOT EXISTS public.request_items (
-  id                  SERIAL PRIMARY KEY,
-  request_id          INTEGER NOT NULL REFERENCES public.requests(id) ON DELETE CASCADE,
-  asset_id            INTEGER REFERENCES public.assets(id),
-  consumable_id       INTEGER REFERENCES public.consumables(id),
-  quantity            INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-  return_condition    VARCHAR CHECK (return_condition IN ('bueno','dañado','perdido')),
-  replacement_serial  VARCHAR,
-  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.categories (
+  id integer NOT NULL DEFAULT nextval('categories_id_seq'::regclass),
+  name character varying NOT NULL,
+  description text,
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['asset'::character varying, 'consumable'::character varying]::text[])),
+  CONSTRAINT categories_pkey PRIMARY KEY (id)
 );
-
--- 3. TABLA reservation_consumables (multi-consumible por reserva)
-CREATE TABLE IF NOT EXISTS public.reservation_consumables (
-  id                  SERIAL PRIMARY KEY,
-  reservation_id      INTEGER NOT NULL REFERENCES public.reservations(id) ON DELETE CASCADE,
-  consumable_id       INTEGER NOT NULL REFERENCES public.consumables(id),
-  quantity_requested  INTEGER NOT NULL DEFAULT 1 CHECK (quantity_requested > 0),
-  quantity_delivered  INTEGER,
-  leftover_qty        INTEGER,
-  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.consumables (
+  id integer NOT NULL DEFAULT nextval('consumables_id_seq'::regclass),
+  name character varying NOT NULL,
+  description text,
+  category_id integer,
+  quantity integer DEFAULT 0 CHECK (quantity >= 0),
+  min_quantity integer DEFAULT 0 CHECK (min_quantity >= 0),
+  unit character varying DEFAULT 'units'::character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT consumables_pkey PRIMARY KEY (id),
+  CONSTRAINT consumables_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
-
--- 4. ALTER requests: nuevos campos
-ALTER TABLE public.requests
-  ADD COLUMN IF NOT EXISTS purpose        TEXT,
-  ADD COLUMN IF NOT EXISTS rejected_by    INTEGER REFERENCES public.users(id),
-  ADD COLUMN IF NOT EXISTS rejected_reason TEXT,
-  ADD COLUMN IF NOT EXISTS rejected_at    TIMESTAMP;
-
--- Ampliar el CHECK de request_type para incluir 'laboratorio'
-ALTER TABLE public.requests
-  DROP CONSTRAINT IF EXISTS requests_request_type_check;
-ALTER TABLE public.requests
-  ADD CONSTRAINT requests_request_type_check
-  CHECK (request_type IN ('asset','consumable','laboratorio'));
-
--- 5. ALTER reservations: agregar lab_id FK, mantener columnas legacy como nullable
-ALTER TABLE public.reservations
-  ADD COLUMN IF NOT EXISTS lab_id INTEGER REFERENCES public.labs(id);
-
--- Poblar lab_id desde los datos existentes (si los hay)
-UPDATE public.reservations r
-SET lab_id = l.id
-FROM public.labs l
-WHERE l.edificio = r.edificio AND l.nombre = r.laboratorio
-  AND r.lab_id IS NULL;
-
--- Las columnas edificio/laboratorio/consumable_id/consumable_cantidad/consumable_entrega
--- quedan en la tabla pero se dejan de usar en código nuevo.
--- entrada_fecha/salida_fecha también se ocultan en UI pero no se borran (histórico).
-
--- 6. ALTER assets: condición y valor 'dañado' en status
-ALTER TABLE public.assets
-  ADD COLUMN IF NOT EXISTS condition_notes TEXT;
-
-ALTER TABLE public.assets
-  DROP CONSTRAINT IF EXISTS assets_status_check;
-ALTER TABLE public.assets
-  ADD CONSTRAINT assets_status_check
-  CHECK (status IN ('available','borrowed','maintenance','damaged'));
-
--- 7. ALTER users: límites de préstamo
-ALTER TABLE public.users
-  ADD COLUMN IF NOT EXISTS max_active_loans    INTEGER DEFAULT 3,
-  ADD COLUMN IF NOT EXISTS max_consumable_qty  INTEGER DEFAULT 10;
-
--- 8. ALTER logs: tipo e id de ítem
-ALTER TABLE public.logs
-  ADD COLUMN IF NOT EXISTS item_type VARCHAR,
-  ADD COLUMN IF NOT EXISTS item_id   INTEGER;
-
--- ============================================================
--- FIN DE MIGRACIÓN
--- ============================================================
+CREATE TABLE public.labs (
+  id integer NOT NULL DEFAULT nextval('labs_id_seq'::regclass),
+  edificio character varying NOT NULL,
+  nombre character varying NOT NULL,
+  capacidad integer DEFAULT 30,
+  open_time time without time zone NOT NULL DEFAULT '07:00:00'::time without time zone,
+  close_time time without time zone NOT NULL DEFAULT '22:00:00'::time without time zone,
+  activo boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT labs_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.logs (
+  id integer NOT NULL DEFAULT nextval('logs_id_seq'::regclass),
+  user_id integer,
+  action character varying NOT NULL,
+  table_name character varying,
+  record_id integer,
+  details text,
+  timestamp timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  item_type character varying,
+  item_id integer,
+  CONSTRAINT logs_pkey PRIMARY KEY (id),
+  CONSTRAINT logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.request_items (
+  id integer NOT NULL DEFAULT nextval('request_items_id_seq'::regclass),
+  request_id integer NOT NULL,
+  asset_id integer,
+  consumable_id integer,
+  quantity integer NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  return_condition character varying CHECK (return_condition::text = ANY (ARRAY['bueno'::character varying, 'dañado'::character varying, 'perdido'::character varying]::text[])),
+  replacement_serial character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT request_items_pkey PRIMARY KEY (id),
+  CONSTRAINT request_items_request_id_fkey FOREIGN KEY (request_id) REFERENCES public.requests(id),
+  CONSTRAINT request_items_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.assets(id),
+  CONSTRAINT request_items_consumable_id_fkey FOREIGN KEY (consumable_id) REFERENCES public.consumables(id)
+);
+CREATE TABLE public.requests (
+  id integer NOT NULL DEFAULT nextval('requests_id_seq'::regclass),
+  user_id integer,
+  asset_id integer,
+  consumable_id integer,
+  quantity_requested integer DEFAULT 1 CHECK (quantity_requested > 0),
+  status character varying DEFAULT 'pending'::character varying CHECK (status::text = ANY (ARRAY['pending'::character varying, 'pending_admin'::character varying, 'approved'::character varying, 'rejected'::character varying, 'returned'::character varying]::text[])),
+  request_date timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  approval_date timestamp without time zone,
+  return_date timestamp without time zone,
+  notes text,
+  pickup_date timestamp without time zone,
+  pickup_location character varying DEFAULT 'Laboratorio de Sistemas A'::character varying,
+  docente_id integer,
+  incident boolean DEFAULT false,
+  incident_cause text,
+  incident_solution text,
+  admin_message text,
+  request_type character varying DEFAULT 'asset'::character varying CHECK (request_type::text = ANY (ARRAY['asset'::character varying, 'consumable'::character varying, 'laboratorio'::character varying]::text[])),
+  purpose text,
+  rejected_by integer,
+  rejected_reason text,
+  rejected_at timestamp without time zone,
+  CONSTRAINT requests_pkey PRIMARY KEY (id),
+  CONSTRAINT requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT requests_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.assets(id),
+  CONSTRAINT requests_consumable_id_fkey FOREIGN KEY (consumable_id) REFERENCES public.consumables(id),
+  CONSTRAINT requests_docente_id_fkey FOREIGN KEY (docente_id) REFERENCES public.users(id),
+  CONSTRAINT requests_rejected_by_fkey FOREIGN KEY (rejected_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.reservation_consumables (
+  id integer NOT NULL DEFAULT nextval('reservation_consumables_id_seq'::regclass),
+  reservation_id integer NOT NULL,
+  consumable_id integer NOT NULL,
+  quantity_requested integer NOT NULL DEFAULT 1 CHECK (quantity_requested > 0),
+  quantity_delivered integer,
+  leftover_qty integer,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT reservation_consumables_pkey PRIMARY KEY (id),
+  CONSTRAINT reservation_consumables_reservation_id_fkey FOREIGN KEY (reservation_id) REFERENCES public.reservations(id),
+  CONSTRAINT reservation_consumables_consumable_id_fkey FOREIGN KEY (consumable_id) REFERENCES public.consumables(id)
+);
+CREATE TABLE public.reservations (
+  id integer NOT NULL DEFAULT nextval('reservations_id_seq'::regclass),
+  alumno_id integer NOT NULL,
+  docente_id integer NOT NULL,
+  edificio character varying NOT NULL CHECK (edificio::text = ANY (ARRAY['Edificio A'::character varying, 'Edificio B'::character varying]::text[])),
+  laboratorio character varying NOT NULL,
+  grupo character varying,
+  semestre character varying,
+  encargado_grupo character varying,
+  fecha_solicitud timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  fecha_uso date NOT NULL,
+  hora_inicio time without time zone NOT NULL,
+  hora_fin time without time zone NOT NULL,
+  proposito text NOT NULL,
+  status character varying DEFAULT 'pending'::character varying CHECK (status::text = ANY (ARRAY['pending'::character varying, 'approved'::character varying, 'occupied'::character varying, 'released'::character varying, 'cancelled'::character varying]::text[])),
+  docente_message text,
+  entrada_fecha timestamp without time zone,
+  entrada_nota text,
+  salida_fecha timestamp without time zone,
+  salida_nota text,
+  consumable_id integer,
+  consumable_cantidad integer,
+  consumable_entrega time without time zone,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  lab_id integer,
+  CONSTRAINT reservations_pkey PRIMARY KEY (id),
+  CONSTRAINT reservations_alumno_id_fkey FOREIGN KEY (alumno_id) REFERENCES public.users(id),
+  CONSTRAINT reservations_docente_id_fkey FOREIGN KEY (docente_id) REFERENCES public.users(id),
+  CONSTRAINT reservations_consumable_id_fkey FOREIGN KEY (consumable_id) REFERENCES public.consumables(id),
+  CONSTRAINT reservations_lab_id_fkey FOREIGN KEY (lab_id) REFERENCES public.labs(id)
+);
+CREATE TABLE public.users (
+  id integer NOT NULL DEFAULT nextval('users_id_seq'::regclass),
+  username character varying NOT NULL UNIQUE,
+  password_hash character varying NOT NULL,
+  email character varying UNIQUE,
+  role USER-DEFINED DEFAULT 'alumno'::user_role,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  max_active_loans integer DEFAULT 3,
+  max_consumable_qty integer DEFAULT 10,
+  CONSTRAINT users_pkey PRIMARY KEY (id)
+);
