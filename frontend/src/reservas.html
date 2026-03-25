@@ -11,119 +11,112 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
 .sidebar{width:240px;background:#1f2a3a;color:white;transition:0.3s;overflow-y:auto;flex-shrink:0;}
-
 .logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
 .menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
 .menu a i{margin-right:10px;width:20px;}
 .menu a:hover,.menu a.active{background:#4f46e5;color:white;}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
-.header h2{font-size:18px;}
+.header h2{font-size:18px;color:#1f2a3a;}
 .header-left{display:flex;align-items:center;gap:15px;}
 .menu-btn{font-size:20px;cursor:pointer;color:#374151;}
 .user{display:flex;align-items:center;gap:10px;font-size:14px;}
 .user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
 .content{padding:25px;overflow-y:auto;flex:1;}
-
-/* Panel */
 .panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:20px;}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
 .panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
-
-/* Botones */
 .btn{background:#4f46e5;color:white;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;font-family:'Poppins',sans-serif;}
 .btn:hover{background:#3730a3;}
 .btn-success{background:#10b981;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
 .btn-success:hover{background:#059669;}
-.btn-danger{background:#ef4444;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
+.btn-danger{background:#ef4444;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;}
 .btn-danger:hover{background:#dc2626;}
-.btn-warning{background:#f59e0b;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
-.btn-warning:hover{background:#d97706;}
-.btn-info{background:#0891b2;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
+.btn-info{background:#0891b2;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;}
 .btn-info:hover{background:#0e7490;}
 
+/* Labs grid */
+.labs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.lab-status-card{background:#f8f9fc;border-radius:8px;padding:14px;border:1px solid #e5e7eb;transition:0.2s;}
+.lab-status-card.occupied{border-color:#fca5a5;background:#fff5f5;}
+.lab-status-card.available{border-color:#86efac;background:#f0fdf4;}
+.lab-card-title{font-size:13px;font-weight:600;color:#1f2a3a;margin-bottom:2px;}
+.lab-card-edif{font-size:11px;color:#6b7280;margin-bottom:6px;}
+.lab-status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px;}
+.pill-available{background:#dcfce7;color:#15803d;}
+.pill-occupied{background:#fee2e2;color:#dc2626;}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
 /* Filtros */
-.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-.filters select,.filters input{padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;}
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.filters select,.filters input{padding:7px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;}
 .filters select:focus,.filters input:focus{border-color:#4f46e5;}
 
-/* Tabla */
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
-td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:top;}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:top;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafafa;}
-
-/* Badges de estado */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
 .badge-pending{background:#fef9c3;color:#a16207;}
 .badge-approved{background:#dcfce7;color:#15803d;}
 .badge-occupied{background:#dbeafe;color:#1d4ed8;}
 .badge-released{background:#e0f2fe;color:#0369a1;}
 .badge-cancelled{background:#fee2e2;color:#dc2626;}
-
-/* Lab badges */
-.lab-badge{display:inline-block;background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;}
-.edificio-badge{display:inline-block;background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:4px;font-size:11px;margin-bottom:3px;}
-
-/* Acciones en tabla */
-.actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
-
-/* Empty / loading */
 .empty-state{text-align:center;padding:40px;color:#9ca3af;}
 .empty-state i{font-size:36px;margin-bottom:10px;display:block;}
-.loading-state{text-align:center;padding:30px;color:#6b7280;}
 
 /* Modal */
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:flex-start;z-index:1000;padding:20px;overflow-y:auto;}
 .modal.open{display:flex;}
 .modal-box{background:white;padding:28px;border-radius:12px;width:100%;max-width:520px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);margin:auto;}
-.modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:20px;}
+.modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:18px;}
 .modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#9ca3af;background:none;border:none;}
-.form-group{margin-bottom:14px;}
+.form-group{margin-bottom:12px;}
 .form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
 .form-group select,.form-group input,.form-group textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:0.2s;color:#374151;}
 .form-group select:focus,.form-group input:focus,.form-group textarea:focus{border-color:#4f46e5;}
-.form-group textarea{resize:none;height:70px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.modal-actions{display:flex;gap:10px;margin-top:6px;}
+.form-group textarea{resize:none;height:64px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.section-sep{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #f3f4f6;padding-bottom:5px;margin:14px 0 10px;}
+.modal-actions{display:flex;gap:10px;margin-top:8px;}
 .btn-cancel{flex:1;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:white;color:#374151;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
-.section-divider{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #f3f4f6;padding-bottom:6px;margin:16px 0 12px;}
+.hint{font-size:11px;color:#9ca3af;margin-top:3px;}
 
-/* Toast */
+/* Consumibles en reserva */
+.cons-row{display:grid;grid-template-columns:1fr 80px 28px;gap:8px;align-items:center;margin-bottom:6px;}
+.cons-row select,.cons-row input{padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;}
+.btn-remove-c{background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;}
+.btn-add-c{background:none;border:1px dashed #d1d5db;color:#6b7280;padding:6px;border-radius:6px;cursor:pointer;font-size:13px;width:100%;text-align:center;font-family:'Poppins',sans-serif;}
+.btn-add-c:hover{background:#f3f4f6;}
+
+/* Sobrante */
+.leftover-row{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;background:#f8f9fc;border-radius:6px;padding:8px;margin-bottom:6px;}
+.leftover-row .item-name{font-size:13px;color:#374151;}
+.leftover-row input{padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;}
+
 .toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:#10b981;}
-.toast.error{background:#ef4444;}
-.toast.info{background:#0891b2;}
-
-/* Info card de lab */
-.lab-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-.lab-card{background:#f8f9fc;border-radius:8px;padding:14px;border:1px solid #e5e7eb;}
-.lab-card h4{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
-.lab-card ul{list-style:none;padding:0;}
-.lab-card ul li{font-size:13px;color:#374151;padding:4px 0;display:flex;align-items:center;gap:6px;}
-.lab-card ul li::before{content:"🔬";font-size:11px;}
+.toast.success{background:#10b981;}.toast.error{background:#ef4444;}.toast.info{background:#0891b2;}
 
 @media(max-width:768px){
-  .sidebar{position:absolute;z-index:1000;height:100vh;}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:999;width:260px;}
+  .sidebar.open{transform:translateX(0);}
   .form-row{grid-template-columns:1fr;}
-  .lab-info-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
 <div class="sidebar" id="sidebar">
-  <img src="public/logoTsj.png" alt="Logo TSJ" style="width: 150px; height: 90px; margin: 0 auto; display: block;">
+  <img src="public/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
   <div class="logo">SGIAC-ISC</div>
   <div class="menu">
     <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
     <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
     <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
     <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a class="active" href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+    <a href="reservas.html" class="active"><i class="fas fa-calendar-check"></i> Reservas</a>
     <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
     <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
     <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
@@ -137,37 +130,21 @@ tr:hover td{background:#fafafa;}
       <h2><i class="fas fa-calendar-check"></i> Reservas</h2>
     </div>
     <div class="user">
-      <img src="https://i.pravatar.cc/40" alt="Avatar">
+      <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
       <span id="username">Cargando...</span>
     </div>
   </div>
 
   <div class="content">
 
-    <!-- Info de laboratorios disponibles -->
+    <!-- Estado de laboratorios -->
     <div class="panel">
       <div class="panel-header">
-        <h3><i class="fas fa-flask" style="color:#4f46e5;margin-right:6px;"></i> Laboratorios Disponibles</h3>
-        <!-- Solo docente y admin pueden hacer reservas -->
-        <button class="btn docente-plus" onclick="openNewModal()">
-          <i class="fas fa-plus"></i> Nueva Reserva
-        </button>
+        <h3><i class="fas fa-flask" style="color:#4f46e5;margin-right:6px;"></i> Laboratorios</h3>
+        <button class="btn docente-plus" onclick="openNewModal()"><i class="fas fa-plus"></i> Nueva Reserva</button>
       </div>
-      <div class="lab-info-grid">
-        <div class="lab-card">
-          <h4>🏛 Edificio A</h4>
-          <ul>
-            <li>Laboratorio de Ciencias Básicas</li>
-            <li>Laboratorio A</li>
-          </ul>
-        </div>
-        <div class="lab-card">
-          <h4>🏛 Edificio B</h4>
-          <ul>
-            <li>Laboratorio A</li>
-            <li>Laboratorio B</li>
-          </ul>
-        </div>
+      <div class="labs-grid" id="labsGrid">
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>
       </div>
     </div>
 
@@ -176,202 +153,130 @@ tr:hover td{background:#fafafa;}
       <div class="panel-header">
         <h3>Reservas Registradas</h3>
       </div>
-
       <div class="filters">
-        <select id="filterStatus" onchange="loadReservations()">
+        <select id="filterStatus" onchange="applyFilters()">
           <option value="">Todos los estados</option>
-          <option value="pending">Pendientes</option>
-          <option value="approved">Aprobadas</option>
+          <option value="pending">Pendiente</option>
+          <option value="approved">Aprobado</option>
           <option value="occupied">En uso</option>
-          <option value="released">Liberados</option>
-          <option value="cancelled">Canceladas</option>
+          <option value="released">Liberado</option>
+          <option value="cancelled">Cancelado</option>
         </select>
-        <input type="date" id="filterDate" onchange="loadReservations()" title="Filtrar por fecha">
+        <input type="date" id="filterFecha" onchange="applyFilters()" placeholder="Filtrar fecha">
       </div>
-
       <div id="tableWrapper">
-        <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Cargando reservas...</div>
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     MODAL: NUEVA RESERVA (alumno)
-══════════════════════════════════════════════ -->
+<!-- ══ MODAL NUEVA RESERVA ══ -->
 <div class="modal" id="newModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('newModal')">&times;</button>
-    <h3><i class="fas fa-calendar-plus" style="color:#4f46e5;margin-right:8px;"></i>Nueva Solicitud de Reserva</h3>
+    <h3>Nueva Reserva</h3>
 
-    <div class="section-divider">Laboratorio</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Edificio *</label>
-        <select id="newEdificio" onchange="updateLabs()">
-          <option value="">Seleccionar...</option>
-          <option value="Edificio A">Edificio A</option>
-          <option value="Edificio B">Edificio B</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Laboratorio *</label>
-        <select id="newLaboratorio">
-          <option value="">Primero selecciona edificio</option>
-        </select>
-      </div>
+    <div class="form-group" id="grpAlumno" style="display:none;">
+      <label>Alumno solicitante *</label>
+      <select id="newAlumno"></select>
     </div>
-
-    <div class="section-divider">Horario</div>
+    <div class="form-group">
+      <label>Laboratorio *</label>
+      <select id="newLab" onchange="onLabChange()"></select>
+    </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Fecha *</label>
-        <input type="date" id="newFecha">
+        <label>Fecha de uso *</label>
+        <input type="date" id="newFecha" onchange="validateWeekend(this)">
+        <div class="hint">Solo lunes a viernes</div>
       </div>
       <div class="form-group">
         <label>Hora inicio *</label>
-        <input type="time" id="newHoraInicio">
+        <input type="time" id="newHoraInicio" step="1800">
       </div>
     </div>
     <div class="form-group">
       <label>Hora fin *</label>
-      <input type="time" id="newHoraFin">
+      <input type="time" id="newHoraFin" step="1800">
     </div>
-
-    <div class="section-divider">Propósito</div>
     <div class="form-group">
-      <label>Propósito / Descripción de la práctica *</label>
-      <textarea id="newProposito" placeholder="Describe brevemente el propósito de la solicitud..."></textarea>
+      <label>Propósito *</label>
+      <textarea id="newProposito" placeholder="Descripción de la práctica o actividad..."></textarea>
     </div>
 
-    <div class="section-divider">¿Necesitas insumos? (opcional)</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Consumible</label>
-        <select id="newConsumable">
-          <option value="">Ninguno</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Cantidad</label>
-        <input type="number" id="newConsumableCantidad" min="1" value="1">
-      </div>
-    </div>
+    <div class="section-sep">Consumibles (opcional)</div>
+    <div id="consContainer"></div>
+    <button class="btn-add-c" onclick="addConsRow()"><i class="fas fa-plus"></i> Agregar consumible</button>
 
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top:14px;">
       <button class="btn-cancel" onclick="closeModal('newModal')">Cancelar</button>
-      <button class="btn" style="flex:1;" onclick="saveReservation()">
-        <i class="fas fa-paper-plane"></i> Enviar Solicitud
-      </button>
+      <button class="btn" style="flex:1;" onclick="saveReservation()"><i class="fas fa-save"></i> Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     MODAL: APROBAR + BITÁCORA ENTRADA (docente)
-══════════════════════════════════════════════ -->
+<!-- ══ MODAL APROBAR ══ -->
 <div class="modal" id="approveModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('approveModal')">&times;</button>
-    <h3><i class="fas fa-clipboard-check" style="color:#10b981;margin-right:8px;"></i>Aprobar y Llenar Bitácora de Entrada</h3>
+    <h3>Aprobar Reserva</h3>
     <input type="hidden" id="approveId">
-
-    <div class="section-divider">Datos del grupo</div>
     <div class="form-row">
       <div class="form-group">
         <label>Grupo *</label>
-        <input type="text" id="approveGrupo" placeholder="Ej: 6A">
+        <input type="text" id="approveGrupo" placeholder="Ej. ISC-3A">
       </div>
       <div class="form-group">
         <label>Semestre *</label>
-        <input type="text" id="approveSemestre" placeholder="Ej: 6to">
+        <input type="text" id="approveSemestre" placeholder="Ej. 2025-A">
       </div>
     </div>
     <div class="form-group">
-      <label>Encargado de grupo</label>
-      <input type="text" id="approveEncargado" placeholder="Nombre del encargado/representante">
-    </div>
-
-    <div class="section-divider">Bitácora de entrada</div>
-    <div class="form-group">
-      <label>Observaciones de entrada</label>
-      <textarea id="approveEntradaNota" placeholder="Estado del laboratorio al inicio, observaciones..."></textarea>
+      <label>Encargado del grupo</label>
+      <input type="text" id="approveEncargado" placeholder="Nombre del encargado">
     </div>
     <div class="form-group">
-      <label>Mensaje al alumno (opcional)</label>
-      <textarea id="approveMessage" placeholder="Instrucciones o comentarios para el alumno..."></textarea>
+      <label>Mensaje al alumno</label>
+      <textarea id="approveMessage" placeholder="Indicaciones adicionales..."></textarea>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('approveModal')">Cancelar</button>
-      <button class="btn-success" style="flex:1;padding:10px;" onclick="approveReservation()">
-        <i class="fas fa-check"></i> Aprobar y Firmar Entrada
-      </button>
+      <button class="btn" style="flex:1;background:#16a34a;" onclick="approveReservation()"><i class="fas fa-check"></i> Aprobar</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     MODAL: FIRMA DE SALIDA (docente)
-══════════════════════════════════════════════ -->
+<!-- ══ MODAL LIBERAR (firma salida + sobrantes) ══ -->
 <div class="modal" id="releaseModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('releaseModal')">&times;</button>
-    <h3><i class="fas fa-door-open" style="color:#0891b2;margin-right:8px;"></i>Firma de Salida — Liberar Laboratorio</h3>
+    <h3>Firma de Salida</h3>
     <input type="hidden" id="releaseId">
-
-    <div class="form-group">
-      <label>Observaciones de salida *</label>
-      <textarea id="releaseSalidaNota" placeholder="Estado del laboratorio al terminar, incidencias, observaciones..."></textarea>
+    <div id="leftoverSection" style="display:none;">
+      <div class="section-sep">Material sobrante</div>
+      <div id="leftoverList"></div>
     </div>
-
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top:12px;">
       <button class="btn-cancel" onclick="closeModal('releaseModal')">Cancelar</button>
-      <button class="btn-info" style="flex:1;padding:10px;" onclick="releaseReservation()">
-        <i class="fas fa-signature"></i> Firmar Salida y Liberar
-      </button>
+      <button class="btn" style="flex:1;" onclick="releaseReservation()"><i class="fas fa-sign-out-alt"></i> Confirmar salida</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     MODAL: CANCELAR
-══════════════════════════════════════════════ -->
+<!-- ══ MODAL CANCELAR ══ -->
 <div class="modal" id="cancelModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('cancelModal')">&times;</button>
-    <h3><i class="fas fa-times-circle" style="color:#ef4444;margin-right:8px;"></i>Cancelar Reserva</h3>
+    <h3>Cancelar Reserva</h3>
     <input type="hidden" id="cancelId">
     <div class="form-group">
       <label>Motivo de cancelación</label>
-      <textarea id="cancelMessage" placeholder="Explica el motivo de la cancelación..."></textarea>
+      <textarea id="cancelMessage" placeholder="Razón de la cancelación..."></textarea>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('cancelModal')">Volver</button>
-      <button class="btn-danger" style="flex:1;padding:10px;" onclick="cancelReservation()">
-        <i class="fas fa-times"></i> Cancelar Reserva
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     MODAL: HORA DE ENTREGA CONSUMIBLE (admin)
-══════════════════════════════════════════════ -->
-<div class="modal" id="consumableScheduleModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal('consumableScheduleModal')">&times;</button>
-    <h3><i class="fas fa-clock" style="color:#f59e0b;margin-right:8px;"></i>Definir Hora de Entrega de Insumo</h3>
-    <input type="hidden" id="scheduleId">
-    <div class="form-group">
-      <label>Hora estimada de entrega *</label>
-      <input type="time" id="scheduleHora">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('consumableScheduleModal')">Cancelar</button>
-      <button class="btn-warning" style="flex:1;padding:10px;" onclick="saveConsumableSchedule()">
-        <i class="fas fa-save"></i> Guardar
-      </button>
+      <button class="btn-cancel" onclick="closeModal('cancelModal')">Cancelar</button>
+      <button class="btn" style="flex:1;background:#dc2626;" onclick="cancelReservation()"><i class="fas fa-times"></i> Confirmar</button>
     </div>
   </div>
 </div>
@@ -379,431 +284,369 @@ tr:hover td{background:#fafafa;}
 <div class="toast" id="toast"></div>
 
 <script>
-function toggleMenu(){
-  const s=document.getElementById("sidebar");
-  const o=document.getElementById("sidebarOverlay");
-  s.classList.toggle("open");
-  o.classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-
-const API = "/api/reservations";
-const LABS_MAP = {
-  "Edificio A": ["Laboratorio de Ciencias Básicas", "Laboratorio A"],
-  "Edificio B": ["Laboratorio A", "Laboratorio B"]
-};
-
+const API      = "/api/reservations";
+let allReservations = [];
+let labs        = [];
+let consumables = [];
+let users       = [];
 let currentUser = null;
-try { currentUser = JSON.parse(localStorage.getItem("user")); } catch {}
+let consRowCount = 0;
 
-// ── ACTUALIZAR LABS SEGÚN EDIFICIO ──
-function updateLabs() {
-  const edificio = document.getElementById("newEdificio").value;
-  const labSel   = document.getElementById("newLaboratorio");
-  labSel.innerHTML = "";
-  if (!edificio || !LABS_MAP[edificio]) {
-    labSel.innerHTML = `<option value="">Primero selecciona edificio</option>`;
-    return;
-  }
-  LABS_MAP[edificio].forEach(lab => {
-    const opt = document.createElement("option");
-    opt.value = lab; opt.textContent = lab;
-    labSel.appendChild(opt);
-  });
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCatalogs();
+  renderLabsGrid();
+  await loadReservations();
+});
+
+async function loadCatalogs() {
+  const [labsRes, consRes, usersRes] = await Promise.all([
+    fetch("/api/labs").then(r => r.json()),
+    fetch("/api/consumibles").then(r => r.json()),
+    fetch("/api/users").then(r => r.json())
+  ]);
+  labs        = Array.isArray(labsRes)  ? labsRes  : [];
+  consumables = Array.isArray(consRes)  ? consRes  : [];
+  users       = Array.isArray(usersRes) ? usersRes : [];
 }
 
-// ── CARGAR DOCENTES ──
-async function loadDocentes() {
-  try {
-    const res = await fetch("/api/users");
-    if (!res.ok) throw new Error();
-    const users = await res.json();
-    const docentes = users.filter(u => u.role === "docente");
-    const sel = document.getElementById("newDocente");
-    sel.innerHTML = `<option value="">Selecciona un docente...</option>`;
-    docentes.forEach(d => {
-      const opt = document.createElement("option");
-      opt.value = d.id; opt.textContent = d.username;
-      sel.appendChild(opt);
-    });
-  } catch { console.warn("No se pudieron cargar docentes"); }
+// ── LABS GRID (estado ocupado/disponible) ──
+function renderLabsGrid() {
+  const occupied = new Set(
+    allReservations
+      .filter(r => r.status === "occupied" || (r.status === "approved" && r.fecha_uso === today()))
+      .map(r => r.lab_id)
+  );
+  const grid = document.getElementById("labsGrid");
+  if (!labs.length) { grid.innerHTML = `<p style="color:#9ca3af;font-size:13px;">Sin laboratorios registrados</p>`; return; }
+  grid.innerHTML = labs.map(l => {
+    const isOcc = occupied.has(l.id);
+    return `<div class="lab-status-card ${isOcc ? "occupied" : "available"}">
+      <div class="lab-card-title">${l.nombre}</div>
+      <div class="lab-card-edif">${l.edificio}</div>
+      <div class="lab-status-pill ${isOcc ? "pill-occupied" : "pill-available"}">
+        <span class="pill-dot"></span>${isOcc ? "Ocupado" : "Disponible"}
+      </div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">${l.open_time}–${l.close_time}</div>
+    </div>`;
+  }).join("");
 }
 
-// ── CARGAR CONSUMIBLES ──
-async function loadConsumablesForModal() {
-  try {
-    const res = await fetch("/api/consumibles");
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const sel = document.getElementById("newConsumable");
-    sel.innerHTML = `<option value="">Ninguno</option>`;
-    data.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id; opt.textContent = `${c.name} (${c.quantity} ${c.unit})`;
-      sel.appendChild(opt);
-    });
-  } catch { console.warn("No se pudieron cargar consumibles"); }
-}
+function today() { return new Date().toISOString().split("T")[0]; }
 
-// ── ABRIR MODAL NUEVA RESERVA ──
-function openNewModal() {
-  document.getElementById("newEdificio").value = "";
-  document.getElementById("newLaboratorio").innerHTML = `<option value="">Primero selecciona edificio</option>`;
-  document.getElementById("newFecha").value = "";
-  document.getElementById("newHoraInicio").value = "";
-  document.getElementById("newHoraFin").value = "";
-  document.getElementById("newProposito").value = "";
-  document.getElementById("newConsumableCantidad").value = "1";
-  loadConsumablesForModal();
-  openModal("newModal");
-}
-
-// ── ELIMINAR RESERVA ──
-async function deleteReservation(id) {
-  if (!confirm("¿Eliminar esta reserva? Se guardará en el historial.")) return;
-  try {
-    await fetch(`${API}/${id}`, { method: "DELETE" });
-    showToast("Reserva eliminada", "info");
-    loadReservations();
-  } catch { showToast("Error al eliminar", "error"); }
-}
-
-// ── GUARDAR NUEVA RESERVA ──
-async function saveReservation() {
-  const edificio          = document.getElementById("newEdificio").value;
-  const laboratorio       = document.getElementById("newLaboratorio").value;
-  const fecha_uso         = document.getElementById("newFecha").value;
-  const hora_inicio       = document.getElementById("newHoraInicio").value;
-  const hora_fin          = document.getElementById("newHoraFin").value;
-  const proposito         = document.getElementById("newProposito").value.trim();
-  const consumable_id     = document.getElementById("newConsumable").value || null;
-  const consumable_cantidad = parseInt(document.getElementById("newConsumableCantidad").value) || null;
-
-  if (!edificio || !laboratorio) { showToast("Selecciona edificio y laboratorio", "error"); return; }
-  if (!fecha_uso || !hora_inicio || !hora_fin) { showToast("Completa el horario", "error"); return; }
-  if (!proposito) { showToast("Escribe el propósito de la reserva", "error"); return; }
-  if (!currentUser) { showToast("Sesión no encontrada", "error"); return; }
-
-  // El docente logueado es tanto alumno_id como docente_id
-  try {
-    const res = await fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        alumno_id:  currentUser.id,
-        docente_id: currentUser.id,
-        edificio, laboratorio,
-        fecha_uso, hora_inicio, hora_fin,
-        proposito,
-        consumable_id: consumable_id ? parseInt(consumable_id) : null,
-        consumable_cantidad
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) { showToast("Error: " + (data.message || "No se pudo guardar"), "error"); return; }
-    showToast("Reserva creada exitosamente ✅", "success");
-    closeModal("newModal");
-    loadReservations();
-  } catch { showToast("No se pudo conectar con el servidor", "error"); }
-}
-
-// ── CARGAR Y RENDERIZAR RESERVAS ──
+// ── CARGAR RESERVAS ──
 async function loadReservations() {
-  const status = document.getElementById("filterStatus").value;
-  const fecha  = document.getElementById("filterDate").value;
-
-  let url = API + "?";
-  if (status) url += `status=${status}&`;
-  if (fecha)  url += `fecha=${fecha}&`;
-
-  // Si es alumno, solo ver sus reservas
-  if (currentUser && currentUser.role === "alumno") {
-    url += `alumno_id=${currentUser.id}&`;
-  }
-  // Si es docente, ver las de su cargo
-  if (currentUser && currentUser.role === "docente") {
-    url += `docente_id=${currentUser.id}&`;
-  }
-
-  const wrap = document.getElementById("tableWrapper");
-  wrap.innerHTML = `<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>`;
-
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    renderTable(data);
-  } catch {
-    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i><p>Error al cargar reservas</p></div>`;
-  }
+  const res = await fetch(API);
+  allReservations = await res.json();
+  renderLabsGrid();
+  applyFilters();
 }
 
-// ── RENDERIZAR TABLA ──
+function applyFilters() {
+  const st    = document.getElementById("filterStatus").value;
+  const fecha = document.getElementById("filterFecha").value;
+  let data = [...allReservations];
+  if (st)    data = data.filter(r => r.status === st);
+  if (fecha) data = data.filter(r => r.fecha_uso === fecha);
+  renderTable(data);
+}
+
+// ── TABLA ──
 function renderTable(data) {
   const wrap = document.getElementById("tableWrapper");
+  const role = currentUser?.role;
+
   if (!data.length) {
-    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No hay reservas registradas</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-calendar"></i><p>Sin reservas</p></div>`;
     return;
   }
 
-  const role = currentUser?.role || "alumno";
+  const statusMap = {
+    pending:   '<span class="badge badge-pending">Pendiente</span>',
+    approved:  '<span class="badge badge-approved">Aprobado</span>',
+    occupied:  '<span class="badge badge-occupied">En uso</span>',
+    released:  '<span class="badge badge-released">Liberado</span>',
+    cancelled: '<span class="badge badge-cancelled">Cancelado</span>'
+  };
 
   const rows = data.map(r => {
-    const statusBadge = {
-      pending:   `<span class="badge badge-pending"><i class="fas fa-clock"></i> Pendiente</span>`,
-      approved:  `<span class="badge badge-approved"><i class="fas fa-check"></i> Aprobada</span>`,
-      occupied:  `<span class="badge badge-occupied"><i class="fas fa-door-open"></i> En uso</span>`,
-      released:  `<span class="badge badge-released"><i class="fas fa-check-double"></i> Liberado</span>`,
-      cancelled: `<span class="badge badge-cancelled"><i class="fas fa-times"></i> Cancelada</span>`
-    }[r.status] || r.status;
+    const labName  = r.lab ? `${r.lab.nombre}<br><small style="color:#6b7280;">${r.lab.edificio}</small>` : "—";
+    const consText = r.reservation_consumables?.length
+      ? r.reservation_consumables.map(c => `${c.consumables?.name} ×${c.quantity_requested}`).join(", ")
+      : "—";
 
-    // Consumible info
-    const consInfo = r.consumables
-      ? `<br><small style="color:#7c3aed"><i class="fas fa-flask"></i> ${r.consumables.name} ×${r.consumable_cantidad}
-         ${r.consumable_entrega ? `<br>Entrega: ${r.consumable_entrega}` : ""}</small>`
-      : "";
-
-    // Bitácora info (solo si hay datos)
-    const bitacoraInfo = r.entrada_fecha
-      ? `<br><small style="color:#6b7280">Entrada: ${formatDateTime(r.entrada_fecha)}</small>`
-        + (r.salida_fecha ? `<br><small style="color:#6b7280">Salida: ${formatDateTime(r.salida_fecha)}</small>` : "")
-      : "";
-
-    // Acciones según rol y estado
-    let acciones = `<div class="actions-cell">`;
-
+    let acciones = "";
+    if (role === "docente" && r.status === "pending") {
+      acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+    }
+    if ((role === "docente" || role === "administrador") && r.status === "approved") {
+      acciones += `<button class="btn-info" onclick="markOccupied(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
+    }
+    if ((role === "docente" || role === "administrador") && r.status === "occupied") {
+      acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
+    }
+    if ((role === "docente" && (r.status === "pending" || r.status === "approved") && r.docente_id === currentUser?.id)
+      || role === "administrador") {
+      acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
+    }
     if (role === "administrador") {
-      // Admin: aprobar/rechazar pendientes
-      if (r.status === "pending") {
-        acciones += `<button class="btn-success" onclick="openApproveModal(${r.id})">
-                       <i class="fas fa-clipboard-check"></i> Aprobar + Bitácora
-                     </button>
-                     <button class="btn-danger" onclick="openCancelModal(${r.id})">
-                       <i class="fas fa-times"></i> Rechazar
-                     </button>`;
-      }
-      // Admin: marcar en uso cuando está aprobada
-      if (r.status === "approved") {
-        acciones += `<button class="btn-info" onclick="markOccupied(${r.id})">
-                       <i class="fas fa-door-open"></i> Marcar en uso
-                     </button>`;
-      }
-      // Admin: firmar salida cuando está en uso
-      if (r.status === "occupied") {
-        acciones += `<button class="btn-warning" onclick="openReleaseModal(${r.id})">
-                       <i class="fas fa-signature"></i> Firmar Salida
-                     </button>`;
-      }
-      // Admin: definir hora de entrega del laboratorio si tiene consumible sin hora
-      if (r.consumable_id && !r.consumable_entrega && r.status !== "cancelled" && r.status !== "released") {
-        acciones += `<button class="btn-warning" onclick="openScheduleModal(${r.id})">
-                       <i class="fas fa-clock"></i> Definir Hora de Entrega del Laboratorio
-                     </button>`;
-      }
-      // Admin: eliminar cuando está liberado (queda en historial)
-      if (r.status === "released") {
-        acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})">
-                       <i class="fas fa-trash"></i> Eliminar
-                     </button>`;
-      }
+      acciones += `<button style="background:#6b7280;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;" onclick="deleteReservation(${r.id})"><i class="fas fa-trash"></i></button>`;
     }
-
-    if (role === "docente") {
-      // Docente: solo puede eliminar sus reservas pendientes
-      if (r.status === "pending") {
-        acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})">
-                       <i class="fas fa-trash"></i> Eliminar
-                     </button>`;
-      }
-    }
-
-    // Alumno: solo ve, sin acciones
-    acciones += `</div>`;
 
     return `<tr>
-      <td>${r.id}</td>
-      <td>
-        <span class="edificio-badge">${r.edificio}</span><br>
-        <span class="lab-badge">${r.laboratorio}</span>
-        ${consInfo}
-      </td>
-      <td>
-        <strong>${r.docente?.username || "—"}</strong>
-        ${r.grupo ? `<br><small style="color:#6b7280">${r.grupo} · ${r.semestre}</small>` : ""}
-      </td>
-      <td>
-        ${formatDate(r.fecha_uso)}<br>
-        <small style="color:#6b7280">${r.hora_inicio} – ${r.hora_fin}</small>
-        ${bitacoraInfo}
-      </td>
-      <td>${statusBadge}</td>
-      <td>${acciones}</td>
+      <td>${labName}</td>
+      <td>${r.docente?.username || "—"}<br><small style="color:#6b7280;">${r.grupo ? r.grupo + " · " + r.semestre : ""}</small></td>
+      <td>${formatDate(r.fecha_uso)}<br><small style="color:#6b7280;">${r.hora_inicio} – ${r.hora_fin}</small></td>
+      <td><small style="color:#6b7280;">${consText}</small></td>
+      <td>${statusMap[r.status] || r.status}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap;">${acciones}</div></td>
     </tr>`;
   }).join("");
 
   wrap.innerHTML = `
     <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Laboratorio</th>
-          <th>Docente</th>
-          <th>Fecha y hora</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>Laboratorio</th><th>Docente / Grupo</th>
+        <th>Fecha y hora</th><th>Consumibles</th>
+        <th>Estado</th><th>Acciones</th>
+      </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
 
-// ── APROBAR ──
-function openApproveModal(id) {
-  document.getElementById("approveId").value = id;
-  document.getElementById("approveGrupo").value = "";
-  document.getElementById("approveSemestre").value = "";
-  document.getElementById("approveEncargado").value = "";
-  document.getElementById("approveEntradaNota").value = "";
-  document.getElementById("approveMessage").value = "";
-  openModal("approveModal");
-}
-
-async function approveReservation() {
-  const id        = document.getElementById("approveId").value;
-  const grupo     = document.getElementById("approveGrupo").value.trim();
-  const semestre  = document.getElementById("approveSemestre").value.trim();
-  const encargado = document.getElementById("approveEncargado").value.trim();
-  const nota      = document.getElementById("approveEntradaNota").value.trim();
-  const msg       = document.getElementById("approveMessage").value.trim();
-
-  if (!grupo || !semestre) { showToast("Grupo y semestre son obligatorios", "error"); return; }
-
-  try {
-    const res = await fetch(`${API}/${id}/approve`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ grupo, semestre, encargado_grupo: encargado, entrada_nota: nota, docente_message: msg })
+// ── NUEVA RESERVA ──
+function openNewModal() {
+  // Llenar labs
+  const sel = document.getElementById("newLab");
+  sel.innerHTML = `<option value="">-- Selecciona laboratorio --</option>`;
+  const grouped = labs.reduce((acc, l) => { (acc[l.edificio] = acc[l.edificio] || []).push(l); return acc; }, {});
+  for (const [edif, ls] of Object.entries(grouped)) {
+    const og = document.createElement("optgroup"); og.label = edif;
+    ls.forEach(l => {
+      const op = document.createElement("option"); op.value = l.id;
+      op.textContent = l.nombre;
+      op.dataset.open  = l.open_time;
+      op.dataset.close = l.close_time;
+      og.appendChild(op);
     });
-    if (!res.ok) { const e = await res.json(); showToast("Error: " + e.message, "error"); return; }
-    showToast("Reserva aprobada y bitácora de entrada registrada ✅", "success");
-    closeModal("approveModal");
-    loadReservations();
-  } catch { showToast("Error al conectar", "error"); }
+    sel.appendChild(og);
+  }
+
+  // Fecha mínima = hoy
+  const todayStr = today();
+  document.getElementById("newFecha").min = todayStr;
+  document.getElementById("newFecha").value = "";
+
+  // Limpiar consumibles
+  document.getElementById("consContainer").innerHTML = "";
+  consRowCount = 0;
+
+  // Alumno (solo si docente/admin)
+  const grpAlumno = document.getElementById("grpAlumno");
+  if (currentUser?.role !== "alumno") {
+    grpAlumno.style.display = "block";
+    const alumnos = users.filter(u => u.role === "alumno");
+    document.getElementById("newAlumno").innerHTML =
+      `<option value="">-- Alumno --</option>` + alumnos.map(a => `<option value="${a.id}">${a.username}</option>`).join("");
+  } else {
+    grpAlumno.style.display = "none";
+  }
+
+  document.getElementById("newModal").classList.add("open");
 }
 
-// ── MARCAR EN USO ──
+function validateWeekend(input) {
+  if (!input.value) return;
+  const d = new Date(input.value + "T12:00:00");
+  if (d.getDay() === 0 || d.getDay() === 6) {
+    showToast("No se permiten reservas en fines de semana", "error");
+    input.value = "";
+  }
+}
+
+function onLabChange() {
+  const opt = document.getElementById("newLab").selectedOptions[0];
+  if (!opt?.dataset.open) return;
+  document.getElementById("newHoraInicio").min = opt.dataset.open;
+  document.getElementById("newHoraInicio").max = opt.dataset.close;
+  document.getElementById("newHoraFin").min    = opt.dataset.open;
+  document.getElementById("newHoraFin").max    = opt.dataset.close;
+}
+
+function addConsRow() {
+  const id  = `cons_${++consRowCount}`;
+  const row = document.createElement("div");
+  row.className = "cons-row"; row.id = id;
+  row.innerHTML = `
+    <select>
+      <option value="">-- Consumible --</option>
+      ${consumables.map(c => `<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}
+    </select>
+    <input type="number" value="1" min="1" placeholder="Cant.">
+    <button class="btn-remove-c" onclick="document.getElementById('${id}').remove()"><i class="fas fa-times"></i></button>`;
+  document.getElementById("consContainer").appendChild(row);
+}
+
+async function saveReservation() {
+  const lab_id       = document.getElementById("newLab").value;
+  const fecha_uso    = document.getElementById("newFecha").value;
+  const hora_inicio  = document.getElementById("newHoraInicio").value;
+  const hora_fin     = document.getElementById("newHoraFin").value;
+  const proposito    = document.getElementById("newProposito").value.trim();
+
+  if (!lab_id || !fecha_uso || !hora_inicio || !hora_fin || !proposito) {
+    showToast("Completa todos los campos obligatorios", "error"); return;
+  }
+
+  let alumno_id = currentUser?.id;
+  if (currentUser?.role !== "alumno") {
+    alumno_id = parseInt(document.getElementById("newAlumno").value);
+    if (!alumno_id) { showToast("Selecciona un alumno", "error"); return; }
+  }
+
+  // Consumibles
+  const consumablesArr = [];
+  document.querySelectorAll("#consContainer .cons-row").forEach(row => {
+    const cid = row.querySelector("select").value;
+    const qty = parseInt(row.querySelector("input").value) || 1;
+    if (cid) consumablesArr.push({ consumable_id: parseInt(cid), quantity_requested: qty });
+  });
+
+  const body = {
+    alumno_id,
+    docente_id: currentUser?.role === "docente" ? currentUser.id : null,
+    lab_id: parseInt(lab_id),
+    fecha_uso, hora_inicio, hora_fin, proposito,
+    consumables: consumablesArr
+  };
+
+  const res = await fetch(API, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json(); showToast(e.message || "Error", "error"); return; }
+  showToast("Reserva creada exitosamente ✅", "success");
+  closeModal("newModal");
+  loadReservations();
+}
+
+// ── APROBAR ──
+function openApprove(id) {
+  document.getElementById("approveId").value = id;
+  ["approveGrupo","approveSemestre","approveEncargado","approveMessage"].forEach(f => document.getElementById(f).value = "");
+  document.getElementById("approveModal").classList.add("open");
+}
+async function approveReservation() {
+  const id       = document.getElementById("approveId").value;
+  const grupo    = document.getElementById("approveGrupo").value.trim();
+  const semestre = document.getElementById("approveSemestre").value.trim();
+  const encarg   = document.getElementById("approveEncargado").value.trim();
+  const msg      = document.getElementById("approveMessage").value.trim();
+  if (!grupo || !semestre) { showToast("Grupo y semestre son obligatorios", "error"); return; }
+  const res = await fetch(`${API}/${id}/approve`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ grupo, semestre, encargado_grupo: encarg, docente_message: msg })
+  });
+  if (!res.ok) { showToast("Error al aprobar", "error"); return; }
+  showToast("Reserva aprobada ✅", "success");
+  closeModal("approveModal");
+  loadReservations();
+}
+
+// ── EN USO ──
 async function markOccupied(id) {
   if (!confirm("¿Marcar laboratorio como 'En uso'?")) return;
-  try {
-    await fetch(`${API}/${id}/occupy`, { method: "PUT" });
-    showToast("Laboratorio marcado como en uso", "info");
-    loadReservations();
-  } catch { showToast("Error al conectar", "error"); }
+  await fetch(`${API}/${id}/occupy`, { method: "PUT" });
+  showToast("Laboratorio marcado como en uso", "info");
+  loadReservations();
 }
 
-// ── FIRMAR SALIDA ──
-function openReleaseModal(id) {
+// ── LIBERAR ──
+function openRelease(id) {
+  const r = allReservations.find(x => x.id === id);
   document.getElementById("releaseId").value = id;
-  document.getElementById("releaseSalidaNota").value = "";
-  openModal("releaseModal");
-}
+  const listEl  = document.getElementById("leftoverList");
+  const section = document.getElementById("leftoverSection");
+  listEl.innerHTML = "";
 
-async function releaseReservation() {
-  const id   = document.getElementById("releaseId").value;
-  const nota = document.getElementById("releaseSalidaNota").value.trim();
-
-  try {
-    const res = await fetch(`${API}/${id}/release`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ salida_nota: nota })
+  const cons = r?.reservation_consumables || [];
+  if (cons.length > 0) {
+    section.style.display = "block";
+    cons.forEach(c => {
+      listEl.innerHTML += `
+        <div class="leftover-row" data-rc-id="${c.id}">
+          <span class="item-name">${c.consumables?.name || "Consumible"} (solicitado: ${c.quantity_requested})</span>
+          <input type="number" min="0" placeholder="Sobrante" value="0">
+        </div>`;
     });
-    if (!res.ok) { showToast("Error al liberar", "error"); return; }
-    showToast("Laboratorio liberado y bitácora de salida registrada ✅", "success");
-    closeModal("releaseModal");
-    loadReservations();
-  } catch { showToast("Error al conectar", "error"); }
+  } else {
+    section.style.display = "none";
+  }
+  document.getElementById("releaseModal").classList.add("open");
+}
+async function releaseReservation() {
+  const id = document.getElementById("releaseId").value;
+  const leftover_items = [];
+  document.querySelectorAll("#leftoverList .leftover-row").forEach(row => {
+    leftover_items.push({ reservation_consumable_id: parseInt(row.dataset.rcId), leftover_qty: parseInt(row.querySelector("input").value) || 0 });
+  });
+  const res = await fetch(`${API}/${id}/release`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ leftover_items })
+  });
+  if (!res.ok) { showToast("Error al liberar", "error"); return; }
+  showToast("Laboratorio liberado ✅", "success");
+  closeModal("releaseModal");
+  loadReservations();
 }
 
 // ── CANCELAR ──
-function openCancelModal(id) {
+function openCancel(id) {
   document.getElementById("cancelId").value = id;
   document.getElementById("cancelMessage").value = "";
-  openModal("cancelModal");
+  document.getElementById("cancelModal").classList.add("open");
 }
-
 async function cancelReservation() {
   const id  = document.getElementById("cancelId").value;
   const msg = document.getElementById("cancelMessage").value.trim();
-  try {
-    await fetch(`${API}/${id}/cancel`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ docente_message: msg })
-    });
-    showToast("Reserva cancelada", "info");
-    closeModal("cancelModal");
-    loadReservations();
-  } catch { showToast("Error al conectar", "error"); }
+  await fetch(`${API}/${id}/cancel`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ docente_message: msg })
+  });
+  showToast("Reserva cancelada", "info");
+  closeModal("cancelModal");
+  loadReservations();
 }
 
-// ── PROGRAMAR ENTREGA CONSUMIBLE ──
-function openScheduleModal(id) {
-  document.getElementById("scheduleId").value = id;
-  document.getElementById("scheduleHora").value = "";
-  openModal("consumableScheduleModal");
-}
-
-async function saveConsumableSchedule() {
-  const id   = document.getElementById("scheduleId").value;
-  const hora = document.getElementById("scheduleHora").value;
-  if (!hora) { showToast("Selecciona la hora de entrega", "error"); return; }
-  try {
-    await fetch(`${API}/${id}/consumable-schedule`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ consumable_entrega: hora })
-    });
-    showToast("Hora de entrega guardada ✅", "success");
-    closeModal("consumableScheduleModal");
-    loadReservations();
-  } catch { showToast("Error al conectar", "error"); }
+// ── ELIMINAR ──
+async function deleteReservation(id) {
+  if (!confirm("¿Eliminar esta reserva?")) return;
+  await fetch(`${API}/${id}`, { method: "DELETE" });
+  showToast("Reserva eliminada", "info");
+  loadReservations();
 }
 
 // ── UTILS ──
-function openModal(id)  { document.getElementById(id).classList.add("open"); }
 function closeModal(id) { document.getElementById(id).classList.remove("open"); }
-
+function toggleMenu() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
 function formatDate(d) {
   if (!d) return "—";
-  const parts = d.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return d;
+  const p = d.split("-"); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
 }
-
-function formatDateTime(dt) {
-  if (!dt) return "—";
-  const d = new Date(dt);
-  return d.toLocaleString("es-MX", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
-}
-
 function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
+  t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove("show"), 3500);
 }
-
-// Cerrar modales al hacer click fuera
 document.querySelectorAll(".modal").forEach(m => {
   m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
 });
-
-// ── INIT ──
-loadReservations();
 </script>
 <script src="../js/common.js"></script>
 </body>
