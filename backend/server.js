@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors    = require("cors");
 const path    = require("path");
+const supabase = require("./src/supabase");
 
 const authRoutes         = require("./src/auth");
 const assetsRoutes       = require("./src/assets");
@@ -14,7 +15,6 @@ const requestsRoutes     = require("./src/requests");
 const reservationsRoutes = require("./src/reservations");
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
@@ -28,12 +28,21 @@ app.use("/api/stats",        statsRoutes);
 app.use("/api/requests",     requestsRoutes);
 app.use("/api/reservations", reservationsRoutes);
 
-// ── SERVIR FRONTEND ESTÁTICO ──
-// Express sirve los archivos del frontend desde ../frontend/src
+// ── LABS (catálogo dinámico de laboratorios) ──
+app.get("/api/labs", async (req, res) => {
+  const { data, error } = await supabase
+    .from("labs")
+    .select("id, edificio, nombre, capacidad, open_time, close_time")
+    .eq("activo", true)
+    .order("edificio")
+    .order("nombre");
+  if (error) return res.status(500).json(error);
+  res.json(data);
+});
+
+// ── FRONTEND ESTÁTICO ──
 app.use(express.static(path.join(__dirname, "../frontend/src")));
 app.use("/public", express.static(path.join(__dirname, "../frontend/public")));
-
-// Cualquier ruta que no sea /api/ devuelve el login
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/src/login.html"));
 });
