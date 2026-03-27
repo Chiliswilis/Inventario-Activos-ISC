@@ -28,11 +28,11 @@ CREATE TABLE public.consumables (
   name character varying NOT NULL,
   description text,
   category_id integer,
-  quantity integer DEFAULT 0 CHECK (quantity >= 0),
   min_quantity integer DEFAULT 0 CHECK (min_quantity >= 0),
   unit character varying DEFAULT 'units'::character varying,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  quantity integer DEFAULT 0 CHECK (quantity >= 0),
   CONSTRAINT consumables_pkey PRIMARY KEY (id),
   CONSTRAINT consumables_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
