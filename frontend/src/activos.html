@@ -32,23 +32,63 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
 .btn:hover{background:#3730a3;}
 .btn-export{background:#10b981;color:white;border:none;padding:9px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
 .btn-export:hover{background:#059669;}
-.toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
-.search-box{display:flex;align-items:center;gap:6px;background:#f8f9fc;border:1px solid #d1d5db;border-radius:6px;padding:6px 12px;flex:1;min-width:180px;max-width:280px;}
+
+/* ── FILTROS ── */
+.filters-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:16px;
+  padding:14px;
+  background:#f8f9fc;
+  border-radius:8px;
+  border:1px solid #e5e7eb;
+  align-items:center;
+}
+.filters-bar .filter-label{
+  font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;
+  letter-spacing:0.5px;white-space:nowrap;
+}
+/* Área pill buttons */
+.area-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.area-pill{
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;
+  border:1px solid #d1d5db;background:white;color:#374151;transition:0.2s;
+  font-family:'Poppins',sans-serif;
+}
+.area-pill:hover{border-color:#4f46e5;color:#4f46e5;}
+.area-pill.active-all{background:#1f2a3a;color:white;border-color:#1f2a3a;}
+.area-pill.active-sistemas{background:#4f46e5;color:white;border-color:#4f46e5;}
+.area-pill.active-laboratorio{background:#0891b2;color:white;border-color:#0891b2;}
+
+.filter-divider{width:1px;height:28px;background:#e5e7eb;margin:0 4px;}
+
+.search-box{display:flex;align-items:center;gap:6px;background:white;border:1px solid #d1d5db;border-radius:6px;padding:6px 12px;min-width:180px;max-width:240px;}
 .search-box i{color:#9ca3af;font-size:13px;}
 .search-box input{border:none;background:none;outline:none;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;width:100%;}
-.toolbar select{padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;}
-.toolbar select:focus{border-color:#4f46e5;}
+.filter-select{padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;background:white;}
+.filter-select:focus{border-color:#4f46e5;}
+
+/* Chips de filtros activos */
+.active-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.filter-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;background:#ede9fe;color:#4f46e5;}
+.filter-chip button{background:none;border:none;cursor:pointer;color:#4f46e5;padding:0;font-size:12px;line-height:1;}
+
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
 td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafafa;}
-.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
 .badge-available{background:#dcfce7;color:#15803d;}
 .badge-borrowed{background:#fef9c3;color:#a16207;}
 .badge-maintenance{background:#fee2e2;color:#dc2626;}
 .badge-damaged{background:#f3e8ff;color:#7e22ce;}
-.action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:5px;font-size:14px;transition:0.2s;}
+/* Área badges */
+.badge-sistemas{background:#ede9fe;color:#4f46e5;}
+.badge-laboratorio{background:#e0f2fe;color:#0369a1;}
+
+.action-btn{background:none;border:none;cursor:pointer;padding:5px 8px;border-radius:5px;font-size:14px;transition:0.2s;}
 .action-edit{color:#4f46e5;}.action-edit:hover{background:#ede9fe;}
 .action-delete{color:#dc2626;}.action-delete:hover{background:#fee2e2;}
 .empty-state{text-align:center;padding:40px;color:#9ca3af;}
@@ -82,6 +122,7 @@ tr:hover td{background:#fafafa;}
   .sidebar.open{transform:translateX(0);}
   .form-row{grid-template-columns:1fr;}
   .search-box{max-width:100%;}
+  .filters-bar{flex-direction:column;align-items:flex-start;}
 }
 </style>
 </head>
@@ -106,7 +147,7 @@ tr:hover td{background:#fafafa;}
   <div class="header">
     <div class="header-left">
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-      <h2><i class="fas fa-box"></i> Activos</h2>
+      <h2><i class="fas fa-box"></i> GESTION DE ACTIVOS</h2>
     </div>
     <div class="user">
       <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
@@ -117,7 +158,7 @@ tr:hover td{background:#fafafa;}
   <div class="content">
     <div class="panel">
       <div class="panel-header">
-        <h3>Gestión de Activos</h3>
+        <h3>Vista Principal de Activos</h3>
         <div class="panel-header-btns">
           <button class="btn-export admin-only" onclick="exportCSV()">
             <i class="fas fa-file-csv"></i> Exportar
@@ -128,20 +169,54 @@ tr:hover td{background:#fafafa;}
         </div>
       </div>
 
-      <div class="toolbar">
+      <!-- ══ BARRA DE FILTROS ══ -->
+      <div class="filters-bar">
+        <!-- Área / Departamento -->
+        <span class="filter-label"><i class="fas fa-layer-group" style="margin-right:4px;"></i>Área</span>
+        <div class="area-pills">
+          <button class="area-pill active-all" data-area="" onclick="setAreaFilter(this, '')">
+            <i class="fas fa-globe-americas"></i> Todos
+          </button>
+          <button class="area-pill" data-area="sistemas" onclick="setAreaFilter(this, 'sistemas')">
+            <i class="fas fa-desktop"></i> Sistemas
+          </button>
+          <button class="area-pill" data-area="laboratorio" onclick="setAreaFilter(this, 'laboratorio')">
+            <i class="fas fa-flask"></i> Laboratorio
+          </button>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Búsqueda por nombre -->
         <div class="search-box">
           <i class="fas fa-search"></i>
           <input type="text" id="searchInput" placeholder="Buscar por nombre..." oninput="applyFilters()">
         </div>
-        <select id="filterStatus" onchange="applyFilters()">
+
+        <!-- Filtro categoría (dinámico según área) -->
+        <select class="filter-select" id="filterCategory" onchange="applyFilters()">
+          <option value="">Todas las categorías</option>
+        </select>
+
+        <!-- Filtro estado -->
+        <select class="filter-select" id="filterStatus" onchange="applyFilters()">
           <option value="">Todos los estados</option>
           <option value="available">Disponible</option>
           <option value="borrowed">Prestado</option>
           <option value="maintenance">En Mantenimiento</option>
           <option value="damaged">Dañado</option>
         </select>
+
+        <!-- Filtro ubicación -->
+        <select class="filter-select" id="filterLocation" onchange="applyFilters()">
+          <option value="">Todas las ubicaciones</option>
+        </select>
       </div>
 
+      <!-- Chips de filtros activos -->
+      <div class="active-filters" id="activeFilters"></div>
+
+      <!-- La tabla se renderiza aquí por JS -->
       <div id="tableWrapper">
         <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
       </div>
@@ -164,6 +239,17 @@ tr:hover td{background:#fafafa;}
       <label>Descripción</label>
       <textarea id="assetDescription" placeholder="Descripción breve del activo..."></textarea>
     </div>
+
+    <!-- NUEVO: Área / Departamento -->
+    <div class="form-group">
+      <label>Área / Departamento *</label>
+      <select id="assetArea" onchange="onAreaChangeModal()">
+        <option value="" disabled selected>Selecciona área</option>
+        <option value="sistemas">🖥️ Sistemas</option>
+        <option value="laboratorio">🔬 Laboratorio / Alimentos</option>
+      </select>
+    </div>
+
     <div class="form-row">
       <div class="form-group">
         <label>Categoría *</label>
@@ -201,14 +287,16 @@ tr:hover td{background:#fafafa;}
         </select>
       </div>
       <div class="form-group">
-        <label>Cantidad a agregar *</label>
-        <input type="number" id="assetQuantity" placeholder="Ej. 1" min="1" value="1">
+        <label>Cantidad *</label>
+        <input type="number" id="assetQuantity" value="1" min="1">
       </div>
     </div>
 
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" style="flex:1;" onclick="saveAsset()"><i class="fas fa-save"></i> Guardar</button>
+      <button class="btn" style="flex:1;" onclick="saveAsset()">
+        <i class="fas fa-save"></i> Guardar
+      </button>
     </div>
   </div>
 </div>
@@ -224,7 +312,9 @@ tr:hover td{background:#fafafa;}
     <input type="hidden" id="deleteAssetId">
     <div class="modal-actions" style="margin-top:20px;">
       <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
-      <button class="btn-danger" onclick="confirmDelete()"><i class="fas fa-trash"></i> Sí, eliminar</button>
+      <button class="btn-danger" onclick="confirmDelete()">
+        <i class="fas fa-trash"></i> Sí, eliminar
+      </button>
     </div>
   </div>
 </div>
