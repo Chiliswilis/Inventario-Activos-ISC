@@ -6,17 +6,20 @@
 <link rel="icon" type="image/png" href="public/logoTsj.png">
 <title>SGIAC-ISC | Consumibles</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../responsive.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{display:flex;background:#f1f3f9;color:#374151;min-height:100vh;overflow-x:hidden;}
 
 /* SIDEBAR */
-.sidebar{width:240px;background:#1f2a3a;color:white;transition:transform 0.3s;overflow-y:auto;flex-shrink:0;height:100vh;position:sticky;top:0;}
-.logo{padding:22px;font-weight:600;font-size:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.menu a{display:flex;align-items:center;padding:14px 22px;color:#cbd5e1;text-decoration:none;font-size:14px;transition:0.2s;}
-.menu a i{margin-right:10px;width:20px;}
+.sidebar{width:240px;background:#1f2a3a;color:white;flex-shrink:0;height:100vh;position:sticky;top:0;overflow-y:auto;}
+.logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
+.logo small{display:block;font-size:11px;font-weight:300;color:#94a3b8;margin-top:2px;}
+.menu a{display:flex;align-items:center;padding:13px 22px;color:#cbd5e1;text-decoration:none;font-size:13.5px;transition:0.2s;}
+.menu a i{margin-right:10px;width:18px;font-size:13px;}
 .menu a:hover,.menu a.active{background:#4f46e5;color:white;}
+.menu-section{padding:10px 22px 4px;font-size:10px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;}
 
 /* OVERLAY */
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998;}
@@ -24,144 +27,177 @@ body{display:flex;background:#f1f3f9;color:#374151;min-height:100vh;overflow-x:h
 
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;}
-.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;position:sticky;top:0;z-index:10;}
-.header h2{font-size:18px;}
-.header-left{display:flex;align-items:center;gap:15px;}
-.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
-.user{display:flex;align-items:center;gap:10px;font-size:14px;}
-.user img{width:34px;height:34px;border-radius:50%;object-fit:cover;}
-.content{padding:25px;overflow-y:auto;flex:1;}
+.header{height:62px;background:white;display:flex;align-items:center;justify-content:space-between;
+  padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;position:sticky;top:0;z-index:10;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.header h2{font-size:16px;font-weight:600;color:#1f2a3a;}
+.header h2 span{color:#6b7280;font-weight:400;}
+.menu-btn{font-size:18px;cursor:pointer;color:#374151;}
+.user{display:flex;align-items:center;gap:10px;font-size:13px;}
+.user img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
+.content{padding:22px;overflow-y:auto;flex:1;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:white;border-radius:10px;padding:16px 18px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;align-items:center;gap:14px;}
+.stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:17px;flex-shrink:0;}
+.stat-icon.purple{background:#ede9fe;color:#7c3aed;}
+.stat-icon.red{background:#fee2e2;color:#dc2626;}
+.stat-icon.orange{background:#ffedd5;color:#d97706;}
+.stat-icon.green{background:#d1fae5;color:#059669;}
+.stat-info p{font-size:11px;color:#9ca3af;margin-bottom:1px;}
+.stat-info strong{font-size:22px;font-weight:600;color:#1f2a3a;}
 
 /* PANEL */
-.panel{background:white;border-radius:8px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;}
-.panel-header-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.07);}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.panel-title{font-size:15px;font-weight:600;color:#1f2a3a;}
+.panel-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
 /* BOTONES */
-.btn{background:#4f46e5;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;}
+.btn{background:#4f46e5;color:white;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;
+  font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
 .btn:hover{background:#3730a3;}
-.btn-export{background:#10b981;color:white;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:0.2s;}
-.btn-export:hover{background:#059669;}
-.btn-cancel{background:#f3f4f6;color:#374151;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;flex:1;}
+.btn-outline{background:white;color:#374151;border:1px solid #d1d5db;padding:7px 14px;border-radius:7px;
+  cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-outline:hover{border-color:#4f46e5;color:#4f46e5;}
+.btn-cancel{background:#f3f4f6;color:#374151;border:none;padding:8px 16px;border-radius:7px;
+  cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
 .btn-cancel:hover{background:#e5e7eb;}
 
-/* FILTROS */
-.filters{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
-.filters input,.filters select{padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
-.filters input:focus,.filters select:focus{border-color:#4f46e5;}
+/* ÁREA TABS — botones tipo toggle */
+.area-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid #e5e7eb;border-radius:8px;
+  overflow:hidden;width:fit-content;}
+.area-tab{padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;
+  border:none;background:white;color:#6b7280;transition:0.2s;font-weight:500;
+  /* Forzar que sean clickeables sin importar z-index */
+  position:relative;z-index:1;}
+.area-tab:not(:last-child){border-right:1px solid #e5e7eb;}
+.area-tab:hover:not(.active){background:#f3f4f6;color:#374151;}
+.area-tab.active.all{background:#1f2a3a;color:white;}
+.area-tab.active.sistemas{background:#4f46e5;color:white;}
+.area-tab.active.lab{background:#0891b2;color:white;}
 
-/* TABS */
-.category-tabs{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;}
-.tab-btn{padding:6px 14px;border:1px solid #d1d5db;border-radius:20px;background:white;font-size:12px;font-family:'Poppins',sans-serif;cursor:pointer;color:#6b7280;transition:0.2s;}
-.tab-btn:hover{border-color:#4f46e5;color:#4f46e5;}
-.tab-btn.active{background:#4f46e5;color:white;border-color:#4f46e5;}
+/* FILTROS */
+.filters-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filters-bar input,.filters-bar select{
+  padding:8px 12px;border-radius:7px;border:1px solid #d1d5db;
+  font-size:13px;font-family:'Poppins',sans-serif;color:#374151;
+  outline:none;transition:0.2s;background:white;}
+.filters-bar input:focus,.filters-bar select:focus{
+  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);}
+.filters-bar input{min-width:220px;}
 
 /* TABLA */
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
-th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
-th{background:#f8f9fc;font-weight:600;color:#1f2a3a;}
-tr:hover{background:#f3f4f6;}
-.actions i{cursor:pointer;margin-right:8px;transition:0.2s;color:#6b7280;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:900px;}
+th,td{padding:11px 14px;border-bottom:1px solid #f0f0f4;text-align:left;}
+th{background:#f8f9fc;font-weight:600;color:#6b7280;font-size:11.5px;
+  text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+tr:hover td{background:#fafbff;}
+.actions i{cursor:pointer;margin-right:6px;transition:0.2s;color:#9ca3af;font-size:14px;}
 .actions i.edit-btn:hover{color:#4f46e5;}
 .actions i.delete-btn:hover{color:#ef4444;}
 
 /* BADGES */
-.badge-low{display:inline-block;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;}
-.badge-ok{display:inline-block;background:#f0fdf4;color:#22c55e;border:1px solid #bbf7d0;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  font-size:11px;font-weight:500;white-space:nowrap;}
+.badge-low{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.badge-ok{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
+.badge-sistemas{background:#ede9fe;color:#6d28d9;border:1px solid #ddd6fe;}
+.badge-lab{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
 
-/* ESTADOS */
+/* CADUCIDAD */
+.expiry-ok{color:#374151;}
+.expiry-soon{color:#d97706;font-weight:500;}
+.expiry-expired{color:#dc2626;font-weight:500;}
+.expiry-none{color:#9ca3af;font-style:italic;font-size:12px;}
+
+/* EMPTY / LOADING */
 .empty-state{text-align:center;padding:50px 20px;color:#9ca3af;}
-.empty-state i{font-size:40px;margin-bottom:12px;display:block;}
-.loading{text-align:center;padding:30px;color:#6b7280;}
+.empty-state i{font-size:38px;margin-bottom:12px;display:block;}
+.loading{text-align:center;padding:35px;color:#6b7280;}
 .loading i{animation:spin 1s linear infinite;font-size:22px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* MODAL */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  justify-content:center;align-items:center;z-index:1000;}
 .modal.open{display:flex;}
-.modal-content{background:white;padding:25px;border-radius:10px;width:460px;max-width:95vw;position:relative;box-shadow:0 8px 20px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;}
-.modal-content h3{margin-bottom:20px;font-size:18px;color:#1f2a3a;}
-.modal-content .close{position:absolute;top:15px;right:15px;font-size:22px;cursor:pointer;color:#6b7280;background:none;border:none;}
+.modal-content{background:white;padding:26px;border-radius:12px;width:500px;max-width:95vw;
+  position:relative;box-shadow:0 12px 32px rgba(0,0,0,0.18);max-height:92vh;overflow-y:auto;}
+.modal-content h3{margin-bottom:20px;font-size:17px;color:#1f2a3a;font-weight:600;}
+.modal-content .close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;
+  color:#9ca3af;background:none;border:none;line-height:1;}
+.modal-content .close:hover{color:#374151;}
 .form-group{margin-bottom:14px;}
-.form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#4f46e5;}
+.form-group label{display:block;font-size:12.5px;font-weight:500;color:#374151;margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
+  font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);}
 .form-group textarea{resize:none;height:60px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.modal-actions{display:flex;gap:10px;margin-top:5px;}
-.modal-actions .btn{flex:1;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.modal-actions{display:flex;gap:10px;margin-top:6px;}
+.modal-actions .btn,.modal-actions .btn-cancel{flex:1;justify-content:center;}
+.form-divider{border:none;border-top:1px solid #f0f0f4;margin:16px 0;}
+.form-section-title{font-size:11px;font-weight:600;color:#9ca3af;
+  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;}
 
 /* TOAST */
-.toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;
+  color:white;font-size:13.5px;z-index:9999;opacity:0;transform:translateY(8px);
+  transition:all 0.3s;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,0.2);}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.success{background:#10b981;}
 .toast.error{background:#ef4444;}
 
-/* ── RESPONSIVE MÓVIL ── */
+/* RESPONSIVE */
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:768px){
   body{flex-direction:column;}
-
-  /* Sidebar como drawer */
-  .sidebar{
-    position:fixed;top:0;left:0;height:100vh;
-    transform:translateX(-100%);
-    z-index:999;width:260px;
-  }
+  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:999;width:250px;}
   .sidebar.open{transform:translateX(0);}
-
-  /* Main ocupa todo */
-  .main{width:100%;min-height:100vh;}
-
-  /* Header */
+  .main{width:100%;}
   .header{padding:0 15px;height:56px;}
   .header h2{font-size:14px;}
   .user span{display:none;}
-
-  /* Content */
   .content{padding:12px;}
-
-  /* Panel */
+  .stats-row{grid-template-columns:1fr 1fr;}
   .panel{padding:14px;}
-  .panel-header{flex-direction:column;align-items:flex-start;}
-  .panel-header > div{width:100%;}
-
-  /* Filtros */
-  .filters{flex-direction:column;}
-  .filters input,.filters select{width:100%;}
-
-  /* Modal desde abajo */
   .modal{align-items:flex-end;padding:0;}
-  .modal-content{
-    width:100%;max-width:100%;
-    border-radius:16px 16px 0 0;
-    max-height:88vh;
-    padding:20px 16px;
-  }
-
-  /* Form row en columna */
-  .form-row{grid-template-columns:1fr;}
-
-  /* Toast */
-  .toast{left:15px;right:15px;bottom:15px;text-align:center;}
+  .modal-content{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:90vh;}
+  .form-row,.form-row-3{grid-template-columns:1fr;}
+  .toast{left:12px;right:12px;bottom:12px;text-align:center;}
+  .filters-bar{flex-direction:column;}
+  .filters-bar input,.filters-bar select{width:100%;}
+  .area-tabs{width:100%;}
+  .area-tab{flex:1;text-align:center;}
 }
 </style>
 </head>
 <body>
 
-<!-- Overlay para cerrar sidebar -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="sidebar" id="sidebar">
-  <img src="public/logoTsj.png" alt="Logo TSJ" style="width: 150px; height: 90px; margin: 0 auto; display: block;">
-  <div class="logo">SGIAC-ISC</div>
+    <img src="public/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
+  <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
   <div class="menu">
+    <div class="menu-section">Principal</div>
     <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <div class="menu-section">Inventario</div>
     <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
     <a href="consumibles.html" class="active"><i class="fas fa-flask"></i> Consumibles</a>
+    <div class="menu-section">Gestión</div>
     <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
     <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
     <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+    <div class="menu-section">Sistema</div>
     <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
     <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
   </div>
@@ -171,23 +207,49 @@ tr:hover{background:#f3f4f6;}
   <div class="header">
     <div class="header-left">
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-      <h2><i class="fas fa-flask"></i> GESTION DE CONSUMIBLES</h2>
+      <h2>
+        <i class="fas fa-flask" style="color:#4f46e5;margin-right:8px;"></i>
+        GESTION DE CONSUMIBLES</h2>
     </div>
+    <!-- foto y nombre inyectados por common.js → applyRoleUI() -->
     <div class="user">
       <img src="https://i.pravatar.cc/40" alt="Avatar">
-      <span id="username">Administrador</span>
+      <span id="username">Cargando...</span>
     </div>
   </div>
 
   <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-boxes"></i></div>
+        <div class="stat-info"><p>Total consumibles</p><strong id="statTotal">—</strong></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-info"><p>Stock bajo</p><strong id="statLow">—</strong></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-calendar-times"></i></div>
+        <div class="stat-info"><p>Por caducar (30 días)</p><strong id="statExpiry">—</strong></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info"><p>En buen estado</p><strong id="statOk">—</strong></div>
+      </div>
+    </div>
+
+    <!-- PANEL -->
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-header-left">
-          <h3>Vista Principal de Consumibles</h3>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn-export admin-only" onclick="exportCSV()">
-            <i class="fas fa-file-csv"></i> Exportar
+        <span class="panel-title">
+          <i class="fas fa-list" style="color:#4f46e5;margin-right:8px;"></i>
+          Vista Principal de Inventario
+        </span>
+        <div class="panel-actions">
+          <button class="btn-outline admin-only" onclick="exportCSV()">
+            <i class="fas fa-file-csv"></i> Exportar CSV
           </button>
           <button class="btn admin-only" onclick="openModal()">
             <i class="fas fa-plus"></i> Nuevo Consumible
@@ -195,64 +257,144 @@ tr:hover{background:#f3f4f6;}
         </div>
       </div>
 
-      <div class="filters">
-        <input type="text" id="searchInput" placeholder="Buscar consumible..." oninput="applyFilters()">
+      <!-- FILTRO POR ÁREA — type="button" evita submit accidental -->
+      <div class="area-tabs">
+        <button type="button" class="area-tab active all"
+                onclick="selectArea(this,'')">
+          <i class="fas fa-globe-americas" style="margin-right:5px;font-size:11px;"></i> Todos
+        </button>
+        <button type="button" class="area-tab sistemas"
+                onclick="selectArea(this,'sistemas')">
+          <i class="fas fa-desktop" style="margin-right:5px;font-size:11px;"></i> Sistemas
+        </button>
+        <button type="button" class="area-tab lab"
+                onclick="selectArea(this,'lab')">
+          <i class="fas fa-microscope" style="margin-right:5px;font-size:11px;"></i> Lab / Alimentos
+        </button>
+      </div>
+
+      <!-- FILTROS SECUNDARIOS -->
+      <div class="filters-bar">
+        <input type="text" id="searchInput"
+               placeholder="🔍  Buscar por nombre o descripción..."
+               oninput="applyFilters()">
+        <select id="categoryFilter" onchange="applyFilters()">
+          <option value="">Todas las categorías</option>
+        </select>
         <select id="stockFilter" onchange="applyFilters()">
           <option value="">Todos los estados</option>
-          <option value="low">Stock bajo</option>
-          <option value="ok">Stock suficiente</option>
+          <option value="low">⬇ Stock bajo</option>
+          <option value="ok">✓ Suficiente</option>
+        </select>
+        <select id="expiryFilter" onchange="applyFilters()">
+          <option value="">Cualquier caducidad</option>
+          <option value="expired">Caducados</option>
+          <option value="soon">Por caducar (30 días)</option>
+          <option value="ok">Sin riesgo</option>
+          <option value="none">Sin fecha registrada</option>
         </select>
       </div>
 
-      <div class="category-tabs" id="categoryTabs">
-        <button class="tab-btn active" data-cat="" onclick="selectTab(this, '')">Todas</button>
-      </div>
-
+      <!-- TABLA -->
       <div class="table-scroll">
         <div id="tableWrapper">
-          <div class="loading"><i class="fas fa-spinner"></i><p style="margin-top:8px;font-size:13px;">Cargando consumibles...</p></div>
+          <div class="loading">
+            <i class="fas fa-spinner"></i>
+            <p style="margin-top:8px;font-size:13px;color:#9ca3af;">Cargando consumibles...</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- MODAL AGREGAR / EDITAR -->
 <div class="modal" id="consumibleModal">
   <div class="modal-content">
     <button class="close" onclick="closeModal()">&times;</button>
-    <h3 id="modalTitle">Agregar Consumible</h3>
+    <h3 id="modalTitle">
+      <i class="fas fa-plus-circle" style="color:#4f46e5;margin-right:8px;"></i>
+      Agregar Consumible
+    </h3>
     <input type="hidden" id="consumibleId">
+
+    <div class="form-section-title">Información general</div>
     <div class="form-group">
       <label>Nombre *</label>
-      <input type="text" id="consumibleName" placeholder="Ej: Papel A4">
+      <input type="text" id="consumibleName"
+             placeholder="Ej: Papel A4, Ácido clorhídrico, Bata de laboratorio">
     </div>
     <div class="form-group">
       <label>Descripción</label>
-      <textarea id="consumibleDescription" placeholder="Descripción opcional"></textarea>
-    </div>
-    <div class="form-group">
-      <label>Categoría *</label>
-      <select id="consumibleCategory">
-        <option value="" disabled selected>Seleccione una categoría</option>
-      </select>
+      <textarea id="consumibleDescription"
+                placeholder="Descripción opcional (marca, concentración, especificaciones...)"></textarea>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Cantidad actual *</label>
-        <input type="number" id="consumibleQuantity" placeholder="0" min="0" value="0">
+        <label>Área / Departamento *</label>
+        <select id="consumibleArea" onchange="updateCategoryOptions()">
+          <option value="" disabled selected>Selecciona área</option>
+          <option value="sistemas">Sistemas</option>
+          <option value="lab">Laboratorio / Alimentos</option>
+        </select>
       </div>
       <div class="form-group">
-        <label>Cantidad mínima *</label>
-        <input type="number" id="consumibleMinQuantity" placeholder="0" min="0" value="0">
+        <label>Categoría *</label>
+        <select id="consumibleCategory">
+          <option value="" disabled selected>Seleccione área primero</option>
+        </select>
       </div>
     </div>
+
+    <hr class="form-divider">
+    <div class="form-section-title">Stock e inventario</div>
+
+    <!-- Unidad primero para que el cambio afecte al input de cantidad -->
     <div class="form-group">
       <label>Unidad *</label>
-      <input type="text" id="consumibleUnit" placeholder="Ej: Hojas, Cartuchos, Botellas">
+      <select id="consumibleUnit" onchange="onUnitChange()">
+        <option value="" disabled selected>Seleccione unidad</option>
+        <option value="pieza">Pieza</option>
+        <option value="litros">Litros</option>
+        <option value="kg">Kilogramos (kg)</option>
+      </select>
     </div>
+
+    <div class="form-group">
+      <label>Cantidad existente *</label>
+      <!-- Este div es reemplazado dinámicamente por onUnitChange() / openEdit() -->
+      <div id="quantityWrapper">
+        <input type="number" id="consumibleQuantity" placeholder="0"
+               min="0" step="1" value="0"
+               style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
+                      font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;
+                      outline:none;transition:0.2s;"
+               onfocus="this.style.borderColor='#4f46e5';this.style.boxShadow='0 0 0 3px rgba(79,70,229,0.08)'"
+               onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
+      </div>
+    </div>
+
+    <hr class="form-divider">
+    <div class="form-section-title">Caducidad y ubicación</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha de caducidad
+          <span style="color:#9ca3af;font-size:11px;">(opcional)</span>
+        </label>
+        <input type="date" id="consumibleExpiry">
+      </div>
+      <div class="form-group">
+        <label>Ubicación</label>
+        <input type="text" id="consumibleLocation"
+               placeholder="Ubicación" value="Lab. Ciencias Básicas">
+      </div>
+    </div>
+
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" onclick="saveConsumible()"><i class="fas fa-save"></i> Guardar</button>
+      <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button type="button" class="btn" onclick="saveConsumible()">
+        <i class="fas fa-save"></i> Guardar
+      </button>
     </div>
   </div>
 </div>
@@ -269,7 +411,9 @@ function closeSidebar(){
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
 </script>
-<script src="../js/consumibles.js"></script>
+
+<!-- common.js primero (maneja auth + foto + rol) -->
 <script src="../js/common.js"></script>
+<script src="../js/consumibles.js"></script>
 </body>
 </html>
