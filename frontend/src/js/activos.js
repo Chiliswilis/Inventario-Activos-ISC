@@ -2,9 +2,9 @@ const apiUrl = "/api/assets";
 const catUrl = "/api/categories/assets";
 
 let allAssets     = [];
-let allCategories = []; // cache de todas las categorías
+let allCategories = [];
 let currentRole   = "alumno";
-let activeArea    = ""; // filtro de área activo
+let activeArea    = "";
 
 try {
   const u = JSON.parse(localStorage.getItem("user"));
@@ -22,9 +22,6 @@ function showToast(msg, type = "success") {
 
 /* ──────────────────────────────────────────
    CATEGORÍAS
-   - Carga todas y las guarda en allCategories
-   - onAreaChangeModal() filtra el <select> del modal según el área elegida
-   - populateCategoryFilter() actualiza el <select> del toolbar de filtros
 ────────────────────────────────────────── */
 async function loadCategories() {
   try {
@@ -42,33 +39,65 @@ function populateCategoryFilter(area = "") {
   const sel = document.getElementById("filterCategory");
   const prev = sel.value;
   sel.innerHTML = '<option value="">Todas las categorías</option>';
+
+  // ✅ FIX: filtrado estricto por área — sin mezclar categorías de otra área
   const filtered = area
-    ? allCategories.filter(c => c.area === area || !c.area) // si las categorías tienen campo 'area'
+    ? allCategories.filter(c => c.area === area)
     : allCategories;
+
   filtered.forEach(c => {
     const opt = document.createElement("option");
     opt.value = c.id;
     opt.textContent = c.name;
     sel.appendChild(opt);
   });
-  // Restaurar selección si sigue disponible
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
 }
 
-/** Rellena el select de categoría dentro del modal (filtrado por área seleccionada) */
+/** Rellena el select de categoría dentro del modal y adapta etiquetas según área */
 function onAreaChangeModal() {
   const area = document.getElementById("assetArea").value;
   const sel  = document.getElementById("assetCategory");
   sel.innerHTML = '<option value="" disabled selected>Selecciona categoría</option>';
+
+  // ✅ FIX: filtrado estricto — sin || !c.area para no mezclar áreas
   const filtered = area
-    ? allCategories.filter(c => c.area === area || !c.area)
+    ? allCategories.filter(c => c.area === area)
     : allCategories;
-  filtered.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    sel.appendChild(opt);
-  });
+
+  if (area && !filtered.length) {
+    sel.innerHTML = '<option value="" disabled selected>Sin categorías para esta área</option>';
+  } else {
+    filtered.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ✅ NUEVO: Adaptar etiquetas y placeholders de ubicación según área
+  const lblEdificio    = document.getElementById("lblEdificio");
+  const lblLaboratorio = document.getElementById("lblLaboratorio");
+  const inpEdificio    = document.getElementById("assetEdificio");
+  const inpLab         = document.getElementById("assetLaboratorio");
+
+  if (area === "laboratorio") {
+    if (lblEdificio)    lblEdificio.textContent    = "Edificio / Área";
+    if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio / Sala";
+    if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Ciencias";
+    if (inpLab)         inpLab.placeholder         = "Ej. Lab. Química 1";
+  } else if (area === "sistemas") {
+    if (lblEdificio)    lblEdificio.textContent    = "Edificio";
+    if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
+    if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Principal";
+    if (inpLab)         inpLab.placeholder         = "Ej. Laboratorio de Sistemas";
+  } else {
+    if (lblEdificio)    lblEdificio.textContent    = "Edificio";
+    if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
+    if (inpEdificio)    inpEdificio.placeholder    = "";
+    if (inpLab)         inpLab.placeholder         = "";
+  }
 }
 
 /* ──────────────────────────────────────────
@@ -77,7 +106,6 @@ function onAreaChangeModal() {
 function setAreaFilter(btn, area) {
   activeArea = area;
 
-  // Actualizar clases de los pills
   document.querySelectorAll(".area-pill").forEach(p => {
     p.className = "area-pill";
     if (p.dataset.area === area) {
@@ -87,12 +115,8 @@ function setAreaFilter(btn, area) {
     }
   });
 
-  // Actualizar select de categorías en la barra de filtros
   populateCategoryFilter(area);
-
-  // Actualizar select de ubicaciones
   populateLocationFilter(area);
-
   applyFilters();
 }
 
@@ -165,7 +189,7 @@ function renderActiveFilterChips({ search, status, catId, location }) {
   const chips = [];
 
   const statusLabel = { available:"Disponible", borrowed:"Prestado", maintenance:"En Mantenimiento", damaged:"Dañado" };
-  const areaLabel   = { sistemas:"Sistemas", laboratorio:"Laboratorio" };
+  const areaLabel   = { sistemas:"Sistemas", laboratorio:"Laboratorio / Alimentos" };
 
   if (activeArea)  chips.push({ label: `Área: ${areaLabel[activeArea]}`,    clear: () => { setAreaFilter(document.querySelector(`.area-pill[data-area=""]`), ""); } });
   if (search)      chips.push({ label: `Buscar: "${search}"`,                clear: () => { document.getElementById("searchInput").value = ""; applyFilters(); } });
@@ -183,7 +207,6 @@ function renderActiveFilterChips({ search, status, catId, location }) {
      </span>`
   ).join("");
 
-  // Guardar funciones de limpieza en un array accesible
   window._chipClearFns = chips.map(c => c.clear);
 }
 
@@ -213,14 +236,14 @@ function renderTable(data) {
 
   const areaBadgeMap = {
     sistemas:    '<span class="badge badge-sistemas"><i class="fas fa-desktop" style="font-size:10px;"></i> Sistemas</span>',
-    laboratorio: '<span class="badge badge-laboratorio"><i class="fas fa-flask" style="font-size:10px;"></i> Laboratorio</span>'
+    laboratorio: '<span class="badge badge-laboratorio"><i class="fas fa-flask" style="font-size:10px;"></i> Lab / Alimentos</span>'
   };
 
   const rows = data.map(a => {
-    const catName  = a.categories ? a.categories.name : "—";
-    const badge    = badgeMap[a.status] || `<span class="badge">${a.status}</span>`;
+    const catName   = a.categories ? a.categories.name : "—";
+    const badge     = badgeMap[a.status] || `<span class="badge">${a.status}</span>`;
     const areaBadge = areaBadgeMap[a.area] || `<span class="badge" style="background:#f3f4f6;color:#6b7280;">${a.area || "—"}</span>`;
-    const safeName = (a.name || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const safeName  = (a.name || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
     const acciones = isAdmin
       ? `<button class="action-btn action-edit"   onclick="editAsset(${a.id})" title="Editar">
@@ -278,6 +301,13 @@ function openModal() {
   document.getElementById("assetLaboratorio").value    = "";
   document.getElementById("assetStatus").value         = "available";
   document.getElementById("assetQuantity").value       = "1";
+
+  // Resetear etiquetas al estado neutro
+  const lblEdificio    = document.getElementById("lblEdificio");
+  const lblLaboratorio = document.getElementById("lblLaboratorio");
+  if (lblEdificio)    lblEdificio.textContent    = "Edificio";
+  if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
+
   document.getElementById("assetModal").classList.add("open");
 }
 
@@ -352,7 +382,8 @@ async function editAsset(id) {
     document.getElementById("assetName").value           = a.name;
     document.getElementById("assetDescription").value   = a.description || "";
     document.getElementById("assetArea").value           = a.area || "";
-    // Cargar categorías del área antes de asignar el valor
+
+    // Cargar categorías del área y adaptar etiquetas antes de asignar valor
     onAreaChangeModal();
     document.getElementById("assetCategory").value       = a.category_id;
     document.getElementById("assetSerial").value         = a.serial_number || "";
@@ -396,7 +427,6 @@ async function confirmDelete() {
    EXPORTAR CSV
 ────────────────────────────────────────── */
 function exportCSV() {
-  // Exporta solo los activos actualmente filtrados
   const search   = document.getElementById("searchInput").value.toLowerCase().trim();
   const status   = document.getElementById("filterStatus").value;
   const catId    = document.getElementById("filterCategory").value;
