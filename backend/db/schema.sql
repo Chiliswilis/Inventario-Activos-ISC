@@ -13,6 +13,7 @@ CREATE TABLE public.assets (
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   condition_notes text,
+  area character varying DEFAULT 'sistemas'::character varying CHECK (area::text = ANY (ARRAY['sistemas'::character varying, 'laboratorio'::character varying]::text[])),
   CONSTRAINT assets_pkey PRIMARY KEY (id),
   CONSTRAINT assets_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
@@ -21,6 +22,7 @@ CREATE TABLE public.categories (
   name character varying NOT NULL,
   description text,
   type character varying NOT NULL CHECK (type::text = ANY (ARRAY['asset'::character varying, 'consumable'::character varying]::text[])),
+  area character varying,
   CONSTRAINT categories_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.consumables (
@@ -33,6 +35,8 @@ CREATE TABLE public.consumables (
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   quantity integer DEFAULT 0 CHECK (quantity >= 0),
+  expiry_date date,
+  location character varying DEFAULT 'Lab. Ciencias Básicas'::character varying,
   CONSTRAINT consumables_pkey PRIMARY KEY (id),
   CONSTRAINT consumables_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
