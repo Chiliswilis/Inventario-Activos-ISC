@@ -375,14 +375,29 @@ async function releaseReservation() {
   const id = document.getElementById("releaseId").value;
   const leftover_items = [];
   document.querySelectorAll("#leftoverList .leftover-row").forEach(row => {
-    leftover_items.push({ reservation_consumable_id: parseInt(row.dataset.rcId), leftover_qty: parseInt(row.querySelector("input").value) || 0 });
+    leftover_items.push({
+      reservation_consumable_id: parseInt(row.dataset.rcId),
+      leftover_qty: parseInt(row.querySelector("input").value) || 0
+    });
   });
+
   const res = await fetch(`${API}/${id}/release`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ leftover_items })
   });
   if (!res.ok) { showToast("Error al liberar", "error"); return; }
-  showToast("Laboratorio liberado ✅", "success");
+
+  // Restaurar activos de la reserva a "available"
+  const reserva = allReservations.find(r => r.id === parseInt(id));
+  const assetIds = (reserva?.reservation_assets || []).map(ra => ra.asset_id).filter(Boolean);
+  await Promise.all(assetIds.map(aid =>
+    fetch(`/api/assets/${aid}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "available" })
+    })
+  ));
+
+  showToast("Laboratorio liberado ✅ — activos disponibles nuevamente", "success");
   closeModal("releaseModal");
   loadReservations();
 }

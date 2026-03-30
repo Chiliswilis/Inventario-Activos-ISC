@@ -20,11 +20,11 @@ let itemRows     = [];   // [{rowId, type, itemId, qty}]
 let rowCounter   = 0;
 
 const statusMap = {
-  pending:       { text:"Pendiente",        cls:"badge-pending",  icon:"fa-clock"        },
-  pending_admin: { text:"Enviada al Admin", cls:"badge-info",     icon:"fa-paper-plane"  },
-  approved:      { text:"Aprobada",         cls:"badge-approved", icon:"fa-check-circle" },
-  rejected:      { text:"Rechazada",        cls:"badge-rejected", icon:"fa-times-circle" },
-  returned:      { text:"Devuelta",         cls:"badge-returned", icon:"fa-undo"         }
+  pending:       { text:"Pendiente de docente", cls:"badge-pending",  icon:"fa-clock"        },
+  pending_admin: { text:"En revisión",          cls:"badge-info",     icon:"fa-paper-plane"  },
+  approved:      { text:"Aprobada",             cls:"badge-approved", icon:"fa-check-circle" },
+  rejected:      { text:"Rechazada",            cls:"badge-rejected", icon:"fa-times-circle" },
+  returned:      { text:"Devuelta",             cls:"badge-returned", icon:"fa-undo"         }
 };
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -109,34 +109,30 @@ function renderTable(data) {
       if (r.rejected_at) rejInfo += `<br><small style="color:#9ca3af;font-size:10px;">${new Date(r.rejected_at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"})}</small>`;
     }
 
-    // Acciones
+    // ── ACCIONES POR ROL ─────────────────────────────────────
     let acciones = "";
 
-    // Docente: enviar al admin (sus solicitudes pendientes)
+    // DOCENTE: aprueba/rechaza solicitudes pendientes
+    // - Si el alumno mandó la solicitud y eligió a este docente → puede aprobar/rechazar
+    // - Si el docente la creó él mismo → puede aprobarla directamente
     if (role === "docente" && r.status === "pending") {
-      acciones += `<button class="action-btn action-send" title="Enviar al Administrador" onclick="sendToAdmin(${r.id})"><i class="fas fa-paper-plane"></i></button>`;
-      acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
+      acciones += `<button class="action-btn action-approve" title="Aprobar solicitud" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
+      acciones += `<button class="action-btn action-reject"  title="Rechazar solicitud" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
 
-    // Admin: aprobar/rechazar las pending_admin
-    if (role === "administrador" && r.status === "pending_admin") {
-      acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
-      acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
-    }
-
-    // Docente/Admin: devolución en aprobadas
+    // DOCENTE/ADMIN: registrar devolución en solicitudes aprobadas
     if ((role === "docente" || role === "administrador") && r.status === "approved") {
       acciones += `<button class="action-btn action-return" title="Registrar devolución" onclick="openReturnModal(${r.id})"><i class="fas fa-undo"></i></button>`;
     }
 
-    // Ver respuesta admin
-    if (r.admin_message || r.pickup_date) {
-      acciones += `<button class="action-btn action-info" title="Ver detalle" onclick="showAdminResponse(${r.id})"><i class="fas fa-info-circle"></i></button>`;
+    // ADMIN: solo eliminar registros históricos (rechazadas y devueltas)
+    if (role === "administrador" && ["rejected","returned"].includes(r.status)) {
+      acciones += `<button class="action-btn action-delete" title="Eliminar registro" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
     }
 
-    // Eliminar: admin puede eliminar rechazadas, devueltas y cualquiera
-    if (role === "administrador" && ["rejected","returned","pending","pending_admin"].includes(r.status)) {
-      acciones += `<button class="action-btn action-delete" title="Eliminar" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
+    // Ver detalle de respuesta / incidente
+    if (r.admin_message || r.pickup_date || r.rejected_reason) {
+      acciones += `<button class="action-btn action-info" title="Ver detalle" onclick="showAdminResponse(${r.id})"><i class="fas fa-info-circle"></i></button>`;
     }
 
     const incident = r.incident
@@ -522,19 +518,7 @@ function addLabItemRow(type) {
   con.appendChild(div);
 }
 
-// ── DOCENTE ENVÍA AL ADMIN ────────────────────────────────────
-async function sendToAdmin(id) {
-  if (!confirm("¿Enviar esta solicitud al Administrador?")) return;
-  try {
-    const res = await fetch(`${API}/${id}`, {
-      method: "PUT", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ status: "pending_admin" })
-    });
-    if (!res.ok) throw new Error();
-    showToast("Solicitud enviada al administrador ✅", "success");
-    await loadRequests();
-  } catch { showToast("Error al enviar la solicitud", "error"); }
-}
+// sendToAdmin eliminado — el docente aprueba/rechaza directamente
 
 // ── RECHAZAR ─────────────────────────────────────────────────
 function openRejectModal(id) {
@@ -625,12 +609,26 @@ async function submitApprove() {
   const msg = document.getElementById("approveMessage").value.trim();
   if (!pd || !pl) { showToast("Fecha y lugar son obligatorios", "error"); return; }
   try {
+    // 1. Aprobar la solicitud
     const res = await fetch(`${API}/${id}/approve`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ pickup_date: pd, pickup_location: pl, admin_message: msg })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud aprobada con éxito ✅", "success");
+
+    // 2. Cambiar estado de activos involucrados a "borrowed"
+    const req = allRequests.find(r => r.id === parseInt(id));
+    if (req?.request_items?.length) {
+      const assetItems = req.request_items.filter(it => it.asset_id);
+      await Promise.all(assetItems.map(it =>
+        fetch(`/api/assets/${it.asset_id}`, {
+          method: "PUT", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ status: "borrowed" })
+        })
+      ));
+    }
+
+    showToast("Solicitud aprobada ✅ — activos marcados como ocupados", "success");
     document.getElementById("approveModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al aprobar", "error"); }
@@ -705,12 +703,28 @@ async function submitReturn() {
   });
 
   try {
+    // 1. Registrar la devolución en el backend
     const res = await fetch(`${API}/${id}/return`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution, items_condition })
     });
     if (!res.ok) throw new Error();
-    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅", "success");
+
+    // 2. Actualizar estado de cada activo según la condición registrada
+    //    bueno → available | dañado → damaged | perdido → damaged
+    const condToStatus = { bueno: "available", dañado: "damaged", perdido: "damaged" };
+    await Promise.all(
+      items_condition
+        .filter(ic => ic.asset_id)
+        .map(ic =>
+          fetch(`/api/assets/${ic.asset_id}`, {
+            method: "PUT", headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ status: condToStatus[ic.return_condition] || "available" })
+          })
+        )
+    );
+
+    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅ — activos disponibles", "success");
     document.getElementById("returnModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al registrar devolución", "error"); }
