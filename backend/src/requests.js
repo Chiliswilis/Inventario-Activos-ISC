@@ -101,19 +101,56 @@ router.put("/:id/approve", async (req, res) => {
   if (!pickup_date || !pickup_location)
     return res.status(400).json({ message: "pickup_date y pickup_location son obligatorios" });
 
+  // 1. Actualizar el status de la solicitud — traer también los ítems para procesar activos
   const { data, error } = await supabase
     .from("requests")
     .update({
       status: "approved",
-      pickup_date, pickup_location,
+      pickup_date,
+      pickup_location,
       admin_message: admin_message || null,
       approval_date: new Date().toISOString()
     })
     .eq("id", req.params.id)
-    .select("id, status, pickup_date, pickup_location, admin_message");
+    .select(`
+      id, status, pickup_date, pickup_location, admin_message,
+      request_type, asset_id,
+      request_items(id, asset_id, consumable_id, quantity)
+    `);
 
   if (error) return res.status(500).json(error);
-  res.json(data[0]);
+  const solicitud = data[0];
+
+  // 2. ✅ Marcar activos involucrados como "borrowed" (prestado)
+  const assetsToMark = [];
+
+  // Legacy: campo directo asset_id en la solicitud
+  if (solicitud.request_type === "asset" && solicitud.asset_id) {
+    assetsToMark.push(solicitud.asset_id);
+  }
+  // Multi-item: activos dentro de request_items
+  for (const item of (solicitud.request_items || [])) {
+    if (item.asset_id) assetsToMark.push(item.asset_id);
+  }
+
+  for (const assetId of assetsToMark) {
+    await supabase
+      .from("assets")
+      .update({ status: "borrowed" })
+      .eq("id", assetId);
+  }
+
+  // 3. ✅ Log de aprobación
+  await supabase.from("logs").insert([{
+    action: "Solicitud aprobada",
+    table_name: "requests",
+    record_id: parseInt(req.params.id),
+    details: assetsToMark.length
+      ? `Aprobada. Activos marcados como prestados: [${assetsToMark.join(", ")}]`
+      : "Aprobada (consumibles / sin activos directos)"
+  }]);
+
+  res.json(solicitud);
 });
 
 /* ── ADMIN RECHAZA (con razón + quién + cuándo) ── */
@@ -150,12 +187,14 @@ router.put("/:id/reject", async (req, res) => {
 router.put("/:id/return", async (req, res) => {
   const { incident, incident_cause, incident_solution, items_condition = [] } = req.body;
 
+  // Obtener solicitud con todos los ítems para saber qué descontar/restaurar
   const { data: req_data } = await supabase
     .from("requests")
-    .select("consumable_id, request_type, request_items(id, consumable_id, quantity)")
+    .select("consumable_id, asset_id, request_type, request_items(id, asset_id, consumable_id, quantity)")
     .eq("id", req.params.id)
     .single();
 
+  // Actualizar status de la solicitud
   const { data, error } = await supabase
     .from("requests")
     .update({
@@ -170,7 +209,7 @@ router.put("/:id/return", async (req, res) => {
 
   if (error) return res.status(500).json(error);
 
-  // Actualizar condición de items devueltos
+  // ── Actualizar condición de cada ítem devuelto ──
   for (const ic of items_condition) {
     await supabase.from("request_items")
       .update({
@@ -179,33 +218,65 @@ router.put("/:id/return", async (req, res) => {
       })
       .eq("id", ic.item_id);
 
-    // Si el activo está dañado, actualizar su status
-    if (ic.return_condition === "dañado" && ic.asset_id) {
-      await supabase.from("assets")
-        .update({ status: "damaged", condition_notes: ic.condition_notes || null })
-        .eq("id", ic.asset_id);
-    }
-    if (ic.return_condition === "perdido" && ic.asset_id) {
-      await supabase.from("assets")
-        .update({ status: "maintenance", condition_notes: "Reportado como perdido" })
-        .eq("id", ic.asset_id);
+    // ✅ Actualizar estado del activo según la condición devuelta
+    if (ic.asset_id) {
+      if (ic.return_condition === "dañado") {
+        await supabase.from("assets")
+          .update({ status: "damaged" })
+          .eq("id", ic.asset_id);
+      } else if (ic.return_condition === "perdido") {
+        await supabase.from("assets")
+          .update({ status: "maintenance" })
+          .eq("id", ic.asset_id);
+      } else {
+        // ✅ Buen estado → regresar a disponible
+        await supabase.from("assets")
+          .update({ status: "available" })
+          .eq("id", ic.asset_id);
+      }
     }
   }
 
-  // Descontar consumibles (legacy y multi-item)
+  // ✅ Caso legacy: si no vinieron items_condition pero hay asset_id directo → regresar a available
+  if (items_condition.length === 0 && req_data?.asset_id) {
+    await supabase.from("assets")
+      .update({ status: "available" })
+      .eq("id", req_data.asset_id);
+  }
+
+  // ── Descontar consumibles al devolver (se gastaron, no regresan) ──
   const consumablesToDiscount = [];
+
+  // Legacy: campo directo consumable_id
   if (req_data?.request_type === "consumable" && req_data?.consumable_id) {
     consumablesToDiscount.push({ id: req_data.consumable_id, qty: 1 });
   }
+  // Multi-item: consumables dentro de request_items
   for (const ri of (req_data?.request_items || [])) {
-    if (ri.consumable_id) consumablesToDiscount.push({ id: ri.consumable_id, qty: ri.quantity });
-  }
-  for (const c of consumablesToDiscount) {
-    const { data: cons } = await supabase.from("consumables").select("quantity").eq("id", c.id).single();
-    if (cons) {
-      await supabase.from("consumables").update({ quantity: Math.max(0, cons.quantity - c.qty) }).eq("id", c.id);
+    if (ri.consumable_id) {
+      consumablesToDiscount.push({ id: ri.consumable_id, qty: ri.quantity });
     }
   }
+
+  for (const c of consumablesToDiscount) {
+    const { data: cons } = await supabase
+      .from("consumables").select("quantity").eq("id", c.id).single();
+    if (cons) {
+      await supabase.from("consumables")
+        .update({ quantity: Math.max(0, cons.quantity - c.qty) })
+        .eq("id", c.id);
+    }
+  }
+
+  // ✅ Log de devolución
+  await supabase.from("logs").insert([{
+    action: "Devolución registrada",
+    table_name: "requests",
+    record_id: parseInt(req.params.id),
+    details: incident
+      ? `Con incidente: ${incident_cause || "Sin descripción"}`
+      : "Sin incidentes"
+  }]);
 
   res.json(data[0]);
 });

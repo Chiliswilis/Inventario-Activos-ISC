@@ -154,14 +154,16 @@ function renderTable(data) {
       || categories.find(x => String(x.id) === String(c.category_id))?.name
       || "—";
 
+    // ✅ FIX: normalizar área — el valor en BD es "laboratorio", no "lab"
     const area = c.area
       || categories.find(x => String(x.id) === String(c.category_id))?.area
       || "";
 
+    // ✅ FIX: badge corregido — "laboratorio" (antes estaba "lab" y nunca coincidía)
     const areaBadge = area === "sistemas"
       ? `<span class="badge badge-sistemas"><i class="fas fa-desktop"></i> Sistemas</span>`
-      : area === "lab"
-      ? `<span class="badge badge-lab"><i class="fas fa-microscope"></i> Lab/Alimentos</span>`
+      : area === "laboratorio"
+      ? `<span class="badge badge-lab"><i class="fas fa-microscope"></i> Lab / Alimentos</span>`
       : `<span style="color:#9ca3af;font-size:12px;">—</span>`;
 
     // Caducidad semáforo
@@ -174,14 +176,12 @@ function renderTable(data) {
       else                  expiryHtml = `<span class="expiry-ok">${fmt}</span>`;
     }
 
-    // Estado con texto claro
     const estadoBadge = low
       ? `<span class="badge badge-low"><i class="fas fa-arrow-down"></i> Bajo</span>`
       : `<span class="badge badge-ok"><i class="fas fa-check"></i> Suficiente</span>`;
 
     const cantDisplay = `<strong style="color:${low ? "#dc2626" : "#374151"}">${c.quantity}</strong>`;
 
-    // Acciones — eliminar llama a confirmDelete con modal personalizado
     const acciones = isAdmin
       ? `<i class="fas fa-edit edit-btn"    title="Editar"   onclick="openEdit(${c.id})"></i>
          <i class="fas fa-trash delete-btn" title="Eliminar" onclick="confirmDelete(${c.id}, '${esc(c.name)}')"></i>`
@@ -239,6 +239,7 @@ function applyFilters() {
     return matchSearch && matchArea && matchCat && matchStock && matchExpiry;
   });
 
+  updateStats(filtered);
   renderTable(filtered);
 }
 
@@ -328,7 +329,6 @@ function openModal() {
   document.getElementById("consumibleUnit").value        = "";
   document.getElementById("consumibleExpiry").value      = "";
   document.getElementById("consumibleLocation").value    = "Lab. Ciencias Básicas";
-  // Input de cantidad por defecto (entero)
   document.getElementById("quantityWrapper").innerHTML = `
     <input type="number" id="consumibleQuantity" placeholder="0"
            min="0" step="1" value="0"
@@ -360,7 +360,6 @@ function openEdit(id) {
   document.getElementById("consumibleExpiry").value      = c.expiry_date || "";
   document.getElementById("consumibleLocation").value    = c.location || "Lab. Ciencias Básicas";
 
-  // Regenerar input según la unidad guardada
   const isDecimal = c.unit === "kg" || c.unit === "litros";
   document.getElementById("quantityWrapper").innerHTML = `
     <input type="number" id="consumibleQuantity"
@@ -383,6 +382,7 @@ async function saveConsumible() {
   const id          = document.getElementById("consumibleId").value;
   const name        = document.getElementById("consumibleName").value.trim();
   const description = document.getElementById("consumibleDescription").value.trim();
+  const area        = document.getElementById("consumibleArea").value;
   const category_id = document.getElementById("consumibleCategory").value;
   const unit        = document.getElementById("consumibleUnit").value;
   const expiry_date = document.getElementById("consumibleExpiry").value || null;
@@ -392,12 +392,13 @@ async function saveConsumible() {
   const isDecimal = unit === "kg" || unit === "litros";
   const quantity  = isDecimal ? parseFloat(qRaw) : parseInt(qRaw);
 
-  if (!name || !category_id || !unit || isNaN(quantity)) {
-    showToast("Completa todos los campos obligatorios", "error");
+  if (!name || !area || !category_id || !unit || isNaN(quantity)) {
+    showToast("Completa todos los campos obligatorios (incluyendo área)", "error");
     return;
   }
 
-  const body   = { name, description, category_id, quantity, min_quantity: 0, unit, expiry_date, location };
+  // ✅ Incluir área en el body para que se guarde en la BD
+  const body   = { name, description, area, category_id, quantity, min_quantity: 0, unit, expiry_date, location };
   const url    = id ? `${API_URL}/${id}` : API_URL;
   const method = id ? "PUT" : "POST";
 
@@ -428,9 +429,10 @@ function exportCSV() {
       || categories.find(x => String(x.id) === String(c.category_id))?.name || "";
     const area   = c.area
       || categories.find(x => String(x.id) === String(c.category_id))?.area || "";
+    const areaLabel = { sistemas: "Sistemas", laboratorio: "Laboratorio / Alimentos" };
     const estado = c.quantity <= c.min_quantity ? "Bajo" : "Suficiente";
     csv += `${c.id},"${(c.name||"").replace(/"/g,'""')}","${(c.description||"").replace(/"/g,'""')}",`
-         + `"${area}","${catName}",${c.quantity},"${c.unit}","${c.expiry_date||""}","${c.location||""}","${estado}"\n`;
+         + `"${areaLabel[area]||area}","${catName}",${c.quantity},"${c.unit}","${c.expiry_date||""}","${c.location||""}","${estado}"\n`;
   });
   const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
   const url  = URL.createObjectURL(blob);
