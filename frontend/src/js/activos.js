@@ -229,7 +229,7 @@ function renderTable(data) {
 
   const badgeMap = {
     available:   '<span class="badge badge-available">● Disponible</span>',
-    borrowed:    '<span class="badge badge-borrowed">● Prestado</span>',
+    borrowed:    '<span class="badge badge-borrowed">● Prestado / Ocupado</span>',
     maintenance: '<span class="badge badge-maintenance">● En Mantenimiento</span>',
     damaged:     '<span class="badge badge-damaged">● Dañado</span>'
   };
@@ -335,6 +335,34 @@ async function saveAsset() {
     return;
   }
 
+  // ── VALIDACIÓN: número de serie duplicado ──────────────────
+  // Un serial debe ser único en toda la tabla de activos.
+  // Si estamos editando, excluimos el propio registro.
+  const serialExists = allAssets.some(a =>
+    a.serial_number &&
+    a.serial_number.trim().toLowerCase() === serial_number.trim().toLowerCase() &&
+    String(a.id) !== String(id)
+  );
+  if (serialExists) {
+    showToast(`El número de serie "${serial_number}" ya está registrado en otro activo`, "error");
+    return;
+  }
+
+  // ── VALIDACIÓN: solo 1 unidad por modelo ────────
+const sameNameTotal = allAssets
+  .filter(a => 
+    a.name.trim().toLowerCase() === name.trim().toLowerCase() && 
+    String(a.id) !== String(id)
+  )
+  .reduce((sum, a) => sum + (a.quantity || 1), 0);
+
+if (sameNameTotal > 0 || quantity > 1) {
+  showToast(
+    `No se permite más de **1 unidad** del mismo modelo ("${name}").`,
+    "error"
+  );
+  return;
+}
   const location = `${edificio}, ${laboratorio}`;
   const body     = { name, description, area, category_id, serial_number, location, status, quantity };
   const url      = id ? `${apiUrl}/${id}` : apiUrl;
