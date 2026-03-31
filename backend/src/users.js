@@ -2,6 +2,7 @@ const express  = require("express");
 const router   = express.Router();
 const bcrypt   = require("bcrypt");
 const supabase = require("./supabase");
+const { broadcast } = require("./events");   // <-- NUEVO
  
 /* ── LISTAR USUARIOS ── */
 router.get("/", async (req, res) => {
@@ -50,6 +51,9 @@ router.post("/", async (req, res) => {
       return res.status(500).json(error);
     }
  
+    // Broadcast
+    broadcast("users", "INSERT", data[0]);
+
     res.json(data[0]);
   } catch (err) {
     res.status(500).json({ message: "Error al crear usuario" });
@@ -84,6 +88,9 @@ router.put("/:id", async (req, res) => {
     if (error) return res.status(500).json(error);
     if (!data || data.length === 0) return res.status(404).json({ message: "Usuario no encontrado" });
  
+    // Broadcast
+    broadcast("users", "UPDATE", data[0]);
+
     res.json(data[0]);
   } catch (err) {
     res.status(500).json({ message: "Error al actualizar usuario" });
@@ -98,8 +105,9 @@ router.delete("/:id", async (req, res) => {
     .eq("id", req.params.id);
  
   if (error) return res.status(500).json(error);
+  // Broadcast
+  broadcast("users", "DELETE", { id: req.params.id });
   res.json({ message: "Usuario eliminado" });
 });
  
 module.exports = router;
- 

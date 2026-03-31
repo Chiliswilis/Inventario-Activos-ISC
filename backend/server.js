@@ -13,6 +13,7 @@ const consumiblesRoutes  = require("./src/consumibles");
 const statsRoutes        = require("./src/stats");
 const requestsRoutes     = require("./src/requests");
 const reservationsRoutes = require("./src/reservations");
+const { router: eventsRouter } = require("./src/events");   // <-- NUEVO
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,7 @@ app.use("/api/consumibles",  consumiblesRoutes);
 app.use("/api/stats",        statsRoutes);
 app.use("/api/requests",     requestsRoutes);
 app.use("/api/reservations", reservationsRoutes);
+app.use("/api/events",       eventsRouter);                 // <-- NUEVO
 
 // ── LABS (catálogo dinámico de laboratorios) ──
 app.get("/api/labs", async (req, res) => {

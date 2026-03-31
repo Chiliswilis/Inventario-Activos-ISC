@@ -247,6 +247,7 @@ tr:hover td{background:#fafafa;}
 
     <!-- Activos -->
     <div id="assetsSection" style="display:none;">
+      <!-- filtros de área y categoría se inyectan aquí por refreshAreaFilter() -->
       <div id="assetsContainer"></div>
       <button class="btn-add-c" onclick="addAssetRow()"><i class="fas fa-plus"></i> Agregar activo</button>
     </div>
@@ -853,6 +854,7 @@ document.querySelectorAll(".modal").forEach(m => {
   m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
 });
 </script>
+<script src="../js/realtime.js"></script>
 <script src="../js/common.js"></script>
 </body>
 </html>
