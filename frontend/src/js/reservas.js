@@ -99,14 +99,15 @@ function renderTable(data) {
     let acciones = "";
     if (role === "docente" && r.status === "pending") {
       acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+      acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
     }
     if ((role === "docente" || role === "administrador") && r.status === "approved") {
-      acciones += `<button class="btn-info" onclick="markOccupied(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
+      acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
     }
     if ((role === "docente" || role === "administrador") && r.status === "occupied") {
       acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
     }
-    if ((role === "docente" && (r.status === "pending" || r.status === "approved") && r.docente_id === currentUser?.id)
+    if ((role === "docente" && r.status === "approved" && r.docente_id === currentUser?.id)
       || role === "administrador") {
       acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
     }
@@ -485,10 +486,42 @@ async function approveReservation() {
 }
 
 // ── EN USO ──
-async function markOccupied(id) {
-  if (!confirm("¿Marcar laboratorio como 'En uso'?")) return;
+function openOccupyModal(id) {
+  const r = allReservations.find(x => x.id === id);
+  if (!r) return;
+  let modal = document.getElementById("occupyModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "occupyModal"; modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:420px;">
+        <button class="modal-close" onclick="document.getElementById('occupyModal').classList.remove('open')">&times;</button>
+        <h3><i class="fas fa-flask" style="color:#4f46e5;margin-right:8px;"></i>Poner en uso</h3>
+        <input type="hidden" id="occupyId">
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px;margin-bottom:16px;">
+          <p id="occupyLabName" style="font-size:14px;font-weight:600;color:#1f2a3a;margin-bottom:4px;"></p>
+          <p id="occupyDetails" style="font-size:12px;color:#6b7280;"></p>
+        </div>
+        <p style="font-size:13px;color:#374151;margin-bottom:16px;">Al confirmar, el laboratorio quedará marcado como <strong>En uso</strong> y no podrá ser reservado por otros hasta su liberación.</p>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="document.getElementById('occupyModal').classList.remove('open')">Cancelar</button>
+          <button class="btn" style="flex:1;background:#0891b2;" onclick="confirmOccupy()"><i class="fas fa-play"></i> Confirmar uso</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  }
+  document.getElementById("occupyId").value = id;
+  document.getElementById("occupyLabName").textContent = r.lab ? `${r.lab.nombre} — ${r.lab.edificio}` : "Laboratorio";
+  document.getElementById("occupyDetails").textContent = `${r.fecha_uso ? formatDate(r.fecha_uso) : ""} · ${r.hora_inicio || ""} – ${r.hora_fin || ""}  ·  Docente: ${r.docente?.username || "—"}`;
+  modal.classList.add("open");
+}
+
+async function confirmOccupy() {
+  const id = document.getElementById("occupyId").value;
   await fetch(`${API}/${id}/occupy`, { method: "PUT" });
   showToast("Laboratorio marcado como en uso", "info");
+  document.getElementById("occupyModal").classList.remove("open");
   loadReservations();
 }
 
@@ -546,6 +579,63 @@ async function cancelReservation() {
   });
   showToast("Reserva cancelada", "info");
   closeModal("cancelModal");
+  loadReservations();
+}
+
+// ── RECHAZAR RESERVA (docente: pending → cancelled con motivo + hora) ──
+function openRejectReserva(id) {
+  const r = allReservations.find(x => x.id === id);
+  let modal = document.getElementById("rejectReservaModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "rejectReservaModal"; modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:460px;">
+        <button class="modal-close" onclick="document.getElementById('rejectReservaModal').classList.remove('open')">&times;</button>
+        <h3><i class="fas fa-times-circle" style="color:#dc2626;margin-right:8px;"></i>Rechazar Reserva</h3>
+        <input type="hidden" id="rejectReservaId">
+        <div id="rejectReservaInfo" style="background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:#374151;"></div>
+        <div class="form-group">
+          <label>Motivo del rechazo *</label>
+          <textarea id="rejectReservaReason" placeholder="Explica por qué se rechaza esta reserva..." style="height:80px;resize:none;width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:0.2s;"></textarea>
+        </div>
+        <div style="background:#f8f9fc;border-radius:6px;padding:10px;margin-bottom:12px;font-size:12px;color:#6b7280;">
+          <i class="fas fa-clock" style="color:#4f46e5;margin-right:6px;"></i>
+          Se registrará la hora del rechazo: <strong id="rejectReservaHora"></strong>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="document.getElementById('rejectReservaModal').classList.remove('open')">Cancelar</button>
+          <button class="btn" style="flex:1;background:#dc2626;" onclick="submitRejectReserva()"><i class="fas fa-times"></i> Rechazar reserva</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  }
+  document.getElementById("rejectReservaId").value = id;
+  document.getElementById("rejectReservaReason").value = "";
+  document.getElementById("rejectReservaHora").textContent = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+  if (r) {
+    document.getElementById("rejectReservaInfo").innerHTML =
+      `<strong>${r.lab?.nombre || "Lab"}</strong> · ${r.fecha_uso ? formatDate(r.fecha_uso) : ""} · ${r.hora_inicio || ""} – ${r.hora_fin || ""}<br>
+       <span style="color:#9ca3af;">Solicitante: ${r.alumno?.username || "—"}</span>`;
+  }
+  // Actualizar hora en tiempo real
+  modal.querySelector("#rejectReservaHora").textContent = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+  modal.classList.add("open");
+}
+
+async function submitRejectReserva() {
+  const id     = document.getElementById("rejectReservaId").value;
+  const reason = document.getElementById("rejectReservaReason").value.trim();
+  if (!reason) { showToast("El motivo del rechazo es obligatorio", "error"); return; }
+  const rejectedAt = new Date().toISOString();
+  const res = await fetch(`${API}/${id}/cancel`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ docente_message: reason, rejected_at: rejectedAt })
+  });
+  if (!res.ok) { showToast("Error al rechazar la reserva", "error"); return; }
+  showToast("Reserva rechazada", "info");
+  document.getElementById("rejectReservaModal").classList.remove("open");
   loadReservations();
 }
 
