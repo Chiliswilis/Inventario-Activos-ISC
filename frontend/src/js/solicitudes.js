@@ -20,11 +20,11 @@ let itemRows     = [];   // [{rowId, type, itemId, qty}]
 let rowCounter   = 0;
 
 const statusMap = {
-  pending:       { text:"Pendiente",        cls:"badge-pending",  icon:"fa-clock"        },
-  pending_admin: { text:"Enviada al Admin", cls:"badge-info",     icon:"fa-paper-plane"  },
-  approved:      { text:"Aprobada",         cls:"badge-approved", icon:"fa-check-circle" },
-  rejected:      { text:"Rechazada",        cls:"badge-rejected", icon:"fa-times-circle" },
-  returned:      { text:"Devuelta",         cls:"badge-returned", icon:"fa-undo"         }
+  pending:       { text:"Pendiente (docente)", cls:"badge-pending",  icon:"fa-clock"        },
+  pending_admin: { text:"Pendiente (admin)",   cls:"badge-info",     icon:"fa-paper-plane"  },
+  approved:      { text:"Aprobada",            cls:"badge-approved", icon:"fa-check-circle" },
+  rejected:      { text:"Rechazada",           cls:"badge-rejected", icon:"fa-times-circle" },
+  returned:      { text:"Devuelta",            cls:"badge-returned", icon:"fa-undo"         }
 };
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -112,14 +112,14 @@ function renderTable(data) {
     // Acciones
     let acciones = "";
 
-    // Docente: enviar al admin (sus solicitudes pendientes)
+    // Docente: aprobar/rechazar las solicitudes pending directamente
     if (role === "docente" && r.status === "pending") {
-      acciones += `<button class="action-btn action-send" title="Enviar al Administrador" onclick="sendToAdmin(${r.id})"><i class="fas fa-paper-plane"></i></button>`;
+      acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
       acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
 
-    // Admin: aprobar/rechazar las pending_admin
-    if (role === "administrador" && r.status === "pending_admin") {
+    // Admin: aprobar/rechazar las pending (si llega alguna sin docente)
+    if (role === "administrador" && (r.status === "pending" || r.status === "pending_admin")) {
       acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
       acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
@@ -135,7 +135,7 @@ function renderTable(data) {
     }
 
     // Eliminar: admin puede eliminar rechazadas, devueltas y cualquiera
-    if (role === "administrador" && ["rejected","returned","pending","pending_admin"].includes(r.status)) {
+    if (role === "administrador" && ["rejected","returned","pending","pending_admin","approved"].includes(r.status)) {
       acciones += `<button class="action-btn action-delete" title="Eliminar" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
     }
 
@@ -552,11 +552,16 @@ function openRejectModal(id) {
     modal.innerHTML = `
       <div class="modal-box">
         <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('open')">&times;</button>
-        <h3>Rechazar Solicitud</h3>
+        <h3><i class="fas fa-times-circle" style="color:#dc2626;margin-right:8px;"></i>Rechazar Solicitud</h3>
         <input type="hidden" id="rejectId">
+        <div id="rejectSolicitudInfo" style="background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:#374151;display:none;"></div>
         <div class="form-group">
-          <label>Razón del rechazo *</label>
-          <textarea id="rejectReason" placeholder="Explica el motivo..." style="height:80px;resize:none;width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+          <label>Motivo del rechazo *</label>
+          <textarea id="rejectReason" placeholder="Explica el motivo del rechazo..." style="height:80px;resize:none;width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+        </div>
+        <div style="background:#f8f9fc;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#6b7280;">
+          <i class="fas fa-clock" style="color:#4f46e5;margin-right:6px;"></i>
+          Hora del rechazo: <strong id="rejectTimestamp"></strong>
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" onclick="document.getElementById('rejectModal').classList.remove('open')">Cancelar</button>
@@ -568,6 +573,17 @@ function openRejectModal(id) {
   }
   document.getElementById("rejectId").value    = id;
   document.getElementById("rejectReason").value = "";
+  document.getElementById("rejectTimestamp").textContent = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+  // Mostrar info de la solicitud
+  const r = allRequests.find(x => x.id === id);
+  const infoEl = document.getElementById("rejectSolicitudInfo");
+  if (r) {
+    const typeLabel = { asset:"Activo", consumable:"Consumible", laboratorio:"Laboratorio" }[r.request_type] || r.request_type;
+    infoEl.style.display = "block";
+    infoEl.innerHTML = `<strong>#${r.id}</strong> · ${typeLabel} · Solicitante: <strong>${r.users?.username || "—"}</strong><br><span style="color:#9ca3af;font-size:12px;">${r.purpose || ""}</span>`;
+  } else {
+    infoEl.style.display = "none";
+  }
   modal.classList.add("open");
 }
 
@@ -578,7 +594,7 @@ async function submitReject() {
   try {
     const res = await fetch(`${API}/${id}/reject`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ rejected_by: currentUser.id, rejected_reason: reason, admin_message: reason })
+      body: JSON.stringify({ rejected_by: currentUser.id, rejected_reason: reason, admin_message: reason, rejected_at: new Date().toISOString() })
     });
     if (!res.ok) throw new Error();
     showToast("Solicitud rechazada", "info");
