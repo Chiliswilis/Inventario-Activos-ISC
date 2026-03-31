@@ -1,6 +1,7 @@
 const express  = require("express");
 const router   = express.Router();
 const supabase = require("./supabase");
+const { broadcast } = require("./events");   // <-- NUEVO
 
 const SELECT_FULL = `
   id, status, request_date, notes, request_type, purpose,
@@ -92,6 +93,9 @@ router.post("/", async (req, res) => {
     details: `Solicitud de ${request_type || "asset"} creada`
   }]);
 
+  // Broadcast
+  broadcast("requests", "INSERT", req_data);
+
   res.json(req_data);
 });
 
@@ -150,6 +154,9 @@ router.put("/:id/approve", async (req, res) => {
       : "Aprobada (consumibles / sin activos directos)"
   }]);
 
+  // Broadcast
+  broadcast("requests", "UPDATE", solicitud);
+
   res.json(solicitud);
 });
 
@@ -179,6 +186,9 @@ router.put("/:id/reject", async (req, res) => {
     record_id: parseInt(req.params.id),
     details: rejected_reason || "Sin razón especificada"
   }]);
+
+  // Broadcast
+  broadcast("requests", "UPDATE", data[0]);
 
   res.json(data[0]);
 });
@@ -278,6 +288,9 @@ router.put("/:id/return", async (req, res) => {
       : "Sin incidentes"
   }]);
 
+  // Broadcast
+  broadcast("requests", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -291,6 +304,10 @@ router.put("/:id", async (req, res) => {
   const { data, error } = await supabase
     .from("requests").update({ status }).eq("id", req.params.id).select("id, status");
   if (error) return res.status(500).json(error);
+
+  // Broadcast
+  broadcast("requests", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -298,6 +315,8 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { error } = await supabase.from("requests").delete().eq("id", req.params.id);
   if (error) return res.status(500).json(error);
+  // Broadcast
+  broadcast("requests", "DELETE", { id: req.params.id });
   res.json({ message: "Solicitud eliminada" });
 });
 

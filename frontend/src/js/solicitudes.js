@@ -20,11 +20,11 @@ let itemRows     = [];   // [{rowId, type, itemId, qty}]
 let rowCounter   = 0;
 
 const statusMap = {
-  pending:       { text:"Pendiente de docente", cls:"badge-pending",  icon:"fa-clock"        },
-  pending_admin: { text:"En revisión",          cls:"badge-info",     icon:"fa-paper-plane"  },
-  approved:      { text:"Aprobada",             cls:"badge-approved", icon:"fa-check-circle" },
-  rejected:      { text:"Rechazada",            cls:"badge-rejected", icon:"fa-times-circle" },
-  returned:      { text:"Devuelta",             cls:"badge-returned", icon:"fa-undo"         }
+  pending:       { text:"Pendiente",        cls:"badge-pending",  icon:"fa-clock"        },
+  pending_admin: { text:"Enviada al Admin", cls:"badge-info",     icon:"fa-paper-plane"  },
+  approved:      { text:"Aprobada",         cls:"badge-approved", icon:"fa-check-circle" },
+  rejected:      { text:"Rechazada",        cls:"badge-rejected", icon:"fa-times-circle" },
+  returned:      { text:"Devuelta",         cls:"badge-returned", icon:"fa-undo"         }
 };
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -109,30 +109,34 @@ function renderTable(data) {
       if (r.rejected_at) rejInfo += `<br><small style="color:#9ca3af;font-size:10px;">${new Date(r.rejected_at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"})}</small>`;
     }
 
-    // ── ACCIONES POR ROL ─────────────────────────────────────
+    // Acciones
     let acciones = "";
 
-    // DOCENTE: aprueba/rechaza solicitudes pendientes
-    // - Si el alumno mandó la solicitud y eligió a este docente → puede aprobar/rechazar
-    // - Si el docente la creó él mismo → puede aprobarla directamente
+    // Docente: enviar al admin (sus solicitudes pendientes)
     if (role === "docente" && r.status === "pending") {
-      acciones += `<button class="action-btn action-approve" title="Aprobar solicitud" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
-      acciones += `<button class="action-btn action-reject"  title="Rechazar solicitud" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
+      acciones += `<button class="action-btn action-send" title="Enviar al Administrador" onclick="sendToAdmin(${r.id})"><i class="fas fa-paper-plane"></i></button>`;
+      acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
 
-    // DOCENTE/ADMIN: registrar devolución en solicitudes aprobadas
+    // Admin: aprobar/rechazar las pending_admin
+    if (role === "administrador" && r.status === "pending_admin") {
+      acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
+      acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
+    }
+
+    // Docente/Admin: devolución en aprobadas
     if ((role === "docente" || role === "administrador") && r.status === "approved") {
       acciones += `<button class="action-btn action-return" title="Registrar devolución" onclick="openReturnModal(${r.id})"><i class="fas fa-undo"></i></button>`;
     }
 
-    // ADMIN: solo eliminar registros históricos (rechazadas y devueltas)
-    if (role === "administrador" && ["rejected","returned"].includes(r.status)) {
-      acciones += `<button class="action-btn action-delete" title="Eliminar registro" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
+    // Ver respuesta admin
+    if (r.admin_message || r.pickup_date) {
+      acciones += `<button class="action-btn action-info" title="Ver detalle" onclick="showAdminResponse(${r.id})"><i class="fas fa-info-circle"></i></button>`;
     }
 
-    // Ver detalle de respuesta / incidente
-    if (r.admin_message || r.pickup_date || r.rejected_reason) {
-      acciones += `<button class="action-btn action-info" title="Ver detalle" onclick="showAdminResponse(${r.id})"><i class="fas fa-info-circle"></i></button>`;
+    // Eliminar: admin puede eliminar rechazadas, devueltas y cualquiera
+    if (role === "administrador" && ["rejected","returned","pending","pending_admin"].includes(r.status)) {
+      acciones += `<button class="action-btn action-delete" title="Eliminar" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
     }
 
     const incident = r.incident
@@ -165,52 +169,53 @@ function openModal() {
   itemRows   = [];
   rowCounter = 0;
 
-  // ── Solicitante según rol ──
-  const selUser = document.getElementById("reqUser");
+  const selUser    = document.getElementById("reqUser");
+  const grpDocente = document.getElementById("docenteGroup");
+  const selDocente = document.getElementById("reqDocente");
+
   selUser.innerHTML = "";
 
   if (currentUser.role === "alumno") {
-    // Solo él mismo o docentes
+    // Alumno: él mismo aparece por defecto y no puede cambiarlo
     const self = document.createElement("option");
-    self.value = currentUser.id; self.textContent = `${currentUser.username} (yo)`;
+    self.value = currentUser.id;
+    self.textContent = `${currentUser.username} (tú)`;
     selUser.appendChild(self);
-    allUsers.filter(u => u.role === "docente").forEach(u => {
-      const o = document.createElement("option");
-      o.value = u.id; o.textContent = `${u.username} (docente)`;
-      selUser.appendChild(o);
-    });
-  } else if (currentUser.role === "docente") {
-    // Solo él mismo y otros docentes
-    allUsers.filter(u => u.role === "docente").forEach(u => {
-      const o = document.createElement("option");
-      o.value = u.id; o.textContent = u.id == currentUser.id ? `${u.username} (yo)` : `${u.username} (docente)`;
-      selUser.appendChild(o);
-    });
-  } else {
-    // Admin: admins y docentes
-    allUsers.filter(u => ["administrador","docente"].includes(u.role)).forEach(u => {
-      const o = document.createElement("option");
-      o.value = u.id; o.textContent = `${u.username} (${u.role})`;
-      selUser.appendChild(o);
-    });
-  }
+    selUser.disabled = true;
 
-  // ── Docente encargado (solo para alumno) ──
-  const grpDocente = document.getElementById("docenteGroup");
-  const selDocente = document.getElementById("reqDocente");
-  if (currentUser.role === "alumno") {
+    // Debe elegir un docente encargado
     grpDocente.style.display = "block";
     selDocente.innerHTML = `<option value="">-- Selecciona docente encargado --</option>`;
     allUsers.filter(u => u.role === "docente").forEach(u => {
       const o = document.createElement("option"); o.value = u.id; o.textContent = u.username;
       selDocente.appendChild(o);
     });
+
+  } else if (currentUser.role === "docente") {
+    // Docente: puede solicitar para sí mismo o para un alumno
+    const self = document.createElement("option");
+    self.value = currentUser.id;
+    self.textContent = `${currentUser.username} (yo)`;
+    selUser.appendChild(self);
+    allUsers.filter(u => u.role === "alumno").forEach(u => {
+      const o = document.createElement("option"); o.value = u.id; o.textContent = `${u.username} (alumno)`;
+      selUser.appendChild(o);
+    });
+    selUser.disabled = false;
+    grpDocente.style.display = "none";
+
   } else {
+    // Admin: puede elegir docentes y alumnos
+    allUsers.filter(u => ["administrador","docente","alumno"].includes(u.role)).forEach(u => {
+      const o = document.createElement("option");
+      o.value = u.id; o.textContent = `${u.username} (${u.role})`;
+      selUser.appendChild(o);
+    });
+    selUser.disabled = false;
     grpDocente.style.display = "none";
   }
 
-  // ── Tipo ──
-  document.getElementById("reqType").value = "asset";
+  document.getElementById("reqType").value    = "asset";
   document.getElementById("reqPurpose").value = "";
   document.getElementById("reqNotes").value   = "";
 
@@ -314,17 +319,23 @@ function addItemRow() {
 }
 
 function buildAssetOptions(excludeIds = []) {
-  // excludeIds: array of asset IDs already selected in other rows
   return allAssets
     .filter(a => a.status === "available" && !excludeIds.includes(a.id))
-    .map(a => `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}">${a.name} — Serie: ${a.serial_number||"S/N"}</option>`)
+    .map(a => {
+      const areaIcon = a.area === "sistemas" ? "\uD83D\uDDA5" : a.area === "laboratorio" ? "\uD83D\uDD2C" : "";
+      const catName  = a.categories?.name || "";
+      return `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}">${areaIcon} ${a.name}${catName ? " \u00B7 "+catName : ""} — Serie: ${a.serial_number||"S/N"}</option>`;
+    })
     .join("");
 }
 
 function buildConsOptions() {
   return allCons
     .filter(c => c.quantity > 0)
-    .map(c => `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}">${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`)
+    .map(c => {
+      const areaIcon = c.area === "sistemas" ? "\uD83D\uDDA5" : c.area === "laboratorio" ? "\uD83D\uDD2C" : "";
+      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
+    })
     .join("");
 }
 
@@ -518,7 +529,19 @@ function addLabItemRow(type) {
   con.appendChild(div);
 }
 
-// sendToAdmin eliminado — el docente aprueba/rechaza directamente
+// ── DOCENTE ENVÍA AL ADMIN ────────────────────────────────────
+async function sendToAdmin(id) {
+  if (!confirm("¿Enviar esta solicitud al Administrador?")) return;
+  try {
+    const res = await fetch(`${API}/${id}`, {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ status: "pending_admin" })
+    });
+    if (!res.ok) throw new Error();
+    showToast("Solicitud enviada al administrador ✅", "success");
+    await loadRequests();
+  } catch { showToast("Error al enviar la solicitud", "error"); }
+}
 
 // ── RECHAZAR ─────────────────────────────────────────────────
 function openRejectModal(id) {
@@ -609,26 +632,12 @@ async function submitApprove() {
   const msg = document.getElementById("approveMessage").value.trim();
   if (!pd || !pl) { showToast("Fecha y lugar son obligatorios", "error"); return; }
   try {
-    // 1. Aprobar la solicitud
     const res = await fetch(`${API}/${id}/approve`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ pickup_date: pd, pickup_location: pl, admin_message: msg })
     });
     if (!res.ok) throw new Error();
-
-    // 2. Cambiar estado de activos involucrados a "borrowed"
-    const req = allRequests.find(r => r.id === parseInt(id));
-    if (req?.request_items?.length) {
-      const assetItems = req.request_items.filter(it => it.asset_id);
-      await Promise.all(assetItems.map(it =>
-        fetch(`/api/assets/${it.asset_id}`, {
-          method: "PUT", headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ status: "borrowed" })
-        })
-      ));
-    }
-
-    showToast("Solicitud aprobada ✅ — activos marcados como ocupados", "success");
+    showToast("Solicitud aprobada con éxito ✅", "success");
     document.getElementById("approveModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al aprobar", "error"); }
@@ -703,28 +712,12 @@ async function submitReturn() {
   });
 
   try {
-    // 1. Registrar la devolución en el backend
     const res = await fetch(`${API}/${id}/return`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution, items_condition })
     });
     if (!res.ok) throw new Error();
-
-    // 2. Actualizar estado de cada activo según la condición registrada
-    //    bueno → available | dañado → damaged | perdido → damaged
-    const condToStatus = { bueno: "available", dañado: "damaged", perdido: "damaged" };
-    await Promise.all(
-      items_condition
-        .filter(ic => ic.asset_id)
-        .map(ic =>
-          fetch(`/api/assets/${ic.asset_id}`, {
-            method: "PUT", headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({ status: condToStatus[ic.return_condition] || "available" })
-          })
-        )
-    );
-
-    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅ — activos disponibles", "success");
+    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅", "success");
     document.getElementById("returnModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al registrar devolución", "error"); }
@@ -808,3 +801,16 @@ function showToast(msg, type="success") {
   t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove("show"), 3500);
 }
+
+  // ── Tiempo real ──
+  document.addEventListener("DOMContentLoaded", () => {
+    REALTIME.on("requests", (event) => {
+      if (!document.querySelector(".modal.open")) {
+        loadRequests();
+      }
+    });
+    // También si cambia el estado de un activo (prestado/disponible)
+    REALTIME.on("assets", () => {
+      loadAssets();   // recarga catálogo de activos disponibles
+    });
+  });

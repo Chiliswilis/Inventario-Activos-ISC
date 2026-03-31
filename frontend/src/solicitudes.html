@@ -195,7 +195,7 @@ tr:hover td{background:#fafafa;}
     <h3>Nueva Solicitud</h3>
 
     <div class="form-group">
-      <label>Solicitante *</label>
+      <label id="lblReqUser">Solicitante *</label>
       <select id="reqUser"></select>
     </div>
     <div class="form-group" id="docenteGroup" style="display:none;">
@@ -453,6 +453,7 @@ function closeModal() {
   document.getElementById("requestModal").classList.remove("open");
 }
 </script>
+<script src="../js/realtime.js"></script>
 <script src="../js/solicitudes.js"></script>
 <script src="../js/common.js"></script>
 </body>

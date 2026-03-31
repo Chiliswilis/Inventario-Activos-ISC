@@ -1,6 +1,7 @@
 const express  = require("express");
 const router   = express.Router();
 const supabase = require("./supabase");
+const { broadcast } = require("./events");   // <-- NUEVO
 
 /* LISTAR */
 router.get("/", async (req, res) => {
@@ -42,6 +43,10 @@ router.post("/", async (req, res) => {
     .select("id, name, description, category_id, quantity, min_quantity, unit, categories(name)");
 
   if (error) return res.status(500).json(error);
+
+  // Broadcast
+  broadcast("consumables", "INSERT", data[0]);
+
   res.json(data[0]);
 });
 
@@ -66,6 +71,10 @@ router.put("/:id", async (req, res) => {
 
   if (error) return res.status(500).json(error);
   if (!data || data.length === 0) return res.status(404).json({ message: "No encontrado" });
+
+  // Broadcast
+  broadcast("consumables", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -76,6 +85,8 @@ router.delete("/:id", async (req, res) => {
     .delete()
     .eq("id", req.params.id);
   if (error) return res.status(500).json(error);
+  // Broadcast
+  broadcast("consumables", "DELETE", { id: req.params.id });
   res.json({ message: "Consumible eliminado" });
 });
 

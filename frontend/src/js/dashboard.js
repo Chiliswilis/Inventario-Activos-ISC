@@ -66,3 +66,12 @@ function renderActivity(activities) {
 }
 
 document.addEventListener("DOMContentLoaded", loadStats);
+
+// ── Tiempo real — cualquier cambio actualiza las tarjetas ──
+  document.addEventListener("DOMContentLoaded", () => {
+    REALTIME.on("*", () => {
+      // Recargar estadísticas del dashboard
+      if (typeof loadDashboard === "function") loadDashboard();
+      else if (typeof loadStats === "function") loadStats();
+    });
+  });

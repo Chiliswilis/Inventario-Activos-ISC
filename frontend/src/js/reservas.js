@@ -171,28 +171,54 @@ function openNewModal() {
   const selDocente = document.getElementById("newDocente");
 
   if (currentUser.role === "alumno") {
-    // Alumno: alumno_id = currentUser.id, debe seleccionar docente responsable
-    grpAlumno.style.display = "none";
+    // ── ALUMNO: él aparece por defecto; elige el docente que lo avala ──
+    grpAlumno.style.display = "block";
     grpDocente.style.display = "block";
+
+    // El select de "alumno" lo fijamos a sí mismo (solo lectura visual)
+    selAlumno.innerHTML = "";
+    const selfOpt = document.createElement("option");
+    selfOpt.value = currentUser.id;
+    selfOpt.textContent = `${currentUser.username} (tú)`;
+    selAlumno.appendChild(selfOpt);
+    selAlumno.disabled = true;
+    grpAlumno.querySelector("label").textContent = "Solicitante";
+
+    // Docente responsable obligatorio
+    grpDocente.querySelector("label").textContent = "Docente responsable *";
     selDocente.innerHTML = `<option value="">-- Selecciona docente --</option>`;
     users.filter(u => u.role === "docente").forEach(u => {
-      const op = document.createElement("option"); op.value = u.id; op.textContent = u.username;
+      const op = document.createElement("option");
+      op.value = u.id; op.textContent = u.username;
       selDocente.appendChild(op);
     });
+    selDocente.disabled = false;
+
   } else if (currentUser.role === "docente") {
-    // Docente: debe seleccionar alumno (o puede seleccionarse a sí mismo como alumno?) pero el requisito dice que deben verse solo docentes en el dropdown.
-    // Vamos a interpretar: el docente puede reservar para otro docente, así que el solicitante será un docente.
+    // ── DOCENTE: ya está registrado, solo elige si reserva para un alumno ──
     grpAlumno.style.display = "block";
     grpDocente.style.display = "none";
-    selAlumno.innerHTML = `<option value="">-- Selecciona docente solicitante --</option>`;
-    users.filter(u => u.role === "docente").forEach(u => {
-      const op = document.createElement("option"); op.value = u.id; op.textContent = u.username;
+
+    // El docente puede reservar para sí mismo o para un alumno
+    grpAlumno.querySelector("label").textContent = "Reserva para *";
+    selAlumno.innerHTML = `<option value="${currentUser.id}">${currentUser.username} (yo)</option>`;
+    users.filter(u => u.role === "alumno").forEach(u => {
+      const op = document.createElement("option");
+      op.value = u.id; op.textContent = `${u.username} (alumno)`;
       selAlumno.appendChild(op);
     });
+    selAlumno.disabled = false;
+
   } else if (currentUser.role === "administrador") {
-    // Admin: puede elegir cualquier alumno y cualquier docente
+    // ── ADMIN: elige alumno y docente libremente ──
     grpAlumno.style.display = "block";
     grpDocente.style.display = "block";
+    grpAlumno.querySelector("label").textContent = "Alumno solicitante *";
+    grpDocente.querySelector("label").textContent = "Docente responsable *";
+
+    selAlumno.disabled = false;
+    selDocente.disabled = false;
+
     selAlumno.innerHTML = `<option value="">-- Selecciona alumno --</option>`;
     users.filter(u => u.role === "alumno").forEach(u => {
       const op = document.createElement("option"); op.value = u.id; op.textContent = u.username;
@@ -204,6 +230,9 @@ function openNewModal() {
       selDocente.appendChild(op);
     });
   }
+
+  // Resetear filtros de área/categoría para activos
+  refreshAreaFilter();
 
   document.getElementById("newModal").classList.add("open");
 }
@@ -226,33 +255,146 @@ function onLabChange() {
   document.getElementById("newHoraFin").max    = opt.dataset.close;
 }
 
+// ── Área activa para filtrar activos en reservas ──
+let _reservaArea = "";
+let _reservaCat  = "";
+
+function refreshAreaFilter() {
+  _reservaArea = "";
+  _reservaCat  = "";
+  const sec = document.getElementById("assetsFilterSection");
+  if (sec) sec.remove();
+
+  // Inyectar filtros sobre el contenedor de activos
+  const assetsSec = document.getElementById("assetsSection");
+  if (!assetsSec) return;
+
+  const div = document.createElement("div");
+  div.id = "assetsFilterSection";
+  div.style.cssText = "margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;";
+
+  // Área
+  const selArea = document.createElement("select");
+  selArea.style.cssText = "padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;";
+  selArea.innerHTML = `
+    <option value="">Todas las áreas</option>
+    <option value="sistemas">🖥 Sistemas</option>
+    <option value="laboratorio">🔬 Lab / Alimentos</option>`;
+  selArea.onchange = () => {
+    _reservaArea = selArea.value;
+    _reservaCat  = "";
+    buildReservaCatFilter(selArea.value, selCat);
+    // Refrescar las filas existentes
+    document.querySelectorAll("#assetsContainer .asset-row select").forEach(s => {
+      const cur = s.value;
+      s.innerHTML = buildAssetOptions();
+      if ([...s.options].some(o => o.value === cur)) s.value = cur;
+    });
+  };
+
+  // Categoría
+  const selCat = document.createElement("select");
+  selCat.id = "assetsFilterCat";
+  selCat.style.cssText = selArea.style.cssText;
+  selCat.innerHTML = `<option value="">Todas las categorías</option>`;
+  selCat.onchange = () => {
+    _reservaCat = selCat.value;
+    document.querySelectorAll("#assetsContainer .asset-row select").forEach(s => {
+      const cur = s.value;
+      s.innerHTML = buildAssetOptions();
+      if ([...s.options].some(o => o.value === cur)) s.value = cur;
+    });
+  };
+
+  div.appendChild(document.createTextNode("Área: "));
+  div.appendChild(selArea);
+  div.appendChild(document.createTextNode("  Categoría: "));
+  div.appendChild(selCat);
+  assetsSec.insertBefore(div, assetsSec.firstChild);
+}
+
+function buildReservaCatFilter(area, selCat) {
+  selCat.innerHTML = `<option value="">Todas las categorías</option>`;
+  // Obtener categorías únicas de los activos disponibles según área
+  const cats = [...new Map(
+    assets
+      .filter(a => a.status === "available" && (!area || a.area === area))
+      .map(a => [a.category_id, a.categories?.name || "Sin categoría"])
+  ).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  cats.forEach(([id, name]) => {
+    const o = document.createElement("option");
+    o.value = id; o.textContent = name;
+    selCat.appendChild(o);
+  });
+}
+
+function buildAssetOptions() {
+  return assets
+    .filter(a =>
+      a.status === "available" &&
+      (!_reservaArea || a.area === _reservaArea) &&
+      (!_reservaCat  || String(a.category_id) === String(_reservaCat))
+    )
+    .map(a => {
+      const area = a.area === "sistemas" ? "🖥" : a.area === "laboratorio" ? "🔬" : "";
+      const cat  = a.categories?.name || "";
+      return `<option value="${a.id}" data-serial="${a.serial_number||""}">${area} ${a.name}${cat ? " · " + cat : ""} (Serie: ${a.serial_number||"S/N"})</option>`;
+    })
+    .join("");
+}
+
 // ── Agregar filas de activos ──
 function addAssetRow() {
   const id  = `asset_${++assetRowCount}`;
   const row = document.createElement("div");
   row.className = "asset-row"; row.id = id;
+  const opts = buildAssetOptions();
   row.innerHTML = `
-    <select>
-      <option value="">-- Activo --</option>
-      ${assets.filter(a => a.status === "available").map(a => `<option value="${a.id}">${a.name} (Serie: ${a.serial_number})</option>`).join("")}
-    </select>
-    <input type="number" value="1" min="1" max="1" readonly style="text-align:center;">
-    <button class="btn-remove-a" onclick="document.getElementById('${id}').remove()"><i class="fas fa-times"></i></button>`;
+    <div style="display:grid;grid-template-columns:1fr 60px 32px;gap:6px;align-items:center;margin-bottom:6px;">
+      <select onchange="onAssetRowChange(this)" style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;">
+        <option value="">-- Activo --</option>${opts}
+      </select>
+      <input type="number" value="1" min="1" max="1" readonly
+        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;">
+      <button onclick="document.getElementById('${id}').remove()"
+        style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
+        <i class="fas fa-times"></i></button>
+    </div>
+    <div id="info_${id}" style="font-size:11px;color:#9ca3af;display:none;padding:0 0 6px 4px;"></div>`;
   document.getElementById("assetsContainer").appendChild(row);
-  // Remove selected asset from other dropdowns? We'll implement a simpler version: just prevent duplicates by validation in save.
+}
+
+function onAssetRowChange(sel) {
+  const opt = sel.selectedOptions[0];
+  const row = sel.closest(".asset-row");
+  const info = row?.querySelector("[id^='info_']");
+  if (!info) return;
+  if (!opt?.value) { info.style.display = "none"; return; }
+  info.style.display = "block";
+  info.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong>`;
 }
 
 function addConsRow() {
   const id  = `cons_${++consRowCount}`;
   const row = document.createElement("div");
   row.className = "cons-row"; row.id = id;
+  const opts = consumables
+    .filter(c => c.quantity > 0)
+    .map(c => {
+      const area = c.area === "sistemas" ? "🖥" : c.area === "laboratorio" ? "🔬" : "";
+      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}">${area} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
+    }).join("");
   row.innerHTML = `
-    <select>
-      <option value="">-- Consumible --</option>
-      ${consumables.map(c => `<option value="${c.id}" data-qty="${c.quantity}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}
-    </select>
-    <input type="number" value="1" min="1" placeholder="Cant.">
-    <button class="btn-remove-c" onclick="document.getElementById('${id}').remove()"><i class="fas fa-times"></i></button>`;
+    <div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center;margin-bottom:6px;">
+      <select style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;">
+        <option value="">-- Consumible --</option>${opts}
+      </select>
+      <input type="number" value="1" min="1" placeholder="Cant."
+        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;">
+      <button onclick="document.getElementById('${id}').remove()"
+        style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
+        <i class="fas fa-times"></i></button>
+    </div>`;
   document.getElementById("consContainer").appendChild(row);
 }
 
@@ -267,19 +409,21 @@ async function saveReservation() {
     showToast("Completa todos los campos obligatorios", "error"); return;
   }
 
-  let alumno_id = null;
+  let alumno_id  = null;
   let docente_id = null;
 
   if (currentUser.role === "alumno") {
-    alumno_id = currentUser.id;
+    // Alumno siempre es él mismo
+    alumno_id  = currentUser.id;
     docente_id = parseInt(document.getElementById("newDocente").value);
     if (!docente_id) { showToast("Selecciona un docente responsable", "error"); return; }
   } else if (currentUser.role === "docente") {
-    alumno_id = parseInt(document.getElementById("newAlumno").value);
-    if (!alumno_id) { showToast("Selecciona un docente solicitante", "error"); return; }
+    // Docente puede reservar para sí mismo o para un alumno
+    alumno_id  = parseInt(document.getElementById("newAlumno").value);
     docente_id = currentUser.id;
+    if (!alumno_id) { showToast("Selecciona para quién es la reserva", "error"); return; }
   } else if (currentUser.role === "administrador") {
-    alumno_id = parseInt(document.getElementById("newAlumno").value);
+    alumno_id  = parseInt(document.getElementById("newAlumno").value);
     docente_id = parseInt(document.getElementById("newDocente").value);
     if (!alumno_id || !docente_id) { showToast("Selecciona alumno y docente", "error"); return; }
   }
@@ -375,29 +519,14 @@ async function releaseReservation() {
   const id = document.getElementById("releaseId").value;
   const leftover_items = [];
   document.querySelectorAll("#leftoverList .leftover-row").forEach(row => {
-    leftover_items.push({
-      reservation_consumable_id: parseInt(row.dataset.rcId),
-      leftover_qty: parseInt(row.querySelector("input").value) || 0
-    });
+    leftover_items.push({ reservation_consumable_id: parseInt(row.dataset.rcId), leftover_qty: parseInt(row.querySelector("input").value) || 0 });
   });
-
   const res = await fetch(`${API}/${id}/release`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ leftover_items })
   });
   if (!res.ok) { showToast("Error al liberar", "error"); return; }
-
-  // Restaurar activos de la reserva a "available"
-  const reserva = allReservations.find(r => r.id === parseInt(id));
-  const assetIds = (reserva?.reservation_assets || []).map(ra => ra.asset_id).filter(Boolean);
-  await Promise.all(assetIds.map(aid =>
-    fetch(`/api/assets/${aid}`, {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "available" })
-    })
-  ));
-
-  showToast("Laboratorio liberado ✅ — activos disponibles nuevamente", "success");
+  showToast("Laboratorio liberado ✅", "success");
   closeModal("releaseModal");
   loadReservations();
 }
@@ -450,3 +579,12 @@ function showToast(msg, type = "success") {
 document.querySelectorAll(".modal").forEach(m => {
   m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
 });
+
+  // ── Tiempo real ──
+  document.addEventListener("DOMContentLoaded", () => {
+    REALTIME.on("reservations", (event) => {
+      if (!document.querySelector(".modal.open")) {
+        loadReservations();
+      }
+    });
+  });

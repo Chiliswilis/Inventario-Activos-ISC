@@ -493,6 +493,15 @@ function exportCSV() {
   showToast("CSV exportado ✅", "success");
 }
 
+  // ── Tiempo real ──
+  document.addEventListener("DOMContentLoaded", () => {
+    REALTIME.on("assets", (event) => {
+      if (!document.querySelector(".modal.open, #assetModal.open")) {
+        loadAssets();
+      }
+    });
+  });
+
 /* ──────────────────────────────────────────
    INIT
 ────────────────────────────────────────── */

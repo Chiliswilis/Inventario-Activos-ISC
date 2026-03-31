@@ -1,6 +1,7 @@
 const express  = require("express");
 const router   = express.Router();
 const supabase = require("./supabase");
+const { broadcast } = require("./events");   // <-- NUEVO
 
 const SELECT_FULL = `
   id, grupo, semestre, encargado_grupo,
@@ -144,6 +145,9 @@ router.post("/", async (req, res) => {
     details:    `Lab ID ${lab_id} para ${fecha_uso} ${hora_inicio}–${hora_fin}`
   }]);
 
+  // Broadcast
+  broadcast("reservations", "INSERT", resv);
+
   res.json(resv);
 });
 
@@ -165,6 +169,10 @@ router.put("/:id/approve", async (req, res) => {
     .select("id, status, grupo, semestre");
 
   if (error) return res.status(500).json(error);
+
+  // Broadcast
+  broadcast("reservations", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -176,6 +184,10 @@ router.put("/:id/occupy", async (req, res) => {
     .eq("id", req.params.id)
     .select("id, status");
   if (error) return res.status(500).json(error);
+
+  // Broadcast
+  broadcast("reservations", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -214,6 +226,9 @@ router.put("/:id/release", async (req, res) => {
     item_id:    data[0].lab_id
   }]);
 
+  // Broadcast
+  broadcast("reservations", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -229,6 +244,10 @@ router.put("/:id/cancel", async (req, res) => {
     .eq("id", req.params.id)
     .select("id, status, docente_message");
   if (error) return res.status(500).json(error);
+
+  // Broadcast
+  broadcast("reservations", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -236,6 +255,8 @@ router.put("/:id/cancel", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { error } = await supabase.from("reservations").delete().eq("id", req.params.id);
   if (error) return res.status(500).json(error);
+  // Broadcast
+  broadcast("reservations", "DELETE", { id: req.params.id });
   res.json({ message: "Reserva eliminada" });
 });
 

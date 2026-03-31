@@ -1,6 +1,7 @@
 const express  = require("express");
 const router   = express.Router();
 const supabase = require("./supabase");
+const { broadcast } = require("./events");   // <-- NUEVO
 
 /* ── LISTAR ── */
 router.get("/", async (req, res) => {
@@ -59,6 +60,9 @@ router.post("/", async (req, res) => {
     item_type: "asset", item_id: data[0].id, details: `${name} (${serial_number})`
   }]);
 
+  // Broadcast
+  broadcast("assets", "INSERT", data[0]);
+
   res.json(data[0]);
 });
 
@@ -85,6 +89,9 @@ router.put("/:id", async (req, res) => {
     item_type: "asset", item_id: parseInt(req.params.id), details: `Status: ${status}`
   }]);
 
+  // Broadcast
+  broadcast("assets", "UPDATE", data[0]);
+
   res.json(data[0]);
 });
 
@@ -92,6 +99,8 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { error } = await supabase.from("assets").delete().eq("id", req.params.id);
   if (error) return res.status(500).json(error);
+  // Broadcast (solo identificador, el frontend refresca)
+  broadcast("assets", "DELETE", { id: req.params.id });
   res.json({ message: "Activo eliminado" });
 });
 

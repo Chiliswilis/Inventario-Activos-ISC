@@ -1,7 +1,3 @@
-// ============================================
-// SGIAC-ISC | consumibles.js
-// ============================================
-
 const API_URL = "/api/consumibles";
 const CAT_URL = "/api/categories/consumables";
 
@@ -68,6 +64,8 @@ function updateCategoryOptions() {
     opt.textContent = cat.name;
     sel.appendChild(opt);
   });
+  // Ajustar unidades y caducidad según la primera categoría disponible
+  onCategoryChange();
 }
 
 /* ─────────────────── ÁREA TABS ─────────────────── */
@@ -356,15 +354,25 @@ function openEdit(id) {
   document.getElementById("consumibleArea").value        = cArea;
   updateCategoryOptions();
   document.getElementById("consumibleCategory").value    = c.category_id || "";
-  document.getElementById("consumibleUnit").value        = c.unit || "";
+
+  // Ajustar unidades según categoría ANTES de poner el valor guardado
+  onCategoryChange();
+  // Ahora restaurar la unidad guardada (si existe en las opciones)
+  const unitSel = document.getElementById("consumibleUnit");
+  if ([...unitSel.options].some(o => o.value === (c.unit || ""))) {
+    unitSel.value = c.unit || "";
+  }
+
   document.getElementById("consumibleExpiry").value      = c.expiry_date || "";
   document.getElementById("consumibleLocation").value    = c.location || "Lab. Ciencias Básicas";
 
-  const isDecimal = c.unit === "kg" || c.unit === "litros";
+  // Regenerar input de cantidad con el step correcto
+  const isDecimal = ["kg","litros","metros"].includes(c.unit);
+  const step      = c.unit === "metros" ? "0.01" : isDecimal ? "0.01" : "1";
   document.getElementById("quantityWrapper").innerHTML = `
     <input type="number" id="consumibleQuantity"
            placeholder="${isDecimal ? "0.00" : "0"}"
-           min="0" step="${isDecimal ? "0.01" : "1"}" value="${c.quantity}"
+           min="0" step="${step}" value="${c.quantity}"
            style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
                   font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;"
            onfocus="this.style.borderColor='#4f46e5';this.style.boxShadow='0 0 0 3px rgba(79,70,229,0.08)'"
@@ -479,3 +487,13 @@ function esc(str) {
 document.getElementById("consumibleModal").addEventListener("click", function (e) {
   if (e.target === this) closeModal();
 });
+
+  // ── Tiempo real ──
+  document.addEventListener("DOMContentLoaded", () => {
+    REALTIME.on("consumables", (event) => {
+      // Recargar solo si no hay un modal abierto (para no interrumpir al admin)
+      if (!document.querySelector(".modal.open")) {
+        loadConsumables();
+      }
+    });
+  });
