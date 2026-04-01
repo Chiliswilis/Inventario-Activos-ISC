@@ -105,7 +105,7 @@ router.put("/:id/approve", async (req, res) => {
   if (!pickup_date || !pickup_location)
     return res.status(400).json({ message: "pickup_date y pickup_location son obligatorios" });
 
-  // 1. Actualizar el status de la solicitud — traer también los ítems para procesar activos
+  // 1. Actualizar el status de la solicitud — traer también los ítems para procesar activos y consumibles
   const { data, error } = await supabase
     .from("requests")
     .update({
@@ -118,43 +118,80 @@ router.put("/:id/approve", async (req, res) => {
     .eq("id", req.params.id)
     .select(`
       id, status, pickup_date, pickup_location, admin_message,
-      request_type, asset_id,
+      request_type, asset_id, consumable_id, quantity_requested,
       request_items(id, asset_id, consumable_id, quantity)
     `);
 
   if (error) return res.status(500).json(error);
   const solicitud = data[0];
 
-  // 2. ✅ Marcar activos involucrados como "borrowed" (prestado)
+  // 2. ✅ Marcar activos involucrados como "borrowed"
   const assetsToMark = [];
 
-  // Legacy: campo directo asset_id en la solicitud
-  if (solicitud.request_type === "asset" && solicitud.asset_id) {
-    assetsToMark.push(solicitud.asset_id);
-  }
-  // Multi-item: activos dentro de request_items
+  // Legacy: campo directo asset_id
+  if (solicitud.asset_id) assetsToMark.push(solicitud.asset_id);
+  // Multi-item
   for (const item of (solicitud.request_items || [])) {
     if (item.asset_id) assetsToMark.push(item.asset_id);
   }
 
   for (const assetId of assetsToMark) {
-    await supabase
+    const { data: updatedAsset } = await supabase
       .from("assets")
       .update({ status: "borrowed" })
-      .eq("id", assetId);
+      .eq("id", assetId)
+      .select("*")
+      .single();
+    if (updatedAsset) broadcast("assets", "UPDATE", updatedAsset);
   }
 
-  // 3. ✅ Log de aprobación
+  // 3. ✅ Descontar consumibles al aprobar (se entregan en este momento)
+  const consumablesToDiscount = [];
+
+  // Legacy: campo directo consumable_id
+  if (solicitud.consumable_id) {
+    consumablesToDiscount.push({
+      id:  solicitud.consumable_id,
+      qty: parseInt(solicitud.quantity_requested) || 1
+    });
+  }
+  // Multi-item: consumables dentro de request_items
+  for (const item of (solicitud.request_items || [])) {
+    if (item.consumable_id) {
+      consumablesToDiscount.push({ id: item.consumable_id, qty: parseInt(item.quantity) || 1 });
+    }
+  }
+
+  for (const c of consumablesToDiscount) {
+    const { data: cons } = await supabase
+      .from("consumables").select("quantity").eq("id", c.id).single();
+    if (cons) {
+      const newQty = Math.max(0, cons.quantity - c.qty);
+      const { data: updatedCons } = await supabase
+        .from("consumables")
+        .update({ quantity: newQty })
+        .eq("id", c.id)
+        .select("id, name, quantity, unit, category_id, categories(name)")
+        .single();
+      if (updatedCons) broadcast("consumables", "UPDATE", updatedCons);
+    }
+  }
+
+  // 4. ✅ Log de aprobación
+  const logDetails = [];
+  if (assetsToMark.length)
+    logDetails.push(`Activos prestados: [${assetsToMark.join(", ")}]`);
+  if (consumablesToDiscount.length)
+    logDetails.push(`Consumibles descontados: [${consumablesToDiscount.map(c => `id:${c.id} x${c.qty}`).join(", ")}]`);
+
   await supabase.from("logs").insert([{
     action: "Solicitud aprobada",
     table_name: "requests",
     record_id: parseInt(req.params.id),
-    details: assetsToMark.length
-      ? `Aprobada. Activos marcados como prestados: [${assetsToMark.join(", ")}]`
-      : "Aprobada (consumibles / sin activos directos)"
+    details: logDetails.length ? logDetails.join(" | ") : "Aprobada sin ítems directos"
   }]);
 
-  // Broadcast
+  // Broadcast solicitud
   broadcast("requests", "UPDATE", solicitud);
 
   res.json(solicitud);
@@ -197,10 +234,10 @@ router.put("/:id/reject", async (req, res) => {
 router.put("/:id/return", async (req, res) => {
   const { incident, incident_cause, incident_solution, items_condition = [] } = req.body;
 
-  // Obtener solicitud con todos los ítems para saber qué descontar/restaurar
+  // Obtener solicitud con todos los ítems
   const { data: req_data } = await supabase
     .from("requests")
-    .select("consumable_id, asset_id, request_type, request_items(id, asset_id, consumable_id, quantity)")
+    .select("consumable_id, asset_id, request_type, quantity_requested, request_items(id, asset_id, consumable_id, quantity)")
     .eq("id", req.params.id)
     .single();
 
@@ -230,53 +267,33 @@ router.put("/:id/return", async (req, res) => {
 
     // ✅ Actualizar estado del activo según la condición devuelta
     if (ic.asset_id) {
-      if (ic.return_condition === "dañado") {
-        await supabase.from("assets")
-          .update({ status: "damaged" })
-          .eq("id", ic.asset_id);
-      } else if (ic.return_condition === "perdido") {
-        await supabase.from("assets")
-          .update({ status: "maintenance" })
-          .eq("id", ic.asset_id);
-      } else {
-        // ✅ Buen estado → regresar a disponible
-        await supabase.from("assets")
-          .update({ status: "available" })
-          .eq("id", ic.asset_id);
-      }
+      let newStatus = "available";
+      if (ic.return_condition === "dañado")  newStatus = "damaged";
+      else if (ic.return_condition === "perdido") newStatus = "maintenance";
+
+      const { data: updatedAsset } = await supabase
+        .from("assets")
+        .update({ status: newStatus })
+        .eq("id", ic.asset_id)
+        .select("*")
+        .single();
+      if (updatedAsset) broadcast("assets", "UPDATE", updatedAsset);
     }
   }
 
   // ✅ Caso legacy: si no vinieron items_condition pero hay asset_id directo → regresar a available
   if (items_condition.length === 0 && req_data?.asset_id) {
-    await supabase.from("assets")
+    const { data: updatedAsset } = await supabase
+      .from("assets")
       .update({ status: "available" })
-      .eq("id", req_data.asset_id);
+      .eq("id", req_data.asset_id)
+      .select("*")
+      .single();
+    if (updatedAsset) broadcast("assets", "UPDATE", updatedAsset);
   }
 
-  // ── Descontar consumibles al devolver (se gastaron, no regresan) ──
-  const consumablesToDiscount = [];
-
-  // Legacy: campo directo consumable_id
-  if (req_data?.request_type === "consumable" && req_data?.consumable_id) {
-    consumablesToDiscount.push({ id: req_data.consumable_id, qty: 1 });
-  }
-  // Multi-item: consumables dentro de request_items
-  for (const ri of (req_data?.request_items || [])) {
-    if (ri.consumable_id) {
-      consumablesToDiscount.push({ id: ri.consumable_id, qty: ri.quantity });
-    }
-  }
-
-  for (const c of consumablesToDiscount) {
-    const { data: cons } = await supabase
-      .from("consumables").select("quantity").eq("id", c.id).single();
-    if (cons) {
-      await supabase.from("consumables")
-        .update({ quantity: Math.max(0, cons.quantity - c.qty) })
-        .eq("id", c.id);
-    }
-  }
+  // ── NOTA: los consumibles ya se descontaron al APROBAR la solicitud.
+  //    Al devolver NO se vuelven a descontar. Solo se loguea la devolución. ──
 
   // ✅ Log de devolución
   await supabase.from("logs").insert([{
@@ -288,16 +305,57 @@ router.put("/:id/return", async (req, res) => {
       : "Sin incidentes"
   }]);
 
-  // Broadcast
+  // Broadcast solicitud
   broadcast("requests", "UPDATE", data[0]);
 
   res.json(data[0]);
 });
 
-/* ── DOCENTE ENVÍA AL ADMIN (status: pending_admin) ── */
+/* ── ACTUALIZAR SOLICITUD (status, o edición de purpose/notes/items) ── */
 router.put("/:id", async (req, res) => {
-  const { status } = req.body;
-  if (!status) return res.status(400).json({ message: "status es obligatorio" });
+  const { status, purpose, notes, items } = req.body;
+
+  // ── Caso edición de contenido (alumno/docente edita su solicitud pending) ──
+  if (purpose !== undefined || notes !== undefined || items !== undefined) {
+    // Solo se permite editar si sigue en estado pending
+    const { data: current } = await supabase
+      .from("requests").select("id, status, request_type").eq("id", req.params.id).single();
+    if (!current) return res.status(404).json({ message: "Solicitud no encontrada" });
+    if (current.status !== "pending")
+      return res.status(400).json({ message: "Solo se pueden editar solicitudes en estado 'pending'" });
+
+    const updateFields = {};
+    if (purpose !== undefined) updateFields.purpose = purpose || null;
+    if (notes   !== undefined) updateFields.notes   = notes   || null;
+
+    const { data, error } = await supabase
+      .from("requests")
+      .update(updateFields)
+      .eq("id", req.params.id)
+      .select("id, status, purpose, notes, request_type");
+    if (error) return res.status(500).json(error);
+
+    // Reemplazar ítems si se enviaron
+    if (Array.isArray(items) && items.length > 0) {
+      // Eliminar ítems anteriores
+      await supabase.from("request_items").delete().eq("request_id", req.params.id);
+      // Insertar los nuevos
+      const newItemRows = items.map(it => ({
+        request_id:    parseInt(req.params.id),
+        asset_id:      it.asset_id      || null,
+        consumable_id: it.consumable_id || null,
+        quantity:      parseInt(it.quantity) || 1
+      }));
+      const { error: itemErr } = await supabase.from("request_items").insert(newItemRows);
+      if (itemErr) return res.status(500).json(itemErr);
+    }
+
+    broadcast("requests", "UPDATE", data[0]);
+    return res.json(data[0]);
+  }
+
+  // ── Caso cambio de status (docente envía al admin, etc.) ──
+  if (!status) return res.status(400).json({ message: "status o campos editables son obligatorios" });
   const valid = ["pending", "pending_admin", "approved", "rejected", "returned"];
   if (!valid.includes(status)) return res.status(400).json({ message: "status inválido" });
 
@@ -305,9 +363,7 @@ router.put("/:id", async (req, res) => {
     .from("requests").update({ status }).eq("id", req.params.id).select("id, status");
   if (error) return res.status(500).json(error);
 
-  // Broadcast
   broadcast("requests", "UPDATE", data[0]);
-
   res.json(data[0]);
 });
 

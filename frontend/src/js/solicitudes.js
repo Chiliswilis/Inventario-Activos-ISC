@@ -44,10 +44,13 @@ async function loadRequests() {
     if (!res.ok) throw new Error();
     let data   = await res.json();
 
+    const uid = Number(currentUser.id);
     if (currentUser.role === "alumno") {
-      data = data.filter(r => String(r.user_id) === String(currentUser.id));
+      // Solicitudes donde el alumno es el solicitante
+      data = data.filter(r => Number(r.user_id) === uid);
     } else if (currentUser.role === "docente") {
-      data = data.filter(r => String(r.docente_id) === String(currentUser.id));
+      // Solicitudes donde el docente es el responsable O donde él mismo es el solicitante
+      data = data.filter(r => Number(r.docente_id) === uid || Number(r.user_id) === uid);
     }
 
     allRequests = data;
@@ -114,6 +117,17 @@ function renderTable(data) {
       acciones += `<button class="action-btn action-reject" title="Rechazar" onclick="openRejectModal(${r.id})"><i class="fas fa-times"></i></button>`;
     }
 
+    // Alumno: editar o eliminar sus propias solicitudes en estado pending
+    if (role === "alumno" && r.status === "pending" && String(r.user_id) === String(currentUser.id)) {
+      acciones += `<button class="action-btn action-info" title="Editar solicitud" onclick="openEditRequest(${r.id})"><i class="fas fa-edit"></i></button>`;
+      acciones += `<button class="action-btn action-delete" title="Eliminar solicitud" onclick="deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
+    }
+
+    // Docente: editar sus propias solicitudes pending
+    if (role === "docente" && r.status === "pending" && String(r.docente_id) === String(currentUser.id)) {
+      acciones += `<button class="action-btn action-info" title="Editar solicitud" onclick="openEditRequest(${r.id})"><i class="fas fa-edit"></i></button>`;
+    }
+
     // Admin: aprobar/rechazar las pending (si llega alguna sin docente)
     if (role === "administrador" && (r.status === "pending" || r.status === "pending_admin")) {
       acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
@@ -164,6 +178,11 @@ function renderTable(data) {
 function openModal() {
   itemRows   = [];
   rowCounter = 0;
+  _solArea   = "";
+
+  // Limpiar filtro de área previo
+  const prevFilter = document.getElementById("solAreaFilter");
+  if (prevFilter) prevFilter.remove();
 
   const selUser    = document.getElementById("reqUser");
   const grpDocente = document.getElementById("docenteGroup");
@@ -236,11 +255,43 @@ function onTypeChange() {
   } else {
     itemsSec.style.display = "block";
     labSec.style.display   = "none";
-    // Limpiar y agregar fila inicial
+    // Limpiar y agregar selector de área
+    _solArea = "";
     document.getElementById("itemsContainer").innerHTML = "";
     itemRows = []; rowCounter = 0;
+
+    // Inyectar selector de área si no existe
+    let areaFilter = document.getElementById("solAreaFilter");
+    if (!areaFilter) {
+      areaFilter = document.createElement("div");
+      areaFilter.id = "solAreaFilter";
+      areaFilter.style.cssText = "margin-bottom:10px;display:flex;align-items:center;gap:8px;";
+      areaFilter.innerHTML = `
+        <label style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;">Área / Depto:</label>
+        <select id="solAreaSelect" onchange="onSolAreaChange(this)"
+          style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;flex:1;">
+          <option value="">🌐 Todas las áreas</option>
+          <option value="sistemas">🖥 Sistemas</option>
+          <option value="laboratorio">🔬 Laboratorio / Alimentos</option>
+        </select>`;
+      itemsSec.insertBefore(areaFilter, document.getElementById("itemsContainer"));
+    } else {
+      document.getElementById("solAreaSelect").value = "";
+    }
     addItemRow();
   }
+}
+
+function onSolAreaChange(sel) {
+  _solArea = sel.value;
+  // Refrescar todos los selects de ítems existentes
+  const type = document.getElementById("reqType").value;
+  document.querySelectorAll("#itemsContainer .item-row select").forEach(s => {
+    const cur = s.value;
+    const list = type === "asset" ? buildAssetOptions() : buildConsOptions();
+    s.innerHTML = `<option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>${list}`;
+    if ([...s.options].some(o => o.value === cur)) s.value = cur;
+  });
 }
 
 // ── LABS ──────────────────────────────────────────────────────
@@ -262,12 +313,8 @@ function buildLabSelector() {
     sel.appendChild(og);
   }
   sel.onchange = () => {
-    const op = sel.selectedOptions[0];
-    if (!op?.dataset.open) return;
-    ["reqHoraInicio","reqHoraFin"].forEach(id => {
-      const inp = document.getElementById(id);
-      inp.min = op.dataset.open; inp.max = op.dataset.close;
-    });
+    const fechaVal = document.getElementById("reqFecha").value;
+    updateSolicitudHourLimits(fechaVal);
   };
 
   // Fecha mínima = hoy, sin fines de semana
@@ -278,10 +325,32 @@ function buildLabSelector() {
 function validateWeekend(input) {
   if (!input.value) return;
   const d = new Date(input.value + "T12:00:00");
-  if (d.getDay() === 0 || d.getDay() === 6) {
-    showToast("No se permiten reservas en fines de semana", "error");
+  if (d.getDay() === 0) {
+    showToast("No se permiten reservas los domingos", "error");
     input.value = "";
+    return;
   }
+  updateSolicitudHourLimits(input.value);
+}
+
+function updateSolicitudHourLimits(fechaVal) {
+  const role  = currentUser?.role;
+  const d     = fechaVal ? new Date(fechaVal + "T12:00:00") : null;
+  const isSat = d ? d.getDay() === 6 : false;
+
+  let openTime, closeTime;
+  if (role === "docente" || role === "administrador") {
+    openTime  = "07:29";
+    closeTime = isSat ? "13:00" : "17:00";
+  } else {
+    openTime  = "07:59";
+    closeTime = isSat ? "13:00" : "15:00";
+  }
+
+  ["reqHoraInicio", "reqHoraFin"].forEach(fid => {
+    const el = document.getElementById(fid);
+    if (el) { el.min = openTime; el.max = closeTime; }
+  });
 }
 
 // ── ROWS DE ÍTEMS (multi-ítem) ────────────────────────────────
@@ -314,9 +383,12 @@ function addItemRow() {
   container.appendChild(div);
 }
 
+// ── Estado de área activa en solicitudes ──
+let _solArea = "";
+
 function buildAssetOptions(excludeIds = []) {
   return allAssets
-    .filter(a => a.status === "available" && !excludeIds.includes(a.id))
+    .filter(a => a.status === "available" && !excludeIds.includes(a.id) && (!_solArea || a.area === _solArea))
     .map(a => {
       const areaIcon = a.area === "sistemas" ? "\uD83D\uDDA5" : a.area === "laboratorio" ? "\uD83D\uDD2C" : "";
       const catName  = a.categories?.name || "";
@@ -327,10 +399,9 @@ function buildAssetOptions(excludeIds = []) {
 
 function buildConsOptions() {
   return allCons
-    .filter(c => c.quantity > 0)
+    .filter(c => c.quantity > 0 && (!_solArea || c.area === _solArea))
     .map(c => {
       const areaIcon = c.area === "sistemas" ? "\uD83D\uDDA5" : c.area === "laboratorio" ? "\uD83D\uDD2C" : "";
-      // data-cat guarda el nombre de categoría en minúsculas para validar cómputo
       const catName  = (c.categories?.name || "").toLowerCase();
       return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${c.area||""}" data-cat="${catName}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
     })
@@ -440,6 +511,43 @@ async function saveRequest() {
 
     if (!lab_id || !fecha_uso || !horaInicio || !horaFin) {
       showToast("Completa laboratorio, fecha y horario", "error"); return;
+    }
+
+    // ── Validaciones de horario para solicitud de laboratorio ──
+    const [hIni, mIni] = horaInicio.split(":").map(Number);
+    const [hFin2, mFin2] = horaFin.split(":").map(Number);
+    const tIni = hIni * 60 + mIni;
+    const tFin = hFin2 * 60 + mFin2;
+
+    if (tFin <= tIni) {
+      showToast("La hora de fin debe ser mayor que la de inicio", "error"); return;
+    }
+    if (tFin - tIni < 60) {
+      showToast("La reserva debe durar al menos 1 hora", "error"); return;
+    }
+
+    const fechaDay2 = new Date(fecha_uso + "T12:00:00").getDay();
+    const isSat2    = fechaDay2 === 6;
+    const role2     = currentUser?.role;
+
+    let minOpen2, maxClose2;
+    if (role2 === "docente" || role2 === "administrador") {
+      minOpen2  = 7 * 60 + 30;
+      maxClose2 = isSat2 ? 13 * 60 : 17 * 60;
+    } else {
+      minOpen2  = 8 * 60;
+      maxClose2 = isSat2 ? 13 * 60 : 15 * 60;
+    }
+
+    if (tIni < minOpen2) {
+      const hh = String(Math.floor(minOpen2/60)).padStart(2,"0");
+      const mm = String(minOpen2%60).padStart(2,"0");
+      showToast(`Hora mínima de inicio: ${hh}:${mm}`, "error"); return;
+    }
+    if (tFin > maxClose2) {
+      const hh = String(Math.floor(maxClose2/60)).padStart(2,"0");
+      const mm = String(maxClose2%60).padStart(2,"0");
+      showToast(`Hora máxima de fin: ${hh}:${mm}`, "error"); return;
     }
 
     // Recolectar ítems adicionales del lab (activos/consumibles para la práctica)
@@ -815,6 +923,56 @@ function showAdminResponse(id) {
       <p style="font-size:13px;color:#374151;"><strong>Solución:</strong> ${r.incident_solution||"—"}</p>
     </div>` : ""}`;
   modal.classList.add("open");
+}
+
+// ── EDITAR SOLICITUD (alumno/docente en pending) ──────────────
+function openEditRequest(id) {
+  const r = allRequests.find(x => x.id === id);
+  if (!r) return;
+
+  openModal(); // reusa el modal limpiando todo
+
+  setTimeout(() => {
+    // Tipo
+    const selType = document.getElementById("reqType");
+    if (selType) { selType.value = r.request_type; selType.dispatchEvent(new Event("change")); }
+
+    // Propósito / notas
+    const inpPurpose = document.getElementById("reqPurpose");
+    const inpNotes   = document.getElementById("reqNotes");
+    if (inpPurpose) inpPurpose.value = r.purpose  || "";
+    if (inpNotes)   inpNotes.value   = r.notes    || "";
+
+    // Cambiar título y botón
+    const title = document.querySelector("#requestModal h3");
+    if (title) title.innerHTML = `<i class="fas fa-edit" style="color:#4f46e5;margin-right:8px;"></i>Editar Solicitud #${r.id}`;
+
+    const saveBtn = document.querySelector("#requestModal .btn[onclick='saveRequest()']");
+    if (saveBtn) {
+      saveBtn.setAttribute("onclick", `updateRequest(${id})`);
+      saveBtn.innerHTML = `<i class="fas fa-save"></i> Guardar cambios`;
+    }
+  }, 60);
+}
+
+async function updateRequest(id) {
+  const purpose = document.getElementById("reqPurpose").value.trim();
+  const notes   = document.getElementById("reqNotes").value.trim();
+  const type    = document.getElementById("reqType").value;
+  if (!purpose) { showToast("El propósito es obligatorio", "error"); return; }
+
+  const items = type !== "laboratorio" ? collectItems(type) : null;
+  if (type !== "laboratorio" && !items) return;
+
+  try {
+    const res = await fetch(`${API}/${id}`, {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ purpose, notes, items })
+    });
+    if (!res.ok) throw new Error();
+    showToast("Solicitud actualizada ✅", "success");
+    closeModal(); await loadRequests();
+  } catch { showToast("Error al actualizar la solicitud", "error"); }
 }
 
 // ── ELIMINAR ─────────────────────────────────────────────────
