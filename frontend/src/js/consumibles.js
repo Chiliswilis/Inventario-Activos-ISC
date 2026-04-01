@@ -64,7 +64,7 @@ function updateCategoryOptions() {
     opt.textContent = cat.name;
     sel.appendChild(opt);
   });
-  // Ajustar unidades y caducidad según la primera categoría disponible
+  // Actualizar unidades y caducidad según la primera categoría disponible
   onCategoryChange();
 }
 
@@ -96,13 +96,13 @@ function updateStats(data) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
 
-  const low      = data.filter(c => c.quantity <= c.min_quantity).length;
+  const low      = data.filter(c => getStockLevel(c) === "low").length;
   const expiring = data.filter(c => {
     if (!c.expiry_date) return false;
     const ed = new Date(c.expiry_date);
     return ed >= today && ed <= in30;
   }).length;
-  const ok = data.filter(c => c.quantity > c.min_quantity).length;
+  const ok = data.filter(c => getStockLevel(c) === "ok").length;
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set("statTotal",  data.length);
@@ -146,7 +146,9 @@ function renderTable(data) {
   const tbody = document.getElementById("consumablesBody");
 
   data.forEach(c => {
-    const low = c.quantity <= c.min_quantity;
+    const stockLevel = getStockLevel(c);
+    const low = stockLevel === "low";
+    const mid = stockLevel === "mid";
 
     const catName = c.categories?.name
       || categories.find(x => String(x.id) === String(c.category_id))?.name
@@ -175,7 +177,9 @@ function renderTable(data) {
     }
 
     const estadoBadge = low
-      ? `<span class="badge badge-low"><i class="fas fa-arrow-down"></i> Bajo</span>`
+      ? `<span class="badge badge-low"><i class="fas fa-arrow-down"></i> Bajo stock</span>`
+      : mid
+      ? `<span class="badge badge-mid"><i class="fas fa-exclamation-triangle"></i> Stock medio</span>`
       : `<span class="badge badge-ok"><i class="fas fa-check"></i> Suficiente</span>`;
 
     const cantDisplay = `<strong style="color:${low ? "#dc2626" : "#374151"}">${c.quantity}</strong>`;
@@ -222,8 +226,9 @@ function applyFilters() {
     const matchArea   = !activeArea || cArea === activeArea;
     const matchCat    = !catId || String(c.category_id) === String(catId);
     const matchStock  = !stock
-                     || (stock === "low" && c.quantity <= c.min_quantity)
-                     || (stock === "ok"  && c.quantity >  c.min_quantity);
+                     || (stock === "low" && getStockLevel(c) === "low")
+                     || (stock === "mid" && getStockLevel(c) === "mid")
+                     || (stock === "ok"  && getStockLevel(c) === "ok");
 
     let matchExpiry = true;
     if (expiry) {
@@ -239,6 +244,61 @@ function applyFilters() {
 
   updateStats(filtered);
   renderTable(filtered);
+}
+
+/** Se ejecuta cuando el usuario cambia la categoría en el modal.
+ *  Actualiza las opciones de Unidad según área + categoría:
+ *  - Sistemas > Cómputo  → Pieza, Metros
+ *  - Laboratorio/Alimentos → Pieza, Litros, Kilogramos
+ *  - Otros                → Pieza, Litros, Kilogramos
+ */
+function onCategoryChange() {
+  const area    = document.getElementById("consumibleArea").value;
+  const catSel  = document.getElementById("consumibleCategory");
+  const catText = (catSel.options[catSel.selectedIndex]?.text || "").toLowerCase();
+  const unitSel = document.getElementById("consumibleUnit");
+  const prev    = unitSel.value;
+
+  const isComputo = area === "sistemas" && catText.includes("cómputo") || catText.includes("computo");
+
+  if (isComputo) {
+    unitSel.innerHTML = `
+      <option value="" disabled selected>Seleccione unidad</option>
+      <option value="pieza">Pieza</option>
+      <option value="metros">Metros</option>`;
+  } else {
+    unitSel.innerHTML = `
+      <option value="" disabled selected>Seleccione unidad</option>
+      <option value="pieza">Pieza</option>
+      <option value="litros">Litros</option>
+      <option value="kg">Kilogramos (kg)</option>`;
+  }
+
+  // Restaurar valor previo si sigue siendo válido
+  if (prev && [...unitSel.options].some(o => o.value === prev)) {
+    unitSel.value = prev;
+  }
+
+  onUnitChange();
+}
+
+
+/* ─────────────────── STOCK HELPERS ─────────────────── */
+/**
+ * Devuelve el nivel de stock:
+ *  "low" → cantidad ≤ 2  (piezas/metros)
+ *  "mid" → cantidad 3–7  (zona de alerta)
+ *  "ok"  → cantidad > 7
+ * Para kg/litros usa min_quantity de la BD.
+ */
+function getStockLevel(c) {
+  const unit = (c.unit || "").toLowerCase();
+  if (unit === "kg" || unit === "litros") {
+    return c.quantity <= c.min_quantity ? "low" : "ok";
+  }
+  if (c.quantity <= 2) return "low";
+  if (c.quantity <= 7) return "mid";
+  return "ok";
 }
 
 /* ─────────────────── UNIDAD → TIPO DE INPUT ─────────────────── */
@@ -397,7 +457,7 @@ async function saveConsumible() {
   const location    = document.getElementById("consumibleLocation").value.trim();
 
   const qRaw      = document.getElementById("consumibleQuantity").value;
-  const isDecimal = unit === "kg" || unit === "litros";
+  const isDecimal = unit === "kg" || unit === "litros" || unit === "metros";
   const quantity  = isDecimal ? parseFloat(qRaw) : parseInt(qRaw);
 
   if (!name || !area || !category_id || !unit || isNaN(quantity)) {
@@ -438,7 +498,7 @@ function exportCSV() {
     const area   = c.area
       || categories.find(x => String(x.id) === String(c.category_id))?.area || "";
     const areaLabel = { sistemas: "Sistemas", laboratorio: "Laboratorio / Alimentos" };
-    const estado = c.quantity <= c.min_quantity ? "Bajo" : "Suficiente";
+    const estado = getStockLevel(c) === "low" ? "Bajo stock" : getStockLevel(c) === "mid" ? "Stock medio" : "Suficiente";
     csv += `${c.id},"${(c.name||"").replace(/"/g,'""')}","${(c.description||"").replace(/"/g,'""')}",`
          + `"${areaLabel[area]||area}","${catName}",${c.quantity},"${c.unit}","${c.expiry_date||""}","${c.location||""}","${estado}"\n`;
   });

@@ -98,47 +98,10 @@ h2{margin-bottom:6px;color:#1f2a3a;font-size:22px;}
 
       <div class="footer-links">
         <span class="link" onclick="showPanel('panelRecover')">¿Olvidaste tu contraseña?</span>
-        <span class="link" onclick="showPanel('panelRegister')">Registrarse</span>
       </div>
     </div>
 
-    <!-- PANEL REGISTRO (solo alumnos) -->
-    <div class="panel" id="panelRegister">
-      <h2>Crear Cuenta</h2>
-      <p class="subtitle">Registro para alumnos</p>
 
-      <div class="info-box">
-        <i class="fas fa-info-circle"></i>
-        El registro es exclusivo para <strong>alumnos</strong>. Si eres docente o administrador, contacta al área de sistemas para obtener tus credenciales.
-      </div>
-
-      <div class="input-row">
-        <div class="input-group">
-          <label>Nombre(s) *</label>
-          <input type="text" id="regNombre" placeholder="Ej: Daniel">
-        </div>
-        <div class="input-group">
-          <label>Apellido(s) *</label>
-          <input type="text" id="regApellido" placeholder="Ej: Sainz">
-        </div>
-      </div>
-      <div class="input-group">
-        <label>Correo institucional *</label>
-        <input type="email" id="regEmail" placeholder="hu000000000@lahuerta.tecmm.edu.mx">
-      </div>
-      <div class="input-group">
-        <label>Contraseña *</label>
-        <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
-      </div>
-
-
-      <button class="btn" onclick="doRegister()">Crear cuenta</button>
-      <div class="msg" id="registerMsg"></div>
-
-      <div style="margin-top:16px;text-align:center;font-size:13px;">
-        ¿Ya tienes cuenta? <span class="link" onclick="showPanel('panelLogin')">Inicia sesión</span>
-      </div>
-    </div>
 
     <!-- PANEL RECUPERAR -->
     <div class="panel" id="panelRecover">
@@ -215,40 +178,13 @@ async function doLogin() {
   }
 }
 
-/* REGISTRO - solo alumnos, nombre + apellido */
-async function doRegister() {
-  const nombre   = document.getElementById("regNombre").value.trim();
-  const apellido = document.getElementById("regApellido").value.trim();
-  const email    = document.getElementById("regEmail").value.trim();
-  const password = document.getElementById("regPassword").value;
-
-  if (!nombre || !apellido || !email || !password)
-    return showMsg("registerMsg", "Completa todos los campos", "error");
-  if (password.length < 6)
-    return showMsg("registerMsg", "La contraseña debe tener al menos 6 caracteres", "error");
-
-  const username = `${nombre} ${apellido}`;
-
-  try {
-    const res  = await fetch(`${API}/register`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ username, email, password, role: "alumno" })
-    });
-    const data = await res.json();
-
-    if (res.ok) {
-      showMsg("registerMsg", "✅ Cuenta creada. Ahora puedes iniciar sesión.", "success");
-      setTimeout(() => showPanel("panelLogin"), 2000);
-    } else {
-      showMsg("registerMsg", data.error || "Error al registrar", "error");
-    }
-  } catch {
-    showMsg("registerMsg", "No se pudo conectar con el servidor", "error");
-  }
-}
-
-/* RECUPERAR */
+/* ENTER KEY */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const active = document.querySelector(".panel.active").id;
+  if (active === "panelLogin")    doLogin();
+  if (active === "panelRecover")  doRecover();
+});
 async function doRecover() {
   const email = document.getElementById("recoverEmail").value.trim();
 
@@ -273,15 +209,6 @@ async function doRecover() {
     showMsg("recoverMsg", "No se pudo conectar con el servidor", "error");
   }
 }
-
-/* ENTER KEY */
-document.addEventListener("keydown", e => {
-  if (e.key !== "Enter") return;
-  const active = document.querySelector(".panel.active").id;
-  if (active === "panelLogin")    doLogin();
-  if (active === "panelRegister") doRegister();
-  if (active === "panelRecover")  doRecover();
-});
 </script>
 
 </body>
