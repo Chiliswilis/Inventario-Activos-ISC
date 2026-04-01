@@ -101,13 +101,22 @@ function renderTable(data) {
       acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
       acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
     }
+    // Docente: editar sus propias reservas pending o approved
+    if (role === "docente" && (r.status === "pending" || r.status === "approved") && Number(r.docente_id) === Number(currentUser?.id)) {
+      acciones += `<button class="btn-info" onclick="openEditReserva(${r.id})" title="Editar"><i class="fas fa-edit"></i></button>`;
+    }
+    // Alumno: editar o eliminar sus propias reservas en estado pending
+    if (role === "alumno" && r.status === "pending" && Number(r.alumno_id) === Number(currentUser?.id)) {
+      acciones += `<button class="btn-info" onclick="openEditReserva(${r.id})" title="Editar"><i class="fas fa-edit"></i></button>`;
+      acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
+    }
     if ((role === "docente" || role === "administrador") && r.status === "approved") {
       acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
     }
     if ((role === "docente" || role === "administrador") && r.status === "occupied") {
       acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
     }
-    if ((role === "docente" && r.status === "approved" && r.docente_id === currentUser?.id)
+    if ((role === "docente" && r.status === "approved" && Number(r.docente_id) === Number(currentUser?.id))
       || role === "administrador") {
       acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
     }
@@ -241,19 +250,39 @@ function openNewModal() {
 function validateWeekend(input) {
   if (!input.value) return;
   const d = new Date(input.value + "T12:00:00");
-  if (d.getDay() === 0 || d.getDay() === 6) {
-    showToast("No se permiten reservas en fines de semana", "error");
+  if (d.getDay() === 0) {
+    showToast("No se permiten reservas los domingos", "error");
     input.value = "";
+    return;
   }
+  // Actualizar límites de hora según rol y si es sábado
+  updateHourLimits(input.value);
+}
+
+function updateHourLimits(fechaVal) {
+  const role = currentUser?.role;
+  const d    = fechaVal ? new Date(fechaVal + "T12:00:00") : null;
+  const isSat = d ? d.getDay() === 6 : false;
+
+  let openTime, closeTime;
+  if (role === "docente" || role === "administrador") {
+    openTime  = "07:29"; // min del input: 07:29 → acepta 07:30 en punto
+    closeTime = isSat ? "13:00" : "17:00";
+  } else {
+    // alumno: min del input = 07:59 para que el browser acepte 08:00 en punto
+    openTime  = "07:59";
+    closeTime = isSat ? "13:00" : "15:00";
+  }
+
+  ["newHoraInicio", "newHoraFin"].forEach(fid => {
+    const el = document.getElementById(fid);
+    if (el) { el.min = openTime; el.max = closeTime; }
+  });
 }
 
 function onLabChange() {
-  const opt = document.getElementById("newLab").selectedOptions[0];
-  if (!opt?.dataset.open) return;
-  document.getElementById("newHoraInicio").min = opt.dataset.open;
-  document.getElementById("newHoraInicio").max = opt.dataset.close;
-  document.getElementById("newHoraFin").min    = opt.dataset.open;
-  document.getElementById("newHoraFin").max    = opt.dataset.close;
+  const fechaVal = document.getElementById("newFecha").value;
+  updateHourLimits(fechaVal);
 }
 
 // ── Área activa para filtrar activos en reservas ──
@@ -438,6 +467,43 @@ async function saveReservation() {
     showToast("Completa todos los campos obligatorios", "error"); return;
   }
 
+  // ── Validaciones de horario ──
+  const [hIni, mIni] = hora_inicio.split(":").map(Number);
+  const [hFin, mFin] = hora_fin.split(":").map(Number);
+  const totalIni = hIni * 60 + mIni;
+  const totalFin = hFin * 60 + mFin;
+
+  if (totalFin <= totalIni) {
+    showToast("La hora de fin debe ser mayor que la de inicio (no puede cruzar medianoche)", "error"); return;
+  }
+  if (totalFin - totalIni < 60) {
+    showToast("La reserva debe durar al menos 1 hora", "error"); return;
+  }
+
+  const fechaDay = new Date(fecha_uso + "T12:00:00").getDay();
+  const isSat    = fechaDay === 6;
+  const role     = currentUser?.role;
+
+  let minOpen, maxClose;
+  if (role === "docente" || role === "administrador") {
+    minOpen  = 7 * 60 + 30; // 07:30
+    maxClose = isSat ? 13 * 60 : 17 * 60; // 13:00 sáb / 17:00 rest
+  } else {
+    minOpen  = 8 * 60;      // 08:00
+    maxClose = isSat ? 13 * 60 : 15 * 60; // 13:00 sáb / 15:00 rest
+  }
+
+  if (totalIni < minOpen) {
+    const h = String(Math.floor(minOpen/60)).padStart(2,"0");
+    const m = String(minOpen%60).padStart(2,"0");
+    showToast(`Hora mínima de inicio: ${h}:${m}`, "error"); return;
+  }
+  if (totalFin > maxClose) {
+    const h = String(Math.floor(maxClose/60)).padStart(2,"0");
+    const m = String(maxClose%60).padStart(2,"0");
+    showToast(`Hora máxima de fin: ${h}:${m}`, "error"); return;
+  }
+
   let alumno_id  = null;
   let docente_id = null;
 
@@ -504,6 +570,83 @@ async function saveReservation() {
   loadReservations();
 }
 
+// ── EDITAR RESERVA ──
+function openEditReserva(id) {
+  const r = allReservations.find(x => x.id === id);
+  if (!r) return;
+
+  // Reusar el modal de nueva reserva rellenando los campos
+  openNewModal();
+
+  // Después de que openNewModal limpia y configura, rellenamos los valores
+  setTimeout(() => {
+    // Lab
+    const selLab = document.getElementById("newLab");
+    if (selLab) {
+      selLab.value = r.lab_id;
+      selLab.dispatchEvent(new Event("change"));
+    }
+    // Fecha
+    const inpFecha = document.getElementById("newFecha");
+    if (inpFecha) {
+      inpFecha.value = r.fecha_uso;
+      inpFecha.dispatchEvent(new Event("change"));
+      updateHourLimits(r.fecha_uso);
+    }
+    // Horas
+    const inpIni = document.getElementById("newHoraInicio");
+    const inpFin = document.getElementById("newHoraFin");
+    if (inpIni) inpIni.value = r.hora_inicio?.substring(0,5) || "";
+    if (inpFin) inpFin.value = r.hora_fin?.substring(0,5) || "";
+    // Propósito
+    const inpProp = document.getElementById("newProposito");
+    if (inpProp) inpProp.value = r.proposito || "";
+
+    // Cambiar el título y el botón del modal para indicar que es edición
+    const modalTitle = document.querySelector("#newModal h3");
+    if (modalTitle) modalTitle.innerHTML = `<i class="fas fa-edit" style="color:#4f46e5;margin-right:8px;"></i>Editar Reserva`;
+
+    const saveBtn = document.querySelector("#newModal .btn[onclick='saveReservation()']");
+    if (saveBtn) {
+      saveBtn.setAttribute("onclick", `updateReservation(${id})`);
+      saveBtn.innerHTML = `<i class="fas fa-save"></i> Guardar cambios`;
+    }
+  }, 50);
+}
+
+async function updateReservation(id) {
+  const lab_id      = document.getElementById("newLab").value;
+  const fecha_uso   = document.getElementById("newFecha").value;
+  const hora_inicio = document.getElementById("newHoraInicio").value;
+  const hora_fin    = document.getElementById("newHoraFin").value;
+  const proposito   = document.getElementById("newProposito").value.trim();
+
+  if (!lab_id || !fecha_uso || !hora_inicio || !hora_fin || !proposito) {
+    showToast("Completa todos los campos obligatorios", "error"); return;
+  }
+
+  const [hIni, mIni] = hora_inicio.split(":").map(Number);
+  const [hFin, mFin] = hora_fin.split(":").map(Number);
+  const totalIni = hIni * 60 + mIni;
+  const totalFin = hFin * 60 + mFin;
+
+  if (totalFin <= totalIni) {
+    showToast("La hora de fin debe ser mayor que la de inicio", "error"); return;
+  }
+  if (totalFin - totalIni < 60) {
+    showToast("La reserva debe durar al menos 1 hora", "error"); return;
+  }
+
+  const res = await fetch(`${API}/${id}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lab_id: parseInt(lab_id), fecha_uso, hora_inicio, hora_fin, proposito })
+  });
+  if (!res.ok) { const e = await res.json(); showToast(e.message || "Error al actualizar", "error"); return; }
+  showToast("Reserva actualizada ✅", "success");
+  closeModal("newModal");
+  loadReservations();
+}
+
 // ── APROBAR ──
 function openApprove(id) {
   document.getElementById("approveId").value = id;
@@ -536,18 +679,30 @@ function openOccupyModal(id) {
     modal = document.createElement("div");
     modal.id = "occupyModal"; modal.className = "modal";
     modal.innerHTML = `
-      <div class="modal-box" style="max-width:420px;">
+      <div class="modal-box" style="max-width:440px;">
         <button class="modal-close" onclick="document.getElementById('occupyModal').classList.remove('open')">&times;</button>
-        <h3><i class="fas fa-flask" style="color:#4f46e5;margin-right:8px;"></i>Poner en uso</h3>
+        <h3 style="display:flex;align-items:center;gap:10px;">
+          <span style="background:#0891b2;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-door-open" style="color:white;font-size:16px;"></i>
+          </span>
+          ¿Marcar laboratorio en uso?
+        </h3>
         <input type="hidden" id="occupyId">
-        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px;margin-bottom:16px;">
-          <p id="occupyLabName" style="font-size:14px;font-weight:600;color:#1f2a3a;margin-bottom:4px;"></p>
-          <p id="occupyDetails" style="font-size:12px;color:#6b7280;"></p>
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px;margin:16px 0;">
+          <p id="occupyLabName" style="font-size:15px;font-weight:700;color:#0c4a6e;margin-bottom:6px;"></p>
+          <p id="occupyDetails" style="font-size:13px;color:#6b7280;line-height:1.5;"></p>
         </div>
-        <p style="font-size:13px;color:#374151;margin-bottom:16px;">Al confirmar, el laboratorio quedará marcado como <strong>En uso</strong> y no podrá ser reservado por otros hasta su liberación.</p>
+        <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start;">
+          <i class="fas fa-exclamation-triangle" style="color:#ca8a04;margin-top:2px;flex-shrink:0;"></i>
+          <p style="font-size:13px;color:#713f12;margin:0;">Al confirmar, el laboratorio quedará marcado como <strong>En uso</strong>. No podrá reservarse por otros hasta que se registre la salida.</p>
+        </div>
         <div class="modal-actions">
-          <button class="btn-cancel" onclick="document.getElementById('occupyModal').classList.remove('open')">Cancelar</button>
-          <button class="btn" style="flex:1;background:#0891b2;" onclick="confirmOccupy()"><i class="fas fa-play"></i> Confirmar uso</button>
+          <button class="btn-cancel" onclick="document.getElementById('occupyModal').classList.remove('open')">
+            <i class="fas fa-times" style="margin-right:6px;"></i>Cancelar
+          </button>
+          <button class="btn" style="flex:1;background:#0891b2;" onclick="confirmOccupy()">
+            <i class="fas fa-door-open" style="margin-right:6px;"></i>Sí, marcar en uso
+          </button>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -555,7 +710,11 @@ function openOccupyModal(id) {
   }
   document.getElementById("occupyId").value = id;
   document.getElementById("occupyLabName").textContent = r.lab ? `${r.lab.nombre} — ${r.lab.edificio}` : "Laboratorio";
-  document.getElementById("occupyDetails").textContent = `${r.fecha_uso ? formatDate(r.fecha_uso) : ""} · ${r.hora_inicio || ""} – ${r.hora_fin || ""}  ·  Docente: ${r.docente?.username || "—"}`;
+  document.getElementById("occupyDetails").innerHTML =
+    `<i class="fas fa-calendar-day" style="color:#0891b2;width:16px;"></i> ${r.fecha_uso ? formatDate(r.fecha_uso) : ""}
+     &nbsp;·&nbsp;
+     <i class="fas fa-clock" style="color:#0891b2;width:16px;"></i> ${r.hora_inicio || ""} – ${r.hora_fin || ""}
+     <br><i class="fas fa-chalkboard-teacher" style="color:#0891b2;width:16px;"></i> Docente: <strong>${r.docente?.username || "—"}</strong>`;
   modal.classList.add("open");
 }
 
