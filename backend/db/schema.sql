@@ -108,6 +108,15 @@ CREATE TABLE public.requests (
   CONSTRAINT requests_docente_id_fkey FOREIGN KEY (docente_id) REFERENCES public.users(id),
   CONSTRAINT requests_rejected_by_fkey FOREIGN KEY (rejected_by) REFERENCES public.users(id)
 );
+CREATE TABLE public.reservation_assets (
+  id integer NOT NULL DEFAULT nextval('reservation_assets_id_seq'::regclass),
+  reservation_id integer NOT NULL,
+  asset_id integer NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT reservation_assets_pkey PRIMARY KEY (id),
+  CONSTRAINT reservation_assets_reservation_id_fkey FOREIGN KEY (reservation_id) REFERENCES public.reservations(id),
+  CONSTRAINT reservation_assets_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.assets(id)
+);
 CREATE TABLE public.reservation_consumables (
   id integer NOT NULL DEFAULT nextval('reservation_consumables_id_seq'::regclass),
   reservation_id integer NOT NULL,

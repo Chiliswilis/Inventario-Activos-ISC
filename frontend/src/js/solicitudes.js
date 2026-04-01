@@ -1,7 +1,3 @@
-// ============================================================
-// SGIAC-ISC | solicitudes.js  (v3)
-// ============================================================
-
 const API        = "/api/requests";
 const USERS_URL  = "/api/users";
 const ASSETS_URL = "/api/assets";
@@ -334,7 +330,9 @@ function buildConsOptions() {
     .filter(c => c.quantity > 0)
     .map(c => {
       const areaIcon = c.area === "sistemas" ? "\uD83D\uDDA5" : c.area === "laboratorio" ? "\uD83D\uDD2C" : "";
-      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
+      // data-cat guarda el nombre de categoría en minúsculas para validar cómputo
+      const catName  = (c.categories?.name || "").toLowerCase();
+      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${c.area||""}" data-cat="${catName}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
     })
     .join("");
 }
@@ -363,11 +361,34 @@ function onItemSelect(rowId, type) {
     });
   } else {
     // Consumible: cantidad máxima = stock disponible
-    const maxQty = parseInt(opt.dataset.qty) || 1;
-    qtyInp.max   = maxQty; qtyInp.readOnly = false;
+    const maxQty   = parseInt(opt.dataset.qty) || 1;
+    const unit     = (opt.dataset.unit || "").toLowerCase();
+    const area     = (opt.dataset.area || "").toLowerCase();
+    const cat      = (opt.dataset.cat  || "").toLowerCase();
+    const isComputo = area === "sistemas" && (cat.includes("cómputo") || cat.includes("computo"));
+
+    // Límite especial Sistemas > Cómputo: máx 5 metros o 5 piezas
+    let efectiveMax = maxQty;
+    let limitNote   = "";
+    if (isComputo) {
+      if (unit === "metros") {
+        efectiveMax = Math.min(maxQty, 5);
+        limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 m por solicitud</span>`;
+      } else if (unit === "pieza") {
+        efectiveMax = Math.min(maxQty, 5);
+        limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 piezas por solicitud</span>`;
+      }
+    }
+
+    qtyInp.max      = efectiveMax;
+    qtyInp.readOnly = false;
     infoDiv.style.display = "block";
-    infoDiv.innerHTML = `<i class="fas fa-boxes" style="color:#10b981;"></i> Disponible: <strong>${maxQty} ${opt.dataset.unit||"u"}</strong>`;
-    qtyInp.oninput = () => { if (parseInt(qtyInp.value) > maxQty) qtyInp.value = maxQty; };
+    infoDiv.innerHTML = `<i class="fas fa-boxes" style="color:#10b981;"></i> Disponible: <strong>${maxQty} ${opt.dataset.unit||"u"}</strong>${limitNote}`;
+    qtyInp.oninput = () => {
+      const v = parseFloat(qtyInp.value);
+      if (v > efectiveMax) qtyInp.value = efectiveMax;
+      if (v < 1) qtyInp.value = 1;
+    };
   }
 }
 
@@ -486,6 +507,22 @@ function collectItems(type) {
       usedAssets.add(sel.value);
       items.push({ asset_id: parseInt(sel.value), quantity: 1 });
     } else {
+      // Validación límite Sistemas > Cómputo
+      const opt2     = sel.selectedOptions[0];
+      const unit2    = (opt2?.dataset.unit || "").toLowerCase();
+      const area2    = (opt2?.dataset.area  || "").toLowerCase();
+      const cat2     = (opt2?.dataset.cat   || "").toLowerCase();
+      const isComp   = area2 === "sistemas" && (cat2.includes("cómputo") || cat2.includes("computo"));
+      if (isComp) {
+        if (unit2 === "metros" && qty > 5) {
+          showToast(`Límite: máximo 5 metros por consumible de Sistemas/Cómputo`, "error");
+          return null;
+        }
+        if (unit2 === "pieza" && qty > 5) {
+          showToast(`Límite: máximo 5 piezas por consumible de Sistemas/Cómputo`, "error");
+          return null;
+        }
+      }
       items.push({ consumable_id: parseInt(sel.value), quantity: qty });
     }
   }

@@ -105,6 +105,7 @@ tr:hover td{background:#fafbff;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
   font-size:11px;font-weight:500;white-space:nowrap;}
 .badge-low{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.badge-mid{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
 .badge-ok{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
 .badge-sistemas{background:#ede9fe;color:#6d28d9;border:1px solid #ddd6fe;}
 .badge-lab{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
@@ -284,6 +285,7 @@ tr:hover td{background:#fafbff;}
         <select id="stockFilter" onchange="applyFilters()">
           <option value="">Todos los estados</option>
           <option value="low">⬇ Stock bajo</option>
+          <option value="mid">⚠ Stock medio</option>
           <option value="ok">✓ Suficiente</option>
         </select>
         <select id="expiryFilter" onchange="applyFilters()">
@@ -335,7 +337,7 @@ tr:hover td{background:#fafbff;}
         <select id="consumibleArea" onchange="updateCategoryOptions()">
           <option value="" disabled selected>Selecciona área</option>
           <option value="sistemas">Sistemas</option>
-          <option value="lab">Laboratorio / Alimentos</option>
+          <option value="laboratorio">Laboratorio / Alimentos</option>
         </select>
       </div>
       <div class="form-group">
@@ -349,14 +351,11 @@ tr:hover td{background:#fafbff;}
     <hr class="form-divider">
     <div class="form-section-title">Stock e inventario</div>
 
-    <!-- Unidad: opciones cambian según categoría -->
+    <!-- Unidad: opciones cambian dinámicamente según área/categoría -->
     <div class="form-group">
       <label>Unidad *</label>
       <select id="consumibleUnit" onchange="onUnitChange()">
-        <option value="" disabled selected>Seleccione unidad</option>
-        <option value="pieza">Pieza</option>
-        <option value="litros">Litros</option>
-        <option value="kg">Kilogramos (kg)</option>
+        <option value="" disabled selected>Seleccione categoría primero</option>
       </select>
     </div>
 

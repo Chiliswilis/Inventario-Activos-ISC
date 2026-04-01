@@ -375,6 +375,31 @@ function onAssetRowChange(sel) {
   info.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong>`;
 }
 
+/** Ajusta el máximo del input de cantidad según área/categoría */
+function onConsRowChange(sel) {
+  const opt   = sel.selectedOptions[0];
+  const inp   = sel.closest("div").querySelector("input[type=number]");
+  if (!opt?.value) { inp.max = 9999; return; }
+  const unit  = (opt.dataset.unit  || "").toLowerCase();
+  const area  = (opt.dataset.area  || "").toLowerCase();
+  const cat   = (opt.dataset.cat   || "").toLowerCase();
+  const stock = parseInt(opt.dataset.qty) || 9999;
+  const isComputo = area === "sistemas" && (cat.includes("cómputo") || cat.includes("computo"));
+  if (isComputo && (unit === "metros" || unit === "pieza")) {
+    inp.max = Math.min(stock, 5);
+    if (parseInt(inp.value) > inp.max) inp.value = inp.max;
+  } else {
+    inp.max = stock;
+  }
+}
+
+/** Enforces limit on each keystroke */
+function enforceConsLimit(inp) {
+  const max = parseInt(inp.max);
+  if (!isNaN(max) && parseInt(inp.value) > max) inp.value = max;
+  if (parseInt(inp.value) < 1) inp.value = 1;
+}
+
 function addConsRow() {
   const id  = `cons_${++consRowCount}`;
   const row = document.createElement("div");
@@ -382,16 +407,19 @@ function addConsRow() {
   const opts = consumables
     .filter(c => c.quantity > 0)
     .map(c => {
-      const area = c.area === "sistemas" ? "🖥" : c.area === "laboratorio" ? "🔬" : "";
-      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}">${area} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
+      const area    = c.area === "sistemas" ? "🖥" : c.area === "laboratorio" ? "🔬" : "";
+      const catName = (c.categories?.name || "").toLowerCase();
+      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${c.area||""}" data-cat="${catName}">${area} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
     }).join("");
   row.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center;margin-bottom:6px;">
-      <select style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;">
+      <select onchange="onConsRowChange(this)"
+        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;color:#374151;">
         <option value="">-- Consumible --</option>${opts}
       </select>
       <input type="number" value="1" min="1" placeholder="Cant."
-        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;">
+        style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;"
+        oninput="enforceConsLimit(this)">
       <button onclick="document.getElementById('${id}').remove()"
         style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
         <i class="fas fa-times"></i></button>
@@ -438,11 +466,25 @@ async function saveReservation() {
 
   // Recolectar consumibles
   const consumablesArr = [];
+  let consLimitError = null;
   document.querySelectorAll("#consContainer .cons-row").forEach(row => {
-    const cid = row.querySelector("select").value;
-    const qty = parseInt(row.querySelector("input").value) || 1;
-    if (cid) consumablesArr.push({ consumable_id: parseInt(cid), quantity_requested: qty });
+    const sel  = row.querySelector("select");
+    const opt  = sel?.selectedOptions[0];
+    const cid  = sel?.value;
+    const qty  = parseInt(row.querySelector("input").value) || 1;
+    if (!cid) return;
+    // Validación límite Sistemas > Cómputo
+    const unit = (opt?.dataset.unit || "").toLowerCase();
+    const area = (opt?.dataset.area || "").toLowerCase();
+    const cat  = (opt?.dataset.cat  || "").toLowerCase();
+    const isComputo = area === "sistemas" && (cat.includes("cómputo") || cat.includes("computo"));
+    if (isComputo) {
+      if (unit === "metros" && qty > 5) { consLimitError = "Máximo 5 metros por consumible de Sistemas/Cómputo"; return; }
+      if (unit === "pieza"  && qty > 5) { consLimitError = "Máximo 5 piezas por consumible de Sistemas/Cómputo"; return; }
+    }
+    consumablesArr.push({ consumable_id: parseInt(cid), quantity_requested: qty });
   });
+  if (consLimitError) { showToast(consLimitError, "error"); return; }
 
   const body = {
     alumno_id, docente_id,
