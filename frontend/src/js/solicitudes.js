@@ -11,7 +11,8 @@ let allCons      = [];
 let allLabs      = [];
 let currentUser  = null;
 
-let itemRows     = [];  
+// For the new request modal
+let itemRows     = [];   // [{rowId, type, itemId, qty}]
 let rowCounter   = 0;
 
 const statusMap = {
@@ -85,7 +86,21 @@ function renderTable(data) {
     const st      = statusMap[r.status] || { text: r.status, cls:"badge-pending", icon:"fa-clock" };
     const usuario = r.users?.username   || "—";
     const docente = r.docente?.username || "—";
-    const fecha   = r.request_date ? new Date(r.request_date).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}) : "—";
+
+    // ── Fecha y hora sin bug de zona horaria ──
+    // Usamos fecha_solicitud (date) y hora_solicitud (time) que son exactos.
+    // Si no existen (registros viejos), caemos al request_date como fallback.
+    let fechaStr, horaStr;
+    if (r.fecha_solicitud) {
+      const [y,m,d] = r.fecha_solicitud.split("-");
+      fechaStr = `${d}/${m}/${y}`;
+      horaStr  = r.hora_solicitud ? r.hora_solicitud.substring(0,5) : "";
+    } else {
+      // Fallback: request_date en UTC, mostramos solo la fecha local
+      const dt = r.request_date ? new Date(r.request_date) : null;
+      fechaStr = dt ? dt.toLocaleDateString("es-MX",{dateStyle:"short"}) : "—";
+      horaStr  = dt ? dt.toLocaleTimeString("es-MX",{timeStyle:"short"}) : "";
+    }
 
     // Ítems (multi o legacy)
     let itemText = "—";
@@ -153,7 +168,11 @@ function renderTable(data) {
       : "";
 
     return ` <tr>
-      <td><strong>#${r.id}</strong><br><small style="color:#9ca3af;font-size:11px;">${fecha}</small></td>
+      <td>
+        <strong>#${r.id}</strong>
+        <br><small style="color:#9ca3af;font-size:11px;">${fechaStr}</small>
+        ${horaStr ? `<br><small style="color:#4f46e5;font-size:11px;"><i class="fas fa-clock"></i> ${horaStr}</small>` : ""}
+      </td>
       <td>${usuario}<br><small style="color:#9ca3af;font-size:11px;">${r.users?.role||""}</small></td>
       <td>${docente}</td>
       <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;${typeCls}">${typeLabel}</span><br><small style="color:#6b7280;font-size:11px;">${r.purpose||""}</small></td>
@@ -190,23 +209,18 @@ function openModal() {
   selUser.innerHTML = "";
 
   if (currentUser.role === "alumno") {
-    // Alumno: él mismo aparece por defecto y no puede cambiarlo
     const self = document.createElement("option");
     self.value = currentUser.id;
     self.textContent = `${currentUser.username} (tú)`;
     selUser.appendChild(self);
     selUser.disabled = true;
-
-    // Debe elegir un docente encargado
     grpDocente.style.display = "block";
     selDocente.innerHTML = `<option value="">-- Selecciona docente encargado --</option>`;
     allUsers.filter(u => u.role === "docente").forEach(u => {
       const o = document.createElement("option"); o.value = u.id; o.textContent = u.username;
       selDocente.appendChild(o);
     });
-
   } else if (currentUser.role === "docente") {
-    // Docente: puede solicitar para sí mismo o para un alumno
     const self = document.createElement("option");
     self.value = currentUser.id;
     self.textContent = `${currentUser.username} (yo)`;
@@ -217,9 +231,7 @@ function openModal() {
     });
     selUser.disabled = false;
     grpDocente.style.display = "none";
-
   } else {
-    // Admin: puede elegir docentes y alumnos
     allUsers.filter(u => ["administrador","docente","alumno"].includes(u.role)).forEach(u => {
       const o = document.createElement("option");
       o.value = u.id; o.textContent = `${u.username} (${u.role})`;
@@ -232,6 +244,13 @@ function openModal() {
   document.getElementById("reqType").value    = "asset";
   document.getElementById("reqPurpose").value = "";
   document.getElementById("reqNotes").value   = "";
+
+  // Limpiar y preparar campos de fecha/hora de solicitud
+  const todayStr   = new Date().toISOString().split("T")[0];
+  const fechaSolEl = document.getElementById("reqFechaSol");
+  const horaSolEl  = document.getElementById("reqHoraSol");
+  if (fechaSolEl) { fechaSolEl.min = todayStr; fechaSolEl.value = ""; }
+  if (horaSolEl)  { horaSolEl.value = ""; horaSolEl.min = "07:30"; horaSolEl.max = "15:00"; horaSolEl.step = "3600"; }
 
   onTypeChange();
   document.getElementById("requestModal").classList.add("open");
@@ -495,6 +514,27 @@ async function saveRequest() {
   if (!user_id) { showToast("Selecciona un solicitante", "error"); return; }
   if (!purpose) { showToast("El propósito es obligatorio", "error"); return; }
 
+  // ── Validar fecha y hora de solicitud ──
+  const fechaSol = document.getElementById("reqFechaSol")?.value || "";
+  const horaSol  = document.getElementById("reqHoraSol")?.value  || "";
+
+  if (!fechaSol) { showToast("La fecha de solicitud es obligatoria", "error"); return; }
+  if (!horaSol)  { showToast("La hora de solicitud es obligatoria", "error"); return; }
+
+  const dowSol  = new Date(fechaSol + "T12:00:00").getDay();
+  if (dowSol === 0) { showToast("No se permiten solicitudes los domingos", "error"); return; }
+
+  const [hS, mS] = horaSol.split(":").map(Number);
+  const minsSol  = hS * 60 + mS;
+  const isSatSol = dowSol === 6;
+  const minSol   = 7 * 60 + 30;               // 07:30
+  const maxSol   = isSatSol ? 13 * 60 : 15 * 60; // 13:00 sáb / 15:00 resto
+
+  if (minsSol < minSol) { showToast("Hora mínima: 7:30 AM", "error"); return; }
+  if (minsSol > maxSol) {
+    showToast(`Hora máxima: ${isSatSol ? "1:00 PM (sábado)" : "3:00 PM"}`, "error"); return;
+  }
+
   // Docente encargado
   let docente_id = null;
   if (currentUser.role === "alumno") {
@@ -506,53 +546,31 @@ async function saveRequest() {
 
   // ── LABORATORIO → crear reserva directa ──
   if (type === "laboratorio") {
-    const lab_id      = document.getElementById("reqLab").value;
-    const fecha_uso   = document.getElementById("reqFecha").value;
-    const horaInicio  = document.getElementById("reqHoraInicio").value;
-    const horaFin     = document.getElementById("reqHoraFin").value;
+    const lab_id     = document.getElementById("reqLab").value;
+    const fecha_uso  = document.getElementById("reqFecha").value;
+    const horaInicio = document.getElementById("reqHoraInicio").value;
+    const horaFin    = document.getElementById("reqHoraFin").value;
 
     if (!lab_id || !fecha_uso || !horaInicio || !horaFin) {
       showToast("Completa laboratorio, fecha y horario", "error"); return;
     }
 
-    // ── Validaciones de horario para solicitud de laboratorio ──
-    const [hIni, mIni] = horaInicio.split(":").map(Number);
-    const [hFin2, mFin2] = horaFin.split(":").map(Number);
-    const tIni = hIni * 60 + mIni;
-    const tFin = hFin2 * 60 + mFin2;
+    const [hI, mI] = horaInicio.split(":").map(Number);
+    const [hF, mF] = horaFin.split(":").map(Number);
+    const tIni = hI * 60 + mI;
+    const tFin = hF * 60 + mF;
 
-    if (tFin <= tIni) {
-      showToast("La hora de fin debe ser mayor que la de inicio", "error"); return;
-    }
-    if (tFin - tIni < 60) {
-      showToast("La reserva debe durar al menos 1 hora", "error"); return;
-    }
+    if (tFin <= tIni) { showToast("La hora de fin debe ser mayor que la de inicio", "error"); return; }
+    if (tFin - tIni < 60) { showToast("La reserva debe durar al menos 1 hora", "error"); return; }
 
-    const fechaDay2 = new Date(fecha_uso + "T12:00:00").getDay();
-    const isSat2    = fechaDay2 === 6;
-    const role2     = currentUser?.role;
+    const dowLab  = new Date(fecha_uso + "T12:00:00").getDay();
+    const isSatL  = dowLab === 6;
+    const minOpen = 7 * 60 + 30;
+    const maxClose= isSatL ? 13 * 60 : 15 * 60;
 
-    let minOpen2, maxClose2;
-    if (role2 === "docente" || role2 === "administrador") {
-      minOpen2  = 7 * 60 + 30;
-      maxClose2 = isSat2 ? 13 * 60 : 17 * 60;
-    } else {
-      minOpen2  = 8 * 60;
-      maxClose2 = isSat2 ? 13 * 60 : 15 * 60;
-    }
+    if (tIni < minOpen)  { showToast("Hora mínima de inicio: 7:30 AM", "error"); return; }
+    if (tFin > maxClose) { showToast(`Hora máxima de fin: ${isSatL ? "1:00 PM" : "3:00 PM"}`, "error"); return; }
 
-    if (tIni < minOpen2) {
-      const hh = String(Math.floor(minOpen2/60)).padStart(2,"0");
-      const mm = String(minOpen2%60).padStart(2,"0");
-      showToast(`Hora mínima de inicio: ${hh}:${mm}`, "error"); return;
-    }
-    if (tFin > maxClose2) {
-      const hh = String(Math.floor(maxClose2/60)).padStart(2,"0");
-      const mm = String(maxClose2%60).padStart(2,"0");
-      showToast(`Hora máxima de fin: ${hh}:${mm}`, "error"); return;
-    }
-
-    // Recolectar ítems adicionales del lab (activos/consumibles para la práctica)
     const labItems = collectLabItems();
 
     const body = {
@@ -560,9 +578,11 @@ async function saveRequest() {
       docente_id: docente_id ? parseInt(docente_id) : null,
       lab_id:     parseInt(lab_id),
       fecha_uso, hora_inicio: horaInicio, hora_fin: horaFin,
-      proposito:    purpose,
-      consumables:  labItems.filter(i => i.consumable_id).map(i => ({ consumable_id: i.consumable_id, quantity_requested: i.quantity })),
-      assets:       labItems.filter(i => i.asset_id).map(i => ({ asset_id: i.asset_id }))
+      proposito:       purpose,
+      fecha_solicitud: fechaSol,
+      hora_solicitud:  horaSol,
+      consumables: labItems.filter(i => i.consumable_id).map(i => ({ consumable_id: i.consumable_id, quantity_requested: i.quantity })),
+      assets:      labItems.filter(i => i.asset_id).map(i => ({ asset_id: i.asset_id }))
     };
 
     const res = await fetch("/api/reservations", {
@@ -576,13 +596,15 @@ async function saveRequest() {
 
   // ── ACTIVOS / CONSUMIBLES ──
   const items = collectItems(type);
-  if (!items) return; // error ya mostrado
+  if (!items) return;
 
   const body = {
-    user_id:      parseInt(user_id),
-    docente_id:   docente_id ? parseInt(docente_id) : null,
-    request_type: type,
+    user_id:         parseInt(user_id),
+    docente_id:      docente_id ? parseInt(docente_id) : null,
+    request_type:    type,
     purpose, notes,
+    fecha_solicitud: fechaSol,
+    hora_solicitud:  horaSol,
     items
   };
 
@@ -932,20 +954,23 @@ function openEditRequest(id) {
   const r = allRequests.find(x => x.id === id);
   if (!r) return;
 
-  openModal(); // reusa el modal limpiando todo
+  openModal();
 
   setTimeout(() => {
-    // Tipo
     const selType = document.getElementById("reqType");
     if (selType) { selType.value = r.request_type; selType.dispatchEvent(new Event("change")); }
 
-    // Propósito / notas
     const inpPurpose = document.getElementById("reqPurpose");
     const inpNotes   = document.getElementById("reqNotes");
-    if (inpPurpose) inpPurpose.value = r.purpose  || "";
-    if (inpNotes)   inpNotes.value   = r.notes    || "";
+    if (inpPurpose) inpPurpose.value = r.purpose || "";
+    if (inpNotes)   inpNotes.value   = r.notes   || "";
 
-    // Cambiar título y botón
+    // Prellenar fecha y hora de solicitud si existen
+    const fechaSolEl = document.getElementById("reqFechaSol");
+    const horaSolEl  = document.getElementById("reqHoraSol");
+    if (fechaSolEl && r.fecha_solicitud) fechaSolEl.value = r.fecha_solicitud;
+    if (horaSolEl  && r.hora_solicitud)  horaSolEl.value  = r.hora_solicitud.substring(0,5);
+
     const title = document.querySelector("#requestModal h3");
     if (title) title.innerHTML = `<i class="fas fa-edit" style="color:#4f46e5;margin-right:8px;"></i>Editar Solicitud #${r.id}`;
 
@@ -958,10 +983,26 @@ function openEditRequest(id) {
 }
 
 async function updateRequest(id) {
-  const purpose = document.getElementById("reqPurpose").value.trim();
-  const notes   = document.getElementById("reqNotes").value.trim();
-  const type    = document.getElementById("reqType").value;
+  const purpose  = document.getElementById("reqPurpose").value.trim();
+  const notes    = document.getElementById("reqNotes").value.trim();
+  const type     = document.getElementById("reqType").value;
+  const fechaSol = document.getElementById("reqFechaSol")?.value || "";
+  const horaSol  = document.getElementById("reqHoraSol")?.value  || "";
+
   if (!purpose) { showToast("El propósito es obligatorio", "error"); return; }
+  if (!fechaSol) { showToast("La fecha de solicitud es obligatoria", "error"); return; }
+  if (!horaSol)  { showToast("La hora de solicitud es obligatoria", "error"); return; }
+
+  // Validar rango horario
+  const dowSol  = new Date(fechaSol + "T12:00:00").getDay();
+  if (dowSol === 0) { showToast("No se permiten solicitudes los domingos", "error"); return; }
+  const [hS, mS] = horaSol.split(":").map(Number);
+  const minsSol  = hS * 60 + mS;
+  const isSatSol = dowSol === 6;
+  if (minsSol < 7*60+30) { showToast("Hora mínima: 7:30 AM", "error"); return; }
+  if (minsSol > (isSatSol ? 13*60 : 15*60)) {
+    showToast(`Hora máxima: ${isSatSol ? "1:00 PM (sábado)" : "3:00 PM"}`, "error"); return;
+  }
 
   const items = type !== "laboratorio" ? collectItems(type) : null;
   if (type !== "laboratorio" && !items) return;
@@ -969,7 +1010,7 @@ async function updateRequest(id) {
   try {
     const res = await fetch(`${API}/${id}`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ purpose, notes, items })
+      body: JSON.stringify({ purpose, notes, fecha_solicitud: fechaSol, hora_solicitud: horaSol, items })
     });
     if (!res.ok) throw new Error();
     showToast("Solicitud actualizada ✅", "success");

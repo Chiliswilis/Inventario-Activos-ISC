@@ -10,6 +10,7 @@ const SELECT_FULL = `
   rejected_by, rejected_reason, rejected_at,
   approval_date, return_date,
   user_id, docente_id,
+  fecha_solicitud, hora_solicitud,
   users!requests_user_id_fkey(id, username, role),
   docente:users!requests_docente_id_fkey(id, username),
   rejected_user:users!requests_rejected_by_fkey(id, username),
@@ -45,28 +46,42 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   const {
     user_id, docente_id, request_type, purpose, notes,
-    // legacy single-item (retrocompatibilidad)
+    fecha_solicitud, hora_solicitud,
     asset_id, consumable_id, quantity_requested,
-    // multi-item nuevo
     items = []
   } = req.body;
 
   if (!user_id) return res.status(400).json({ message: "user_id es obligatorio" });
+  if (!fecha_solicitud) return res.status(400).json({ message: "La fecha de solicitud es obligatoria" });
+  if (!hora_solicitud)  return res.status(400).json({ message: "La hora de solicitud es obligatoria" });
+
+  // ── Validar día (no domingo) ──
+  const dow = new Date(fecha_solicitud + "T12:00:00").getDay();
+  if (dow === 0) return res.status(400).json({ message: "No se permiten solicitudes los domingos" });
+
+  // ── Validar rango horario 7:30–15:00 L–V, 7:30–13:00 Sáb ──
+  const normT  = t => (t || "").substring(0, 5);
+  const hNorm  = normT(hora_solicitud);
+  const maxH   = dow === 6 ? "13:00" : "15:00";
+  if (hNorm < "07:30") return res.status(400).json({ message: "Hora mínima de solicitud: 07:30 AM" });
+  if (hNorm > maxH)    return res.status(400).json({ message: `Hora máxima de solicitud: ${dow === 6 ? "1:00 PM (sábado)" : "3:00 PM"}` });
 
   const { data: req_data, error } = await supabase
     .from("requests")
     .insert([{
       user_id,
-      docente_id:    docente_id || null,
-      asset_id:      items.length ? null : (asset_id      || null),
-      consumable_id: items.length ? null : (consumable_id || null),
-      quantity_requested: items.length ? 1 : (parseInt(quantity_requested) || 1),
-      notes:        notes        || null,
-      purpose:      purpose      || null,
-      request_type: request_type || "asset",
+      docente_id:         docente_id || null,
+      asset_id:           items.length ? null : (asset_id      || null),
+      consumable_id:      items.length ? null : (consumable_id || null),
+      quantity_requested: items.length ? 1    : (parseInt(quantity_requested) || 1),
+      notes:              notes           || null,
+      purpose:            purpose         || null,
+      request_type:       request_type    || "asset",
+      fecha_solicitud:    fecha_solicitud,
+      hora_solicitud:     normT(hora_solicitud),
       status: "pending"
     }])
-    .select("id, status, request_date, request_type")
+    .select("id, status, request_date, request_type, fecha_solicitud, hora_solicitud")
     .single();
 
   if (error) return res.status(500).json(error);
@@ -313,11 +328,10 @@ router.put("/:id/return", async (req, res) => {
 
 /* ── ACTUALIZAR SOLICITUD (status, o edición de purpose/notes/items) ── */
 router.put("/:id", async (req, res) => {
-  const { status, purpose, notes, items } = req.body;
+  const { status, purpose, notes, items, fecha_solicitud, hora_solicitud } = req.body;
 
   // ── Caso edición de contenido (alumno/docente edita su solicitud pending) ──
-  if (purpose !== undefined || notes !== undefined || items !== undefined) {
-    // Solo se permite editar si sigue en estado pending
+  if (purpose !== undefined || notes !== undefined || items !== undefined || fecha_solicitud !== undefined) {
     const { data: current } = await supabase
       .from("requests").select("id, status, request_type").eq("id", req.params.id).single();
     if (!current) return res.status(404).json({ message: "Solicitud no encontrada" });
@@ -325,21 +339,20 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ message: "Solo se pueden editar solicitudes en estado 'pending'" });
 
     const updateFields = {};
-    if (purpose !== undefined) updateFields.purpose = purpose || null;
-    if (notes   !== undefined) updateFields.notes   = notes   || null;
+    if (purpose          !== undefined) updateFields.purpose          = purpose          || null;
+    if (notes            !== undefined) updateFields.notes            = notes            || null;
+    if (fecha_solicitud  !== undefined) updateFields.fecha_solicitud  = fecha_solicitud  || null;
+    if (hora_solicitud   !== undefined) updateFields.hora_solicitud   = hora_solicitud   ? hora_solicitud.substring(0,5) : null;
 
     const { data, error } = await supabase
       .from("requests")
       .update(updateFields)
       .eq("id", req.params.id)
-      .select("id, status, purpose, notes, request_type");
+      .select("id, status, purpose, notes, request_type, fecha_solicitud, hora_solicitud");
     if (error) return res.status(500).json(error);
 
-    // Reemplazar ítems si se enviaron
     if (Array.isArray(items) && items.length > 0) {
-      // Eliminar ítems anteriores
       await supabase.from("request_items").delete().eq("request_id", req.params.id);
-      // Insertar los nuevos
       const newItemRows = items.map(it => ({
         request_id:    parseInt(req.params.id),
         asset_id:      it.asset_id      || null,
@@ -354,7 +367,7 @@ router.put("/:id", async (req, res) => {
     return res.json(data[0]);
   }
 
-  // ── Caso cambio de status (docente envía al admin, etc.) ──
+  // ── Caso cambio de status ──
   if (!status) return res.status(400).json({ message: "status o campos editables son obligatorios" });
   const valid = ["pending", "pending_admin", "approved", "rejected", "returned"];
   if (!valid.includes(status)) return res.status(400).json({ message: "status inválido" });

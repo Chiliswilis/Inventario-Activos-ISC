@@ -210,6 +210,20 @@ tr:hover td{background:#fafafa;}
         <option value="laboratorio">Laboratorio</option>
       </select>
     </div>
+
+    <!-- Fecha y hora requerida de la solicitud -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha de solicitud *</label>
+        <input type="date" id="reqFechaSol" onchange="onFechaSolChange(this)">
+        <div class="hint"><i class="fas fa-calendar"></i> Lun–Vie · Sáb hasta 1:00 PM</div>
+      </div>
+      <div class="form-group">
+        <label>Hora de solicitud *</label>
+        <input type="time" id="reqHoraSol" step="3600" min="07:30" max="15:00">
+        <div class="hint"><i class="fas fa-clock"></i> 7:30 AM – 3:00 PM</div>
+      </div>
+    </div>
     <div class="form-group">
       <label>Propósito / descripción de uso *</label>
       <textarea id="reqPurpose" placeholder="¿Para qué se necesita este material o laboratorio?"></textarea>
@@ -234,16 +248,16 @@ tr:hover td{background:#fafafa;}
           <div class="form-group">
             <label>Fecha de uso *</label>
             <input type="date" id="reqFecha" onchange="validateWeekend(this)">
-            <div class="hint"><i class="fas fa-info-circle"></i> Solo lunes a viernes · 8:00–15:00</div>
+            <div class="hint"><i class="fas fa-info-circle"></i> Lun–Vie 7:30–15:00 · Sáb 7:30–13:00</div>
           </div>
           <div class="form-group">
             <label>Hora inicio *</label>
-            <input type="time" id="reqHoraInicio" min="08:00" max="15:00" step="1800">
+            <input type="time" id="reqHoraInicio" min="07:30" max="15:00" step="3600">
           </div>
         </div>
         <div class="form-group">
           <label>Hora fin *</label>
-          <input type="time" id="reqHoraFin" min="08:00" max="15:00" step="1800">
+          <input type="time" id="reqHoraFin" min="07:30" max="15:00" step="3600">
         </div>
       </div>
 
@@ -271,14 +285,13 @@ tr:hover td{background:#fafafa;}
 
 <script>
 // ── Catálogos globales ──
-let _allAssets      = [];   // activos disponibles cargados del servidor
-let _allConsumables = [];   // consumibles cargados del servidor
+let _allAssets      = [];
+let _allConsumables = [];
 let _itemRowCount   = 0;
 let _labItemRowCount = 0;
 
-// Cargar catálogos al abrir el modal
 async function loadItemCatalogs() {
-  if (_allAssets.length && _allConsumables.length) return; // ya cargados
+  if (_allAssets.length && _allConsumables.length) return;
   const [ar, cr] = await Promise.all([
     fetch("/api/assets").then(r => r.json()),
     fetch("/api/consumibles").then(r => r.json())
@@ -287,7 +300,6 @@ async function loadItemCatalogs() {
   _allConsumables = Array.isArray(cr) ? cr : [];
 }
 
-// ── IDs ya seleccionados en un contenedor ──
 function _getSelectedAssetIds(containerId) {
   const ids = new Set();
   document.querySelectorAll(`#${containerId} .item-row select[data-kind="asset"]`).forEach(sel => {
@@ -303,7 +315,6 @@ function _getSelectedConsIds(containerId) {
   return ids;
 }
 
-// ── Actualizar opciones de TODAS las filas de activos en un contenedor ──
 function refreshAssetOptions(containerId) {
   const selected = _getSelectedAssetIds(containerId);
   document.querySelectorAll(`#${containerId} .item-row select[data-kind="asset"]`).forEach(sel => {
@@ -316,7 +327,6 @@ function refreshAssetOptions(containerId) {
   });
 }
 
-// ── Actualizar opciones de TODAS las filas de consumibles en un contenedor ──
 function refreshConsOptions(containerId) {
   const selected = _getSelectedConsIds(containerId);
   document.querySelectorAll(`#${containerId} .item-row select[data-kind="consumable"]`).forEach(sel => {
@@ -329,9 +339,8 @@ function refreshConsOptions(containerId) {
   });
 }
 
-// ── Agregar fila en sección de activo/consumible simple ──
 function addItemRow() {
-  const type = document.getElementById("reqType").value; // "asset" o "consumable"
+  const type = document.getElementById("reqType").value;
   const cid  = `item_${++_itemRowCount}`;
   const row  = document.createElement("div");
 
@@ -364,7 +373,6 @@ function addItemRow() {
   document.getElementById("itemsContainer").appendChild(row);
 }
 
-// ── Agregar fila en sección de laboratorio ──
 function addLabItemRow(type) {
   const cid = `labitem_${++_labItemRowCount}`;
   const row = document.createElement("div");
@@ -402,20 +410,48 @@ function onTypeChange() {
   const t = document.getElementById("reqType").value;
   document.getElementById("itemsSection").style.display = (t !== "laboratorio") ? "block" : "none";
   document.getElementById("labSection").style.display   = (t === "laboratorio") ? "block" : "none";
-  // Limpiar filas al cambiar tipo
   document.getElementById("itemsContainer").innerHTML    = "";
   document.getElementById("labItemsContainer").innerHTML = "";
   _itemRowCount    = 0;
   _labItemRowCount = 0;
 }
 
+// ── Validar fecha de solicitud general (no domingo) ──
+function onFechaSolChange(input) {
+  if (!input.value) return;
+  const d = new Date(input.value + "T12:00:00");
+  if (d.getDay() === 0) {
+    showToastInline("No se permiten solicitudes los domingos");
+    input.value = ""; return;
+  }
+  // Ajustar max de hora según si es sábado
+  const isSat  = d.getDay() === 6;
+  const horaEl = document.getElementById("reqHoraSol");
+  if (horaEl) { horaEl.min = "07:30"; horaEl.max = isSat ? "13:00" : "15:00"; horaEl.step = "3600"; }
+}
+
+// ── Validar fecha del laboratorio (no domingo) ──
 function validateWeekend(input) {
   if (!input.value) return;
   const d = new Date(input.value + "T12:00:00");
-  if (d.getDay() === 0 || d.getDay() === 6) {
-    alert("No se permiten solicitudes en fines de semana");
-    input.value = "";
+  if (d.getDay() === 0) {
+    showToastInline("No se permiten reservas los domingos");
+    input.value = ""; return;
   }
+  // Ajustar límites de hora del laboratorio
+  const isSat = d.getDay() === 6;
+  const maxH  = isSat ? "13:00" : "15:00";
+  ["reqHoraInicio","reqHoraFin"].forEach(fid => {
+    const el = document.getElementById(fid);
+    if (el) { el.min = "07:30"; el.max = maxH; el.step = "3600"; }
+  });
+}
+
+function showToastInline(msg) {
+  // usa el toast del solicitudes.js si existe, si no alert
+  const t = document.getElementById("toast");
+  if (t) { t.textContent = msg; t.className = "toast error show"; setTimeout(() => t.classList.remove("show"), 3500); }
+  else alert(msg);
 }
 
 function toggleMenu(){
@@ -427,7 +463,6 @@ function closeSidebar(){
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
 
-// Ocultar buscador para alumnos
 document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   if (user.role === "alumno") {
@@ -436,15 +471,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ── Interceptar apertura del modal para cargar catálogos ──
 async function openModal() {
   await loadItemCatalogs();
-  // Limpiar estado anterior
   document.getElementById("itemsContainer").innerHTML    = "";
   document.getElementById("labItemsContainer").innerHTML = "";
   _itemRowCount    = 0;
   _labItemRowCount = 0;
-  // Mostrar sección correcta según tipo inicial
+
+  // Inicializar y limpiar campos de fecha/hora de solicitud
+  const todayStr = new Date().toISOString().split("T")[0];
+  const fechaSolEl = document.getElementById("reqFechaSol");
+  const horaSolEl  = document.getElementById("reqHoraSol");
+  if (fechaSolEl) { fechaSolEl.min = todayStr; fechaSolEl.value = ""; }
+  if (horaSolEl)  { horaSolEl.value = ""; horaSolEl.min = "07:30"; horaSolEl.max = "15:00"; horaSolEl.step = "3600"; }
+
+  // Limpiar propósito y notas
+  const p = document.getElementById("reqPurpose"); if (p) p.value = "";
+  const n = document.getElementById("reqNotes");   if (n) n.value = "";
+
   onTypeChange();
   document.getElementById("requestModal").classList.add("open");
 }
@@ -453,6 +497,7 @@ function closeModal() {
   document.getElementById("requestModal").classList.remove("open");
 }
 </script>
+
 <script src="../js/realtime.js"></script>
 <script src="../js/solicitudes.js"></script>
 <script src="../js/common.js"></script>
