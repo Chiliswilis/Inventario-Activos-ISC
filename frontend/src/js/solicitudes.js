@@ -11,8 +11,7 @@ let allCons      = [];
 let allLabs      = [];
 let currentUser  = null;
 
-// For the new request modal
-let itemRows     = [];   // [{rowId, type, itemId, qty}]
+let itemRows     = [];  
 let rowCounter   = 0;
 
 const statusMap = {
@@ -340,16 +339,19 @@ function updateSolicitudHourLimits(fechaVal) {
 
   let openTime, closeTime;
   if (role === "docente" || role === "administrador") {
-    openTime  = "07:29";
+    openTime  = "07:30";
     closeTime = isSat ? "13:00" : "17:00";
   } else {
-    openTime  = "07:59";
+    openTime  = "08:00";
     closeTime = isSat ? "13:00" : "15:00";
   }
 
   ["reqHoraInicio", "reqHoraFin"].forEach(fid => {
     const el = document.getElementById(fid);
-    if (el) { el.min = openTime; el.max = closeTime; }
+    if (!el) return;
+    el.min  = openTime;
+    el.max  = closeTime;
+    el.step = "3600";
   });
 }
 
@@ -976,8 +978,47 @@ async function updateRequest(id) {
 }
 
 // ── ELIMINAR ─────────────────────────────────────────────────
-async function deleteRequest(id) {
-  if (!confirm("¿Eliminar esta solicitud?")) return;
+function deleteRequest(id) {
+  // Crear modal de confirmación si no existe
+  let modal = document.getElementById("deleteConfirmModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "deleteConfirmModal"; modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:420px;">
+        <button class="modal-close" onclick="document.getElementById('deleteConfirmModal').classList.remove('open')">&times;</button>
+        <h3 style="display:flex;align-items:center;gap:10px;">
+          <span style="background:#ef4444;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-trash" style="color:white;font-size:15px;"></i>
+          </span>
+          ¿Eliminar esta solicitud?
+        </h3>
+        <input type="hidden" id="deleteConfirmId">
+        <div style="background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:14px;margin:16px 0;">
+          <p style="font-size:13px;color:#7f1d1d;margin:0;">
+            <i class="fas fa-exclamation-triangle" style="color:#dc2626;margin-right:6px;"></i>
+            Esta acción es <strong>irreversible</strong>. La solicitud será eliminada permanentemente y no podrá recuperarse.
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="document.getElementById('deleteConfirmModal').classList.remove('open')">
+            <i class="fas fa-times" style="margin-right:6px;"></i>Cancelar
+          </button>
+          <button class="btn" style="flex:1;background:#ef4444;" onclick="confirmDeleteRequest()">
+            <i class="fas fa-trash" style="margin-right:6px;"></i>Sí, eliminar
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  }
+  document.getElementById("deleteConfirmId").value = id;
+  modal.classList.add("open");
+}
+
+async function confirmDeleteRequest() {
+  const id = document.getElementById("deleteConfirmId").value;
+  document.getElementById("deleteConfirmModal").classList.remove("open");
   try {
     const res = await fetch(`${API}/${id}`, { method:"DELETE" });
     if (!res.ok) throw new Error();

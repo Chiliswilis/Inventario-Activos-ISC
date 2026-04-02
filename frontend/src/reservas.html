@@ -220,16 +220,16 @@ tr:hover td{background:#fafafa;}
       <div class="form-group">
         <label>Fecha de uso *</label>
         <input type="date" id="newFecha" onchange="validateWeekend(this)">
-        <div class="hint">Solo lunes a viernes</div>
+        <div class="hint">Lunes a sábado</div>
       </div>
       <div class="form-group">
         <label>Hora inicio *</label>
-        <input type="time" id="newHoraInicio" step="1800">
+        <input type="time" id="newHoraInicio" step="3600">
       </div>
     </div>
     <div class="form-group">
       <label>Hora fin *</label>
-      <input type="time" id="newHoraFin" step="1800">
+      <input type="time" id="newHoraFin" step="3600">
     </div>
     <div class="form-group">
       <label>Propósito *</label>
@@ -435,16 +435,20 @@ function renderTable(data) {
     let acciones = "";
     if (role === "docente" && r.status === "pending") {
       acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+      acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
     }
     if ((role === "docente" || role === "administrador") && r.status === "approved") {
-      acciones += `<button class="btn-info" onclick="markOccupied(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
+      acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
     }
     if ((role === "docente" || role === "administrador") && r.status === "occupied") {
       acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
     }
-    if ((role === "docente" && (r.status === "pending" || r.status === "approved") && r.docente_id === currentUser?.id)
+    if ((role === "docente" && (r.status === "pending" || r.status === "approved") && Number(r.docente_id) === Number(currentUser?.id))
       || role === "administrador") {
       acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
+    }
+    if (role === "alumno" && r.status === "pending" && Number(r.alumno_id) === Number(currentUser?.id)) {
+      acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
     }
     if (role === "administrador") {
       acciones += `<button style="background:#6b7280;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;" onclick="deleteReservation(${r.id})"><i class="fas fa-trash"></i></button>`;
@@ -653,19 +657,41 @@ function addConsRow() {
 function validateWeekend(input) {
   if (!input.value) return;
   const d = new Date(input.value + "T12:00:00");
-  if (d.getDay() === 0 || d.getDay() === 6) {
-    showToast("No se permiten reservas en fines de semana", "error");
+  if (d.getDay() === 0) {
+    showToast("No se permiten reservas los domingos", "error");
     input.value = "";
+    return;
   }
+  updateHourLimits(input.value);
+}
+
+function updateHourLimits(fechaVal) {
+  const role  = currentUser?.role;
+  const d     = fechaVal ? new Date(fechaVal + "T12:00:00") : null;
+  const isSat = d ? d.getDay() === 6 : false;
+
+  let openTime, closeTime;
+  if (role === "docente" || role === "administrador") {
+    openTime  = "07:30";
+    closeTime = isSat ? "13:00" : "17:00";
+  } else {
+    // alumno
+    openTime  = "08:00";
+    closeTime = isSat ? "13:00" : "15:00";
+  }
+
+  ["newHoraInicio", "newHoraFin"].forEach(fid => {
+    const el = document.getElementById(fid);
+    if (!el) return;
+    el.min  = openTime;
+    el.max  = closeTime;
+    el.step = "3600"; // fuerza incrementos de 1 hora en el picker — evita 8:01
+  });
 }
 
 function onLabChange() {
-  const opt = document.getElementById("newLab").selectedOptions[0];
-  if (!opt?.dataset.open) return;
-  document.getElementById("newHoraInicio").min = opt.dataset.open;
-  document.getElementById("newHoraInicio").max = opt.dataset.close;
-  document.getElementById("newHoraFin").min    = opt.dataset.open;
-  document.getElementById("newHoraFin").max    = opt.dataset.close;
+  const fechaVal = document.getElementById("newFecha").value;
+  updateHourLimits(fechaVal);
 }
 
 async function saveReservation() {
@@ -679,7 +705,42 @@ async function saveReservation() {
     showToast("Completa todos los campos obligatorios", "error"); return;
   }
 
-  const role = currentUser?.role;
+  // ── Validaciones de horario ──
+  const [hIni, mIni] = hora_inicio.split(":").map(Number);
+  const [hFin, mFin] = hora_fin.split(":").map(Number);
+  const totalIni = hIni * 60 + mIni;
+  const totalFin = hFin * 60 + mFin;
+
+  if (totalFin <= totalIni) {
+    showToast("La hora de fin debe ser mayor que la de inicio", "error"); return;
+  }
+  if (totalFin - totalIni < 60) {
+    showToast("La reserva debe durar al menos 1 hora", "error"); return;
+  }
+
+  const fechaDay = new Date(fecha_uso + "T12:00:00").getDay();
+  const isSat    = fechaDay === 6;
+  const role     = currentUser?.role;
+
+  let minOpen, maxClose;
+  if (role === "docente" || role === "administrador") {
+    minOpen  = 7 * 60 + 30;
+    maxClose = isSat ? 13 * 60 : 17 * 60;
+  } else {
+    minOpen  = 8 * 60;
+    maxClose = isSat ? 13 * 60 : 15 * 60;
+  }
+
+  if (totalIni < minOpen) {
+    const hh = String(Math.floor(minOpen/60)).padStart(2,"0");
+    const mm = String(minOpen%60).padStart(2,"0");
+    showToast(`Hora mínima de inicio: ${hh}:${mm}`, "error"); return;
+  }
+  if (totalFin > maxClose) {
+    const hh = String(Math.floor(maxClose/60)).padStart(2,"0");
+    const mm = String(maxClose%60).padStart(2,"0");
+    showToast(`Hora máxima de fin: ${hh}:${mm}`, "error"); return;
+  }
 
   // ── alumno_id ──
   // Alumno: él mismo. Docente: él mismo (quien físicamente reserva). Admin: elige de lista.
@@ -756,10 +817,105 @@ async function approveReservation() {
 }
 
 // ── EN USO ──
-async function markOccupied(id) {
-  if (!confirm("¿Marcar laboratorio como 'En uso'?")) return;
+function openOccupyModal(id) {
+  const r = allReservations.find(x => x.id === id);
+  if (!r) return;
+  let modal = document.getElementById("occupyModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "occupyModal"; modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:440px;">
+        <button class="modal-close" onclick="document.getElementById('occupyModal').classList.remove('open')">&times;</button>
+        <h3 style="display:flex;align-items:center;gap:10px;">
+          <span style="background:#0891b2;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-door-open" style="color:white;font-size:16px;"></i>
+          </span>
+          ¿Marcar laboratorio en uso?
+        </h3>
+        <input type="hidden" id="occupyId">
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px;margin:16px 0;">
+          <p id="occupyLabName" style="font-size:15px;font-weight:700;color:#0c4a6e;margin-bottom:6px;"></p>
+          <p id="occupyDetails" style="font-size:13px;color:#6b7280;line-height:1.6;"></p>
+        </div>
+        <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start;">
+          <i class="fas fa-exclamation-triangle" style="color:#ca8a04;margin-top:2px;flex-shrink:0;"></i>
+          <p style="font-size:13px;color:#713f12;margin:0;">Al confirmar, el laboratorio quedará marcado como <strong>En uso</strong>. No podrá reservarse por otros hasta que se registre la salida.</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="document.getElementById('occupyModal').classList.remove('open')">
+            <i class="fas fa-times" style="margin-right:6px;"></i>Cancelar
+          </button>
+          <button class="btn" style="flex:1;background:#0891b2;" onclick="confirmOccupy()">
+            <i class="fas fa-door-open" style="margin-right:6px;"></i>Sí, marcar en uso
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  }
+  document.getElementById("occupyId").value = id;
+  document.getElementById("occupyLabName").textContent = r.lab ? `${r.lab.nombre} — ${r.lab.edificio}` : "Laboratorio";
+  document.getElementById("occupyDetails").innerHTML =
+    `<i class="fas fa-calendar-day" style="color:#0891b2;margin-right:4px;"></i> ${r.fecha_uso ? formatDate(r.fecha_uso) : ""}&nbsp;·&nbsp;<i class="fas fa-clock" style="color:#0891b2;margin-right:4px;"></i> ${r.hora_inicio||""} – ${r.hora_fin||""}<br>
+     <i class="fas fa-chalkboard-teacher" style="color:#0891b2;margin-right:4px;"></i> Docente: <strong>${r.docente?.username||"—"}</strong>`;
+  modal.classList.add("open");
+}
+
+async function confirmOccupy() {
+  const id = document.getElementById("occupyId").value;
   await fetch(`${API}/${id}/occupy`, { method: "PUT" });
   showToast("Laboratorio marcado como en uso", "info");
+  document.getElementById("occupyModal").classList.remove("open");
+  loadReservations();
+}
+
+// ── RECHAZAR RESERVA (docente) ──
+function openRejectReserva(id) {
+  const r = allReservations.find(x => x.id === id);
+  let modal = document.getElementById("rejectReservaModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "rejectReservaModal"; modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:460px;">
+        <button class="modal-close" onclick="document.getElementById('rejectReservaModal').classList.remove('open')">&times;</button>
+        <h3><i class="fas fa-times-circle" style="color:#dc2626;margin-right:8px;"></i>Rechazar Reserva</h3>
+        <input type="hidden" id="rejectReservaId">
+        <div id="rejectReservaInfo" style="background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:#374151;"></div>
+        <div class="form-group">
+          <label>Motivo del rechazo *</label>
+          <textarea id="rejectReservaReason" placeholder="Explica por qué se rechaza esta reserva..." style="height:80px;resize:none;width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="document.getElementById('rejectReservaModal').classList.remove('open')">Cancelar</button>
+          <button class="btn" style="flex:1;background:#dc2626;" onclick="submitRejectReserva()"><i class="fas fa-times"></i> Rechazar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  }
+  document.getElementById("rejectReservaId").value = id;
+  document.getElementById("rejectReservaReason").value = "";
+  if (r) {
+    document.getElementById("rejectReservaInfo").innerHTML =
+      `<strong>${r.lab?.nombre||"Lab"}</strong> · ${r.fecha_uso ? formatDate(r.fecha_uso) : ""} · ${r.hora_inicio||""} – ${r.hora_fin||""}<br>
+       <span style="color:#9ca3af;">Solicitante: ${r.alumno?.username||"—"}</span>`;
+  }
+  modal.classList.add("open");
+}
+
+async function submitRejectReserva() {
+  const id     = document.getElementById("rejectReservaId").value;
+  const reason = document.getElementById("rejectReservaReason").value.trim();
+  if (!reason) { showToast("El motivo del rechazo es obligatorio", "error"); return; }
+  const res = await fetch(`${API}/${id}/cancel`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ docente_message: reason })
+  });
+  if (!res.ok) { showToast("Error al rechazar la reserva", "error"); return; }
+  showToast("Reserva rechazada", "info");
+  document.getElementById("rejectReservaModal").classList.remove("open");
   loadReservations();
 }
 
