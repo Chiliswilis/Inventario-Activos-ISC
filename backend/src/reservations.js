@@ -64,19 +64,26 @@ router.post("/", async (req, res) => {
   if (!proposito)
     return res.status(400).json({ message: "El propósito es obligatorio" });
 
-  // Validar que no sea fin de semana
+  // Validar que no sea domingo (sábado sí se permite — modalidad sabatina)
   const dow = new Date(fecha_uso + "T12:00:00").getDay(); // 0=Dom, 6=Sab
-  if (dow === 0 || dow === 6)
-    return res.status(400).json({ message: "No se pueden hacer reservas en fines de semana" });
+  if (dow === 0)
+    return res.status(400).json({ message: "No se pueden hacer reservas los domingos" });
 
   // Validar laboratorio activo y horario
   const { data: lab } = await supabase
     .from("labs").select("edificio,nombre,open_time,close_time,activo").eq("id", lab_id).single();
   if (!lab || !lab.activo)
     return res.status(400).json({ message: "Laboratorio no disponible" });
-  if (hora_inicio < lab.open_time || hora_fin > lab.close_time)
+  // Normalizar horas a "HH:MM" para comparación consistente
+  const normTime = t => (t || "").substring(0, 5);
+  const horaIniNorm = normTime(hora_inicio);
+  const horaFinNorm = normTime(hora_fin);
+  const labOpen     = normTime(lab.open_time);
+  const labClose    = normTime(lab.close_time);
+
+  if (horaIniNorm < labOpen || horaFinNorm > labClose)
     return res.status(400).json({
-      message: `Horario fuera del rango permitido (${lab.open_time}–${lab.close_time})`
+      message: `Horario fuera del rango permitido (${labOpen}–${labClose})`
     });
 
   // Verificar traslape de horario
@@ -122,15 +129,17 @@ router.post("/", async (req, res) => {
     if (consErr) return res.status(500).json(consErr);
   }
 
-  // Marcar activos como "borrowed" si se enviaron
+  // Guardar activos en reservation_assets Y marcarlos como "borrowed"
   if (assets.length > 0) {
+    const assetRows = [];
     for (const a of assets) {
-      if (a.asset_id) {
-        await supabase
-          .from("assets")
-          .update({ status: "borrowed" })
-          .eq("id", parseInt(a.asset_id));
-      }
+      if (!a.asset_id) continue;
+      const aid = parseInt(a.asset_id);
+      assetRows.push({ reservation_id: resv.id, asset_id: aid });
+      await supabase.from("assets").update({ status: "borrowed" }).eq("id", aid);
+    }
+    if (assetRows.length > 0) {
+      await supabase.from("reservation_assets").insert(assetRows);
     }
   }
 
@@ -194,39 +203,56 @@ router.put("/:id/occupy", async (req, res) => {
 /* ── LIBERAR (fin de práctica) + sobrante de consumibles ── */
 router.put("/:id/release", async (req, res) => {
   const { leftover_items = [] } = req.body;
+  const reservationId = parseInt(req.params.id);
 
   const { data, error } = await supabase
     .from("reservations")
     .update({ status: "released", salida_fecha: new Date().toISOString() })
-    .eq("id", req.params.id)
+    .eq("id", reservationId)
     .select("id, status, alumno_id, lab_id");
 
   if (error) return res.status(500).json(error);
 
-  // Registrar sobrantes
+  // Registrar sobrantes de consumibles
   for (const li of leftover_items) {
     await supabase.from("reservation_consumables")
       .update({ leftover_qty: li.leftover_qty })
       .eq("id", li.reservation_consumable_id);
   }
 
-  // Liberar activos que estaban borrowed por esta reserva
-  // (Se restauran a "available" al liberar el laboratorio)
-  // Para hacerlo correctamente obtener los asset_ids del request si se guardaron en logs/tablas auxiliares.
-  // Como el esquema actual no tiene tabla reservation_assets, se libera basado en el log.
-  // Si se desea persistencia completa, agregar tabla reservation_assets.
+  // ✅ Restaurar activos a "available" usando reservation_assets
+  const { data: resAssets } = await supabase
+    .from("reservation_assets")
+    .select("asset_id")
+    .eq("reservation_id", reservationId);
+
+  if (resAssets && resAssets.length > 0) {
+    for (const ra of resAssets) {
+      const { data: updatedAsset } = await supabase
+        .from("assets")
+        .update({ status: "available" })
+        .eq("id", ra.asset_id)
+        .select("*")
+        .single();
+      // Notificar al frontend en tiempo real
+      if (updatedAsset) broadcast("assets", "UPDATE", updatedAsset);
+    }
+  }
 
   // Log
   await supabase.from("logs").insert([{
     user_id:    data[0].alumno_id,
     action:     "Laboratorio liberado",
     table_name: "reservations",
-    record_id:  parseInt(req.params.id),
+    record_id:  reservationId,
     item_type:  "lab",
-    item_id:    data[0].lab_id
+    item_id:    data[0].lab_id,
+    details:    resAssets?.length
+      ? `Activos liberados: [${resAssets.map(r => r.asset_id).join(", ")}]`
+      : "Sin activos adicionales"
   }]);
 
-  // Broadcast
+  // Broadcast reserva
   broadcast("reservations", "UPDATE", data[0]);
 
   res.json(data[0]);
