@@ -727,6 +727,7 @@ async function saveReservation() {
 
   // ── alumno_id ──
   // Alumno: él mismo. Docente: él mismo (quien físicamente reserva). Admin: elige de lista.
+  const role = currentUser?.role;
   let alumno_id;
   if (role === "alumno" || role === "docente") {
     alumno_id = currentUser.id;
