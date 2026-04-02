@@ -65,26 +65,38 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ message: "El propósito es obligatorio" });
 
   // Validar que no sea domingo (sábado sí se permite — modalidad sabatina)
-  const dow = new Date(fecha_uso + "T12:00:00").getDay(); // 0=Dom, 6=Sab
+  const dow = new Date(fecha_uso + "T12:00:00").getDay();
   if (dow === 0)
     return res.status(400).json({ message: "No se pueden hacer reservas los domingos" });
 
-  // Validar laboratorio activo y horario
+  // Validar laboratorio activo
   const { data: lab } = await supabase
     .from("labs").select("edificio,nombre,open_time,close_time,activo").eq("id", lab_id).single();
   if (!lab || !lab.activo)
     return res.status(400).json({ message: "Laboratorio no disponible" });
-  // Normalizar horas a "HH:MM" para comparación consistente
-  const normTime = t => (t || "").substring(0, 5);
-  const horaIniNorm = normTime(hora_inicio);
-  const horaFinNorm = normTime(hora_fin);
-  const labOpen     = normTime(lab.open_time);
-  const labClose    = normTime(lab.close_time);
 
-  if (horaIniNorm < labOpen || horaFinNorm > labClose)
-    return res.status(400).json({
-      message: `Horario fuera del rango permitido (${labOpen}–${labClose})`
-    });
+  // Normalizar horas a "HH:MM"
+  const normTime  = t => (t || "").substring(0, 5);
+  const horaIniN  = normTime(hora_inicio);
+  const horaFinN  = normTime(hora_fin);
+
+  // Horario permitido uniforme: 7:30–15:00 L–V, 7:30–13:00 Sáb
+  const isSat     = dow === 6;
+  const minPermit = "07:30";
+  const maxPermit = isSat ? "13:00" : "15:00";
+
+  if (horaIniN < minPermit)
+    return res.status(400).json({ message: "Hora mínima de inicio: 7:30 AM" });
+  if (horaFinN > maxPermit)
+    return res.status(400).json({ message: `Hora máxima de fin: ${isSat ? "1:00 PM (sábado)" : "3:00 PM"}` });
+  if (horaFinN <= horaIniN)
+    return res.status(400).json({ message: "La hora de fin debe ser mayor que la de inicio" });
+
+  // Validar mínimo 1 hora
+  const [hI, mI] = horaIniN.split(":").map(Number);
+  const [hF, mF] = horaFinN.split(":").map(Number);
+  if ((hF * 60 + mF) - (hI * 60 + mI) < 60)
+    return res.status(400).json({ message: "La reserva debe durar al menos 1 hora" });
 
   // Verificar traslape de horario
   const { data: overlap } = await supabase

@@ -666,26 +666,19 @@ function validateWeekend(input) {
 }
 
 function updateHourLimits(fechaVal) {
-  const role  = currentUser?.role;
   const d     = fechaVal ? new Date(fechaVal + "T12:00:00") : null;
   const isSat = d ? d.getDay() === 6 : false;
 
-  let openTime, closeTime;
-  if (role === "docente" || role === "administrador") {
-    openTime  = "07:30";
-    closeTime = isSat ? "13:00" : "17:00";
-  } else {
-    // alumno
-    openTime  = "08:00";
-    closeTime = isSat ? "13:00" : "15:00";
-  }
+  // Horario uniforme para todos los roles: 7:30 AM – 15:00 (Lun–Vie) / 13:00 (Sáb)
+  const openTime  = "07:30";
+  const closeTime = isSat ? "13:00" : "15:00";
 
   ["newHoraInicio", "newHoraFin"].forEach(fid => {
     const el = document.getElementById(fid);
     if (!el) return;
     el.min  = openTime;
     el.max  = closeTime;
-    el.step = "3600"; // fuerza incrementos de 1 hora en el picker — evita 8:01
+    el.step = "3600"; // incrementos de 1 hora — evita valores como 8:01
   });
 }
 
@@ -720,26 +713,16 @@ async function saveReservation() {
 
   const fechaDay = new Date(fecha_uso + "T12:00:00").getDay();
   const isSat    = fechaDay === 6;
-  const role     = currentUser?.role;
 
-  let minOpen, maxClose;
-  if (role === "docente" || role === "administrador") {
-    minOpen  = 7 * 60 + 30;
-    maxClose = isSat ? 13 * 60 : 17 * 60;
-  } else {
-    minOpen  = 8 * 60;
-    maxClose = isSat ? 13 * 60 : 15 * 60;
-  }
+  // Horario uniforme para todos: 7:30 AM – 15:00 L–V / 13:00 Sáb
+  const minOpen  = 7 * 60 + 30;
+  const maxClose = isSat ? 13 * 60 : 15 * 60;
 
   if (totalIni < minOpen) {
-    const hh = String(Math.floor(minOpen/60)).padStart(2,"0");
-    const mm = String(minOpen%60).padStart(2,"0");
-    showToast(`Hora mínima de inicio: ${hh}:${mm}`, "error"); return;
+    showToast("Hora mínima de inicio: 7:30 AM", "error"); return;
   }
   if (totalFin > maxClose) {
-    const hh = String(Math.floor(maxClose/60)).padStart(2,"0");
-    const mm = String(maxClose%60).padStart(2,"0");
-    showToast(`Hora máxima de fin: ${hh}:${mm}`, "error"); return;
+    showToast(`Hora máxima de fin: ${isSat ? "1:00 PM (sábado)" : "3:00 PM"}`, "error"); return;
   }
 
   // ── alumno_id ──
