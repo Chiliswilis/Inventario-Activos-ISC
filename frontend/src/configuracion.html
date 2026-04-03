@@ -542,9 +542,10 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
       <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
       <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
     </div>
-    <div class="user">
-      <img src="https://i.pravatar.cc/40" alt="Avatar">
+    <div class="user" id="userArea">
+      <img src="https://i.pravatar.cc/40" alt="Avatar" id="userAvatar">
       <span id="username">Cargando...</span>
+      <span id="userRoleBadge" class="badge" style="display:none;"></span>
     </div>
   </div>
 
@@ -992,10 +993,55 @@ function initNav() {
 // ROL DEL USUARIO (viene de common.js / localStorage)
 // ══════════════════════════════════════════════
 function getUserRole() {
-  try {
-    const u = JSON.parse(localStorage.getItem("sgiac_user") || "{}");
-    return (u.role || u.rol || "alumno").toLowerCase();
-  } catch { return "alumno"; }
+  // Claves posibles donde common.js/auth puede guardar la sesion
+  const KEYS = ["sgiac_user","sgiac_session","sgiac_auth","user","currentUser","session","authUser"];
+  const ROLE_FIELDS = ["role","rol","tipo","type","userRole","user_role"];
+
+  for (const key of KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const obj = JSON.parse(raw);
+      for (const field of ROLE_FIELDS) {
+        if (obj[field]) return obj[field].toString().toLowerCase();
+      }
+      // Buscar en sub-objetos comunes
+      const sub = obj.user || obj.data || obj.userData || obj.perfil;
+      if (sub) {
+        for (const field of ROLE_FIELDS) {
+          if (sub[field]) return sub[field].toString().toLowerCase();
+        }
+      }
+    } catch (e) { /* continuar */ }
+  }
+
+  // Respaldo 1: leer el badge visible en el header (pintado por common.js)
+  const badgeSelectors = [
+    ".user .badge", ".user [class*='badge']", "#roleBadge",
+    ".role-badge", ".user-role", ".header .badge", "[data-role]"
+  ];
+  for (const sel of badgeSelectors) {
+    try {
+      const el = document.querySelector(sel);
+      if (el) {
+        const t = (el.textContent || el.getAttribute("data-role") || "").trim().toLowerCase();
+        if (t.includes("admin"))   return "admin";
+        if (t.includes("docente")) return "docente";
+        if (t.includes("alumno"))  return "alumno";
+      }
+    } catch(e) {}
+  }
+
+  // Respaldo 2: leer el span de nombre en el header
+  const uname = document.getElementById("username");
+  if (uname) {
+    const t = uname.textContent.trim().toLowerCase();
+    if (t.includes("admin"))   return "admin";
+    if (t.includes("docente")) return "docente";
+    if (t.includes("alumno"))  return "alumno";
+  }
+
+  return "alumno"; // rol mas restrictivo por defecto
 }
 
 // ══════════════════════════════════════════════
@@ -1183,6 +1229,15 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <script src="../js/realtime.js"></script>
 <script src="../js/common.js"></script>
+<script>
+// Re-aplicar permisos luego de que common.js establezca la sesion en el DOM/localStorage
+// Se ejecuta con un pequeño delay para dar tiempo al script externo
+window.addEventListener("load", function() {
+  setTimeout(function() {
+    loadGeneral(); // re-corre con el rol ya disponible en el DOM
+  }, 300);
+});
+</script>
 </body>
 </html><style>
 @media(max-width:768px){
