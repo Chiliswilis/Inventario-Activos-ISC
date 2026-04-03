@@ -522,7 +522,7 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
   <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
   <div class="menu">
     <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
     <div class="menu-section">Inventario</div>
     <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
     <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
@@ -553,24 +553,24 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
 
       <!-- Nav lateral -->
       <div class="config-nav">
-        <div class="config-nav-item active" onclick="scrollTo('secGeneral')">
+        <div class="config-nav-item active" onclick="navTo('secGeneral', this)">
           <i class="fas fa-sliders-h"></i> General
         </div>
-        <div class="config-nav-item" onclick="scrollTo('secBD')">
+        <div class="config-nav-item" onclick="navTo('secBD', this)">
           <i class="fas fa-database"></i> Base de Datos
         </div>
-        <div class="config-nav-item" onclick="scrollTo('secLabs')">
+        <div class="config-nav-item" onclick="navTo('secLabs', this)">
           <i class="fas fa-flask"></i> Laboratorios
         </div>
         <div class="config-nav-divider"></div>
-        <div class="config-nav-item" onclick="scrollTo('secRoles')">
+        <div class="config-nav-item" onclick="navTo('secRoles', this)">
           <i class="fas fa-user-shield"></i> Roles y Permisos
         </div>
-        <div class="config-nav-item" onclick="scrollTo('secNotif')">
+        <div class="config-nav-item" onclick="navTo('secNotif', this)">
           <i class="fas fa-bell"></i> Notificaciones
         </div>
         <div class="config-nav-divider"></div>
-        <div class="config-nav-item" onclick="scrollTo('secSistema')">
+        <div class="config-nav-item" onclick="navTo('secSistema', this)">
           <i class="fas fa-info-circle"></i> Información
         </div>
       </div>
@@ -589,18 +589,18 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
           </div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Nombre del Sistema</label>
-              <input type="text" id="cfgNombre" value="SGIAC-ISC">
+              <label>Nombre del Sistema <span>no editable</span></label>
+              <input type="text" id="cfgNombre" value="SGIAC-ISC" readonly disabled style="background:#e9ecef;color:#6c757d;cursor:not-allowed;border-color:#dee2e6;user-select:none;">
             </div>
             <div class="form-group">
-              <label>Institución</label>
-              <input type="text" id="cfgInstitucion" value="TecMM Campus La Huerta">
+              <label>Institución <span>no editable</span></label>
+              <input type="text" id="cfgInstitucion" value="TecMM Campus La Huerta" readonly disabled style="background:#e9ecef;color:#6c757d;cursor:not-allowed;border-color:#dee2e6;user-select:none;">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="grpMaxReservas">
               <label>Máximo de reservas activas <span>por alumno</span></label>
               <input type="number" id="cfgMaxReservas" value="3" min="1" max="10">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="grpMinHoras">
               <label>Tiempo mínimo de reserva <span>en horas</span></label>
               <input type="number" id="cfgMinHoras" value="1" min="1">
             </div>
@@ -609,7 +609,7 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
               <textarea id="cfgDescripcion">Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.</textarea>
             </div>
           </div>
-          <div class="btn-actions">
+          <div class="btn-actions" id="btnActionsGeneral">
             <button class="btn" onclick="saveGeneral()"><i class="fas fa-save"></i> Guardar cambios</button>
           </div>
         </div>
@@ -751,55 +751,135 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
             </div>
           </div>
 
-          <div class="form-group" style="margin-bottom:16px;">
-            <label>Email de notificaciones</label>
-            <input type="email" id="cfgEmail" value="adminWilly@gmail.com">
+          <!-- Tabs por rol (solo admin ve todos) -->
+          <div id="notifTabs" style="display:flex;gap:0;margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;width:fit-content;">
+            <button type="button" id="tabAdmin" class="notif-tab active-tab" onclick="switchNotifTab('admin')" style="padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;border:none;background:#1f2a3a;color:white;font-weight:500;border-right:1px solid #e5e7eb;">
+              <i class="fas fa-shield-alt" style="margin-right:5px;"></i> Admin
+            </button>
+            <button type="button" id="tabDocente" class="notif-tab" onclick="switchNotifTab('docente')" style="padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;border:none;background:white;color:#6b7280;font-weight:500;border-right:1px solid #e5e7eb;">
+              <i class="fas fa-chalkboard-teacher" style="margin-right:5px;"></i> Docente
+            </button>
+            <button type="button" id="tabAlumno" class="notif-tab" onclick="switchNotifTab('alumno')" style="padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;border:none;background:white;color:#6b7280;font-weight:500;">
+              <i class="fas fa-user-graduate" style="margin-right:5px;"></i> Alumno
+            </button>
           </div>
 
-          <div class="toggle-group">
-            <div class="toggle-info">
-              <h4>Alerta de stock bajo</h4>
-              <p>Notificar cuando un consumible llegue al mínimo</p>
+          <!-- Panel Admin -->
+          <div id="notifAdmin">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Email de notificaciones</label>
+              <input type="email" id="cfgEmail" placeholder="admin@ejemplo.com">
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="togStock" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="toggle-group">
-            <div class="toggle-info">
-              <h4>Nueva solicitud pendiente</h4>
-              <p>Avisar al docente cuando un alumno solicite algo</p>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Alerta de stock bajo</h4>
+                <p>Notificar cuando un consumible llegue al mínimo</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togStock"><span class="toggle-slider"></span></label>
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="togSolicitud" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="toggle-group">
-            <div class="toggle-info">
-              <h4>Reserva aprobada</h4>
-              <p>Notificar al alumno cuando su reserva sea aprobada</p>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Nueva solicitud pendiente</h4>
+                <p>Avisar cuando un alumno cree una solicitud</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togSolicitud"><span class="toggle-slider"></span></label>
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="togReserva" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="toggle-group">
-            <div class="toggle-info">
-              <h4>Registro de actividad (logs)</h4>
-              <p>Guardar en bitácora todas las acciones del sistema</p>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Reserva aprobada / rechazada</h4>
+                <p>Notificar cuando el estado de una reserva cambie</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togReserva"><span class="toggle-slider"></span></label>
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="togLogs" checked>
-              <span class="toggle-slider"></span>
-            </label>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Nuevo usuario registrado</h4>
+                <p>Avisar cuando se cree una nueva cuenta en el sistema</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togNuevoUsuario"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Registro de actividad (logs)</h4>
+                <p>Guardar en bitácora todas las acciones del sistema</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togLogs"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="btn-actions">
+              <button class="btn" onclick="saveNotif('admin')"><i class="fas fa-save"></i> Guardar preferencias</button>
+            </div>
           </div>
 
-          <div class="btn-actions">
-            <button class="btn" onclick="saveNotif()"><i class="fas fa-save"></i> Guardar preferencias</button>
+          <!-- Panel Docente -->
+          <div id="notifDocente" style="display:none;">
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Nueva solicitud de alumno</h4>
+                <p>Avisar cuando un alumno solicite un préstamo o reserva</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togDocSolicitud"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Devolución de material</h4>
+                <p>Notificar cuando un alumno devuelva un activo prestado</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togDocDevolucion"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Alerta de stock bajo</h4>
+                <p>Recibir aviso cuando un consumible esté por agotarse</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togDocStock"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Cambio de estado de reserva</h4>
+                <p>Notificar cuando el admin apruebe o rechace una reserva</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togDocReserva"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="btn-actions">
+              <button class="btn" onclick="saveNotif('docente')"><i class="fas fa-save"></i> Guardar preferencias</button>
+            </div>
           </div>
+
+          <!-- Panel Alumno -->
+          <div id="notifAlumno" style="display:none;">
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Solicitud aprobada</h4>
+                <p>Notificar cuando el docente apruebe tu solicitud de préstamo</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togAluSolicitudAprobada"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Solicitud rechazada</h4>
+                <p>Avisar cuando una solicitud sea rechazada</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togAluSolicitudRechazada"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Reserva aprobada</h4>
+                <p>Notificar cuando tu reserva de laboratorio sea aprobada</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togAluReservaAprobada"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Recordatorio de devolución</h4>
+                <p>Avisar cuando se acerque la fecha límite para devolver material</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="togAluRecordatorio"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="btn-actions">
+              <button class="btn" onclick="saveNotif('alumno')"><i class="fas fa-save"></i> Guardar preferencias</button>
+            </div>
+          </div>
+
         </div>
 
         <!-- ── INFORMACIÓN DEL SISTEMA ── -->
@@ -855,6 +935,16 @@ body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#3
 <div class="toast" id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+
 function toggleMenu(){
   const s=document.getElementById("sidebar");
   const o=document.getElementById("sidebarOverlay");
@@ -866,44 +956,230 @@ function closeSidebar(){
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
 
-function scrollTo(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  document.querySelectorAll(".config-nav-item").forEach(el => el.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+// ══════════════════════════════════════════════
+// NAV LATERAL — mostrar/ocultar secciones
+// ══════════════════════════════════════════════
+const ALL_SECTIONS = ['secGeneral','secBD','secLabs','secRoles','secNotif','secSistema'];
+
+function navTo(id, el) {
+  // Ocultar todas las secciones
+  ALL_SECTIONS.forEach(secId => {
+    const sec = document.getElementById(secId);
+    if (sec) sec.style.display = 'none';
+  });
+  // Mostrar solo la sección elegida
+  const target = document.getElementById(id);
+  if (target) {
+    target.style.display = 'block';
+    // Scroll al tope del contenido
+    const content = document.querySelector(".content");
+    if (content) content.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  // Actualizar nav activo
+  document.querySelectorAll(".config-nav-item").forEach(e => e.classList.remove("active"));
+  if (el) el.classList.add("active");
 }
 
+function initNav() {
+  // Ocultar todas excepto General al cargar
+  ALL_SECTIONS.forEach(secId => {
+    const sec = document.getElementById(secId);
+    if (sec && secId !== 'secGeneral') sec.style.display = 'none';
+  });
+}
+
+// ══════════════════════════════════════════════
+// ROL DEL USUARIO (viene de common.js / localStorage)
+// ══════════════════════════════════════════════
+function getUserRole() {
+  try {
+    const u = JSON.parse(localStorage.getItem("sgiac_user") || "{}");
+    return (u.role || u.rol || "alumno").toLowerCase();
+  } catch { return "alumno"; }
+}
+
+// ══════════════════════════════════════════════
+// CONFIGURACIÓN GENERAL — persistencia localStorage
+// ══════════════════════════════════════════════
+const CFG_KEY = "sgiac_config_general";
+
+function loadGeneral() {
+  const role = getUserRole();
+  const saved = JSON.parse(localStorage.getItem(CFG_KEY) || "{}");
+
+  // Valores por defecto o guardados
+  document.getElementById("cfgMaxReservas").value = saved.maxReservas ?? 3;
+  document.getElementById("cfgMinHoras").value    = saved.minHoras    ?? 1;
+  if (document.getElementById("cfgDescripcion"))
+    document.getElementById("cfgDescripcion").value = saved.descripcion
+      ?? "Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.";
+
+  // Solo admin puede editar reservas y tiempo mínimo, y ver el botón guardar
+  if (role !== "admin") {
+    ["cfgMaxReservas","cfgMinHoras"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.setAttribute("readonly", "");
+        el.setAttribute("disabled", "");
+        el.style.background   = "#e9ecef";
+        el.style.color        = "#6c757d";
+        el.style.cursor       = "not-allowed";
+        el.style.borderColor  = "#dee2e6";
+        el.style.userSelect   = "none";
+      }
+    });
+    const btn = document.getElementById("btnActionsGeneral");
+    if (btn) btn.style.display = "none";
+  } else {
+    // Admin: campos editables con estilo normal
+    ["cfgMaxReservas","cfgMinHoras"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.removeAttribute("readonly");
+        el.removeAttribute("disabled");
+        el.style.background  = "";
+        el.style.color       = "";
+        el.style.cursor      = "";
+        el.style.borderColor = "";
+        el.style.userSelect  = "";
+      }
+    });
+    const btn = document.getElementById("btnActionsGeneral");
+    if (btn) btn.style.display = "";
+  }
+}
+
+
+
 function saveGeneral() {
+  const role = getUserRole();
+  if (role !== "admin") { showToast("Sin permisos para guardar", "error"); return; }
+  const data = {
+    maxReservas: parseInt(document.getElementById("cfgMaxReservas").value) || 3,
+    minHoras:    parseInt(document.getElementById("cfgMinHoras").value)    || 1,
+    descripcion: document.getElementById("cfgDescripcion")?.value || ""
+  };
+  localStorage.setItem(CFG_KEY, JSON.stringify(data));
   showToast("Configuración general guardada ✅", "success");
 }
 
-function saveNotif() {
-  showToast("Preferencias de notificaciones guardadas ✅", "success");
+// ══════════════════════════════════════════════
+// BASE DE DATOS — probar conexión con persistencia
+// ══════════════════════════════════════════════
+const DB_STATUS_KEY = "sgiac_db_status";
+
+function loadDbStatus() {
+  const saved = localStorage.getItem(DB_STATUS_KEY);
+  if (saved === "ok") {
+    document.getElementById("dbStatus").innerHTML =
+      `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
+  } else if (saved === "error") {
+    document.getElementById("dbStatus").innerHTML =
+      `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
+  }
 }
 
 async function testConnection() {
   showToast("Probando conexión...", "info");
+  document.getElementById("dbStatus").innerHTML =
+    `<span class="status-badge status-warning"><i class="fas fa-circle"></i> Verificando...</span>`;
   try {
-    const res = await fetch("http://localhost:3000/api/users");
+    const res = await fetch("/api/users", { cache: "no-store" });
     if (res.ok) {
       document.getElementById("dbStatus").innerHTML =
         `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
+      localStorage.setItem(DB_STATUS_KEY, "ok");
       showToast("Conexión exitosa a Supabase ✅", "success");
-    } else {
-      throw new Error();
-    }
-  } catch {
+    } else { throw new Error("HTTP " + res.status); }
+  } catch(e) {
     document.getElementById("dbStatus").innerHTML =
       `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
+    localStorage.setItem(DB_STATUS_KEY, "error");
     showToast("No se pudo conectar al servidor", "error");
   }
 }
 
-function showToast(msg, type = "success") {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove("show"), 3500);
+// ══════════════════════════════════════════════
+// NOTIFICACIONES — tabs + persistencia por rol
+// ══════════════════════════════════════════════
+const NOTIF_KEY = "sgiac_notif_prefs";
+
+// Mapeo: tab → ids de checkboxes
+const NOTIF_IDS = {
+  admin:   ["togStock","togSolicitud","togReserva","togNuevoUsuario","togLogs","cfgEmail"],
+  docente: ["togDocSolicitud","togDocDevolucion","togDocStock","togDocReserva"],
+  alumno:  ["togAluSolicitudAprobada","togAluSolicitudRechazada","togAluReservaAprobada","togAluRecordatorio"]
+};
+
+function loadNotif() {
+  const saved = JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}");
+  // Defaults si no hay nada guardado
+  const defaults = {
+    togStock: true, togSolicitud: true, togReserva: true, togNuevoUsuario: false, togLogs: true,
+    cfgEmail: "adminWilly@gmail.com",
+    togDocSolicitud: true, togDocDevolucion: true, togDocStock: false, togDocReserva: true,
+    togAluSolicitudAprobada: true, togAluSolicitudRechazada: true, togAluReservaAprobada: true, togAluRecordatorio: false
+  };
+  const prefs = Object.assign({}, defaults, saved);
+
+  Object.keys(prefs).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = !!prefs[id];
+    else if (el.type === "email") el.value = prefs[id] || "";
+  });
+
+  // Mostrar solo tabs relevantes según rol
+  const role = getUserRole();
+  const tabsDiv = document.getElementById("notifTabs");
+  if (role === "admin") {
+    tabsDiv.style.display = "flex";
+    switchNotifTab("admin");
+  } else if (role === "docente") {
+    tabsDiv.style.display = "none";
+    document.getElementById("notifAdmin").style.display  = "none";
+    document.getElementById("notifDocente").style.display = "block";
+    document.getElementById("notifAlumno").style.display  = "none";
+  } else {
+    tabsDiv.style.display = "none";
+    document.getElementById("notifAdmin").style.display   = "none";
+    document.getElementById("notifDocente").style.display = "none";
+    document.getElementById("notifAlumno").style.display  = "block";
+  }
 }
+
+function switchNotifTab(tab) {
+  ["admin","docente","alumno"].forEach(t => {
+    document.getElementById("notif" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = (t === tab) ? "block" : "none";
+    const btn = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) {
+      btn.style.background = (t === tab) ? "#1f2a3a" : "white";
+      btn.style.color      = (t === tab) ? "white"   : "#6b7280";
+    }
+  });
+}
+
+function saveNotif(tab) {
+  const saved = JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}");
+  const ids = NOTIF_IDS[tab] || [];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    saved[id] = (el.type === "checkbox") ? el.checked : el.value;
+  });
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(saved));
+  showToast("Preferencias de notificaciones guardadas ✅", "success");
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  initNav();
+  loadGeneral();
+  loadDbStatus();
+  loadNotif();
+});
 </script>
 <script src="../js/realtime.js"></script>
 <script src="../js/common.js"></script>
