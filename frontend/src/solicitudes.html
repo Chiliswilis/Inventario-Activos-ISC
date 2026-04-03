@@ -116,6 +116,362 @@ tr:hover td{background:#fafafa;}
   .area-tab{flex:1;text-align:center;}
 }
 </style>
+
+    <!-- ══ IBM Design Language overrides ══ -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+    :root {
+      --ibm-blue:      #0f62fe;
+      --ibm-blue-10:   #edf5ff;
+      --ibm-blue-20:   #d0e2ff;
+      --ibm-gray-10:   #f4f4f4;
+      --ibm-gray-20:   #e0e0e0;
+      --ibm-gray-30:   #c6c6c6;
+      --ibm-gray-50:   #8d8d8d;
+      --ibm-gray-70:   #525252;
+      --ibm-gray-90:   #262626;
+      --ibm-gray-100:  #161616;
+      --ibm-green:     #198038;
+      --ibm-green-10:  #defbe6;
+      --ibm-yellow:    #b28600;
+      --ibm-yellow-10: #fcf4d6;
+      --ibm-red:       #da1e28;
+      --ibm-red-10:    #fff1f1;
+      --ibm-teal:      #007d79;
+      --ibm-teal-10:   #d9fbfb;
+      --ibm-purple:    #6929c4;
+      --ibm-purple-10: #f6f2ff;
+      --ibm-cyan:      #00539a;
+      --ibm-cyan-10:   #e5f6ff;
+      --ibm-orange:    #b45309;
+      --ibm-orange-10: #fff7ed;
+    }
+
+    /* ── Background ── */
+    body { background: var(--ibm-gray-10) !important; }
+
+    /* ── STAT / METRIC CARDS ── */
+    .stat-card, .stats-row .stat-card {
+      background: white !important;
+      border-radius: 0 !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      box-shadow: none !important;
+      padding: 20px 22px !important;
+      position: relative;
+      overflow: hidden;
+    }
+    .stats-row {
+      border: 1px solid var(--ibm-gray-20);
+      display: grid;
+      gap: 0 !important;
+    }
+    .stats-row .stat-card { border-right: 1px solid var(--ibm-gray-20) !important; border-top: none !important; border-bottom: none !important; border-left: none !important; }
+    .stats-row .stat-card:first-child { border-left: none !important; }
+    .stat-card .stat-icon {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 2px !important;
+      font-size: 14px !important;
+      flex-shrink: 0;
+    }
+    .stat-icon.purple  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
+    .stat-icon.blue    { background: var(--ibm-blue-10)   !important; color: var(--ibm-blue)   !important; }
+    .stat-icon.green   { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
+    .stat-icon.orange  { background: var(--ibm-orange-10) !important; color: var(--ibm-orange) !important; }
+    .stat-icon.red     { background: var(--ibm-red-10)    !important; color: var(--ibm-red)    !important; }
+    .stat-icon.teal    { background: var(--ibm-teal-10)   !important; color: var(--ibm-teal)   !important; }
+    .stat-info strong, .stat-info .stat-value {
+      font-family: 'IBM Plex Mono', monospace !important;
+      font-size: 36px !important;
+      font-weight: 600 !important;
+      color: var(--ibm-gray-100) !important;
+      line-height: 1 !important;
+      letter-spacing: -1px;
+    }
+    .stat-info p, .stat-label {
+      font-size: 12px !important;
+      color: var(--ibm-gray-70) !important;
+      margin-bottom: 4px;
+    }
+
+    /* Barra de color superior en stat-card por posición */
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--ibm-gray-20);
+    }
+    .stats-row .stat-card:nth-child(1)::before { background: var(--ibm-blue);   }
+    .stats-row .stat-card:nth-child(2)::before { background: var(--ibm-red);    }
+    .stats-row .stat-card:nth-child(3)::before { background: var(--ibm-yellow); }
+    .stats-row .stat-card:nth-child(4)::before { background: var(--ibm-green);  }
+
+    /* ── PANELS ── */
+    .panel {
+      background: white !important;
+      border-radius: 0 !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    .panel-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      padding: 14px 20px 13px !important;
+      border-bottom: 1px solid var(--ibm-gray-20) !important;
+      background: #fafafa !important;
+      margin-bottom: 0 !important;
+    }
+    .panel-header h3, .panel-title {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: var(--ibm-gray-90) !important;
+      letter-spacing: 0.8px !important;
+      text-transform: uppercase !important;
+    }
+    /* Inner content padding */
+    .panel > .filters-bar,
+    .panel > .area-tabs,
+    .panel > .active-filters,
+    .panel > #tableWrapper,
+    .panel > .table-scroll,
+    .panel > .labs-grid,
+    .panel > .filters,
+    .panel > .toolbar,
+    .panel > .panel-body {
+      padding: 16px 20px;
+    }
+    .panel > .table-scroll { padding: 0 !important; }
+    .panel > #tableWrapper  { padding: 0 !important; }
+
+    /* ── TABLES ── */
+    table { border-collapse: collapse !important; }
+    th {
+      background: var(--ibm-gray-10) !important;
+      color: var(--ibm-gray-70) !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      padding: 10px 16px !important;
+      letter-spacing: 0.8px !important;
+      text-transform: uppercase !important;
+      border-right: 1px solid var(--ibm-gray-20) !important;
+      border-bottom: 1px solid var(--ibm-gray-20) !important;
+    }
+    th:last-child { border-right: none !important; }
+    td {
+      padding: 12px 16px !important;
+      border-bottom: 1px solid var(--ibm-gray-10) !important;
+      border-right: 1px solid var(--ibm-gray-10) !important;
+      color: var(--ibm-gray-90) !important;
+      font-size: 13px !important;
+    }
+    td:last-child { border-right: none !important; }
+    tr:last-child td { border-bottom: none !important; }
+    tbody tr:hover td { background: var(--ibm-blue-10) !important; }
+
+    /* ── BADGES ── */
+    .badge, .status-badge {
+      border-radius: 2px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      padding: 3px 8px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      letter-spacing: 0.2px;
+    }
+    .badge::before, .status-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: currentColor;
+    }
+    /* Status */
+    .badge-available, .badge.badge-available { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
+    .badge-borrowed                          { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
+    .badge-maintenance                       { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
+    .badge-damaged                           { background: var(--ibm-purple-10)!important; color: var(--ibm-purple)!important; border: none !important; }
+    .badge-pending                           { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
+    .badge-approved                          { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
+    .badge-rejected                          { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
+    .badge-returned, .badge-released         { background: var(--ibm-teal-10)  !important; color: var(--ibm-teal)  !important; border: none !important; }
+    .badge-info, .badge-occupied             { background: var(--ibm-blue-10)  !important; color: var(--ibm-blue)  !important; border: none !important; }
+    .badge-cancelled                         { background: var(--ibm-gray-10)  !important; color: var(--ibm-gray-70)!important; border: none !important; }
+    .badge-low                               { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
+    .badge-mid                               { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
+    .badge-ok                                { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
+    .badge-sistemas                          { background: var(--ibm-blue-10)  !important; color: var(--ibm-blue)  !important; border: none !important; }
+    .badge-laboratorio, .badge-lab           { background: var(--ibm-teal-10)  !important; color: var(--ibm-teal)  !important; border: none !important; }
+    /* Role badges */
+    .badge-role.badge-admin    { background: var(--ibm-purple-10)!important; color: var(--ibm-purple)!important; }
+    .badge-role.badge-docente  { background: var(--ibm-cyan-10)  !important; color: var(--ibm-cyan)  !important; }
+    .badge-role.badge-alumno   { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; }
+    /* Status badges (configuracion) */
+    .status-ok      { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border-radius: 2px !important; }
+    .status-warning { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border-radius: 2px !important; }
+    .status-error   { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border-radius: 2px !important; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      border-radius: 2px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      padding: 9px 18px !important;
+      letter-spacing: 0.3px;
+    }
+    .btn:hover { background: #0353e9 !important; }
+    .btn-export, .btn-outline {
+      border-radius: 2px !important;
+      font-size: 13px !important;
+    }
+    .btn-report {
+      border-radius: 2px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+    }
+    .btn-csv { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
+    .btn-csv:hover { background: var(--ibm-purple) !important; color: white !important; }
+    .btn-pdf { background: var(--ibm-red-10) !important; color: var(--ibm-red) !important; }
+    .btn-pdf:hover { background: var(--ibm-red) !important; color: white !important; }
+
+    /* ── FILTERS / TOOLBAR ── */
+    .filters-bar, .toolbar, .filters { padding: 14px 20px !important; background: #fafafa; border-bottom: 1px solid var(--ibm-gray-20); gap: 8px; }
+    .filters-bar input, .filters-bar select,
+    .toolbar select, .toolbar input,
+    .filters select, .filters input,
+    .search-box, .filter-select {
+      border-radius: 2px !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      font-size: 13px !important;
+    }
+    .filters-bar input:focus, .filters-bar select:focus,
+    .toolbar select:focus, .toolbar input:focus,
+    .filter-select:focus {
+      border-color: var(--ibm-blue) !important;
+      box-shadow: none !important;
+      outline: 1px solid var(--ibm-blue) !important;
+    }
+    .area-tabs { padding: 12px 20px 0 !important; border-bottom: none !important; background: transparent !important; }
+    .area-pill, .area-tab {
+      border-radius: 2px !important;
+      font-size: 12px !important;
+    }
+
+    /* ── REPORT CARDS ── */
+    .report-card {
+      border-radius: 0 !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      box-shadow: none !important;
+      border-top: 3px solid var(--ibm-gray-20) !important;
+    }
+    .report-card.assets       { border-top-color: var(--ibm-purple) !important; }
+    .report-card.consumables  { border-top-color: var(--ibm-blue)   !important; }
+    .report-card.requests     { border-top-color: var(--ibm-green)  !important; }
+    .report-card.reservations { border-top-color: var(--ibm-orange) !important; }
+    .report-card:hover { transform: none !important; box-shadow: 0 0 0 2px var(--ibm-blue) !important; }
+    .report-card-icon { border-radius: 2px !important; }
+
+    /* ── CHART PANELS ── */
+    .chart-panel {
+      border-radius: 0 !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      box-shadow: none !important;
+    }
+
+    /* ── LAB CARDS (Reservas) ── */
+    .lab-status-card {
+      border-radius: 2px !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+    }
+    .lab-status-card.available { border-color: var(--ibm-green) !important; background: var(--ibm-green-10) !important; }
+    .lab-status-card.occupied  { border-color: var(--ibm-red)   !important; background: var(--ibm-red-10)   !important; }
+    .pill-available { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border-radius: 2px !important; }
+    .pill-occupied  { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border-radius: 2px !important; }
+
+    /* ── CONFIG sections ── */
+    .config-section {
+      border-radius: 0 !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      box-shadow: none !important;
+    }
+    .config-nav {
+      border-radius: 0 !important;
+      border: 1px solid var(--ibm-gray-20) !important;
+      box-shadow: none !important;
+    }
+    .config-nav-item { border-radius: 0 !important; }
+    .config-nav-item.active { background: var(--ibm-blue-10) !important; color: var(--ibm-blue) !important; }
+    .config-section-icon { border-radius: 2px !important; }
+    .config-section-icon.purple  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
+    .config-section-icon.blue    { background: var(--ibm-blue-10)   !important; color: var(--ibm-blue)   !important; }
+    .config-section-icon.green   { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
+    .config-section-icon.orange  { background: var(--ibm-orange-10) !important; color: var(--ibm-orange) !important; }
+    .config-section-icon.red     { background: var(--ibm-red-10)    !important; color: var(--ibm-red)    !important; }
+    .config-section-icon.gray    { background: var(--ibm-gray-10)   !important; color: var(--ibm-gray-70)!important; }
+    .db-field { border-radius: 2px !important; background: var(--ibm-gray-10) !important; }
+    .role-card { border-radius: 2px !important; }
+    .role-card.admin   { background: var(--ibm-purple-10) !important; border-color: #e0cfff !important; }
+    .role-card.docente { background: var(--ibm-cyan-10)   !important; border-color: #b3daff !important; }
+    .role-card.alumno  { background: var(--ibm-green-10)  !important; border-color: #a2f0c0 !important; }
+    .role-card.admin h4   { color: var(--ibm-purple) !important; }
+    .role-card.docente h4 { color: var(--ibm-cyan)   !important; }
+    .role-card.alumno h4  { color: var(--ibm-green)  !important; }
+    .toggle input:checked + .toggle-slider { background: var(--ibm-blue) !important; }
+
+    /* ── MODALS ── */
+    .modal-box, .modal-content {
+      border-radius: 0 !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      border-radius: 2px !important;
+      border-color: var(--ibm-gray-20) !important;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--ibm-blue) !important;
+      box-shadow: none !important;
+      outline: 1px solid var(--ibm-blue) !important;
+    }
+    .btn-cancel { border-radius: 2px !important; }
+    .btn-danger { border-radius: 2px !important; }
+
+    /* ── USER SECTION table (Usuarios) ── */
+    tr.group-header td { background: var(--ibm-gray-10) !important; border-top: 2px solid var(--ibm-gray-20) !important; }
+    .group-label.admin  { color: var(--ibm-purple) !important; }
+    .group-label.docente{ color: var(--ibm-cyan)   !important; }
+    .group-label.alumno { color: var(--ibm-green)  !important; }
+    .group-label .grp-icon { border-radius: 2px !important; }
+    .group-count.admin  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
+    .group-count.docente{ background: var(--ibm-cyan-10)   !important; color: var(--ibm-cyan)   !important; }
+    .group-count.alumno { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
+    .badge-admin   { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; border-radius: 2px !important; }
+    .badge-docente { background: var(--ibm-cyan-10)   !important; color: var(--ibm-cyan)   !important; border-radius: 2px !important; }
+    .badge-alumno  { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; border-radius: 2px !important; }
+
+    /* ── SECTION LABELS ── */
+    .section-title {
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      letter-spacing: 1.5px !important;
+      color: var(--ibm-gray-50) !important;
+      text-transform: uppercase !important;
+    }
+
+    /* ── TOAST ── */
+    .toast { border-radius: 2px !important; }
+
+    /* ── Entrada suave ── */
+    @keyframes ibm-fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .panel, .stat-card, .report-card, .chart-panel, .config-section {
+      animation: ibm-fade 0.35s ease both;
+    }
+    </style>
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>

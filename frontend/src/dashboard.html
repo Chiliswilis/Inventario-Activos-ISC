@@ -7,126 +7,357 @@
     <title>SGIAC-ISC | Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="../responsive.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
-        body { display:flex; min-height:100vh; overflow-x:hidden; background:#f1f3f9; }
+        :root {
+            --ibm-blue:       #0f62fe;
+            --ibm-blue-hover: #0353e9;
+            --ibm-blue-10:    #edf5ff;
+            --ibm-blue-20:    #d0e2ff;
+            --ibm-blue-60:    #0043ce;
+            --ibm-gray-10:    #f4f4f4;
+            --ibm-gray-20:    #e0e0e0;
+            --ibm-gray-30:    #c6c6c6;
+            --ibm-gray-50:    #8d8d8d;
+            --ibm-gray-70:    #525252;
+            --ibm-gray-90:    #262626;
+            --ibm-gray-100:   #161616;
+            --ibm-green:      #198038;
+            --ibm-green-10:   #defbe6;
+            --ibm-yellow:     #b28600;
+            --ibm-yellow-10:  #fcf4d6;
+            --ibm-red:        #da1e28;
+            --ibm-red-10:     #fff1f1;
+            --ibm-teal:       #007d79;
+            --ibm-teal-10:    #d9fbfb;
+            --sidebar-bg:     #1f2a3a;
+            --sidebar-hover:  #4f46e5;
+        }
 
-        /* SIDEBAR */
-        .sidebar { width:240px; background:#1f2a3a; color:white; flex-shrink:0; height:100vh; position:sticky; top:0; overflow-y:auto; }
-        .logo { padding:22px; font-weight:600; font-size:18px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'IBM Plex Sans', sans-serif; }
+        body { display:flex; min-height:100vh; overflow-x:hidden; background:var(--ibm-gray-10); }
+
+        /* ── SIDEBAR — fuente Poppins idéntica a activos.html ── */
+        .sidebar { width:240px; background:#1f2a3a; color:white; flex-shrink:0; height:100vh; position:sticky; top:0; overflow-y:auto; font-family:'Poppins', sans-serif; }
+        .logo { padding:22px; font-weight:600; font-size:18px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); font-family:'Poppins', sans-serif; }
         .logo small { display:block; font-size:11px; font-weight:300; color:#94a3b8; margin-top:2px; }
-        .menu a { display:flex; align-items:center; padding:13px 22px; color:#cbd5e1; text-decoration:none; font-size:13.5px; transition:0.2s; }
+        .menu a { display:flex; align-items:center; padding:13px 22px; color:#cbd5e1; text-decoration:none; font-size:13.5px; transition:0.2s; font-family:'Poppins', sans-serif; }
         .menu a i { margin-right:10px; width:18px; font-size:13px; }
         .menu a:hover, .menu a.active { background:#4f46e5; color:white; }
-        .menu-section { padding:10px 22px 4px; font-size:10px; font-weight:600; color:#64748b; letter-spacing:1px; text-transform:uppercase; }
-
-        /* OVERLAY */
+        .menu-section { padding:10px 22px 4px; font-size:10px; font-weight:600; color:#64748b; letter-spacing:1px; text-transform:uppercase; font-family:'Poppins', sans-serif; }
         .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:998; }
         .sidebar-overlay.show { display:block; }
 
-        /* MAIN */
+        /* ── MAIN ── */
         .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 
-        /* HEADER - CORREGIDO */
+        /* ── HEADER (estructura original intacta) ── */
         .header { height:65px; background:white; display:flex; align-items:center; justify-content:space-between; padding:0 25px; border-bottom:1px solid #e6e8f0; flex-shrink:0; }
-        .header-left { display:flex; align-items:center; gap:15px; flex:1; min-width:0; } /* importante para ellipsis */
+        .header-left { display:flex; align-items:center; gap:15px; flex:1; min-width:0; }
         .menu-btn { font-size:20px; cursor:pointer; color:#374151; }
-        .header h2 { 
-            font-size:17px; 
-            color:#1f2a3a; 
-            font-weight:500; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            max-width: 100%; 
-            flex:1; 
-        }
+        .header h2 { font-size:17px; color:#1f2a3a; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; flex:1; }
         .user { display:flex; align-items:center; gap:10px; font-size:14px; color:#374151; flex-shrink:0; }
         .user img { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb; }
 
-        /* CONTENT */
-        .content { padding:25px; overflow-y:auto; flex:1; }
+        /* ── CONTENT ── */
+        .content { padding:28px 28px 36px; overflow-y:auto; flex:1; }
 
-        /* CARDS */
-        .cards { 
-            display:grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap:18px; 
-            margin-bottom:25px; 
-        }
-        .card { 
-            background:white; 
-            padding:20px 22px; 
-            border-radius:10px; 
-            box-shadow:0 2px 8px rgba(0,0,0,0.06); 
-            display:flex; 
-            justify-content:space-between; 
-            align-items:center; 
-            border-left:4px solid #4f46e5; 
-        }
-        .card-info h3 { font-size:28px; font-weight:600; color:#1f2a3a; margin-bottom:4px; }
-        .card-info p { font-size:13px; color:#6b7280; }
-        .card-icon { width:48px; height:48px; background:#ede9fe; border-radius:10px; display:flex; align-items:center; justify-content:center; }
-        .card-icon i { font-size:20px; color:#4f46e5; }
-
-        /* GRID - MEJORADO */
-        .grid { 
-            display:grid; 
-            grid-template-columns: 2fr 1fr; 
-            gap:20px; 
+        /* ── SECTION LABEL (IBM style) ── */
+        .section-label {
+            font-size:11px;
+            font-weight:600;
+            letter-spacing:1.5px;
+            text-transform:uppercase;
+            color:var(--ibm-gray-50);
+            margin-bottom:12px;
         }
 
-        /* PANEL */
-        .panel { 
-            background:white; 
-            border-radius:10px; 
-            padding:20px; 
-            box-shadow:0 2px 8px rgba(0,0,0,0.06); 
-        }
-        .panel-title { 
-            font-size:15px; 
-            font-weight:600; 
-            color:#1f2a3a; 
-            margin-bottom:16px; 
-            padding-bottom:10px; 
-            border-bottom:1px solid #f3f4f6; 
+        /* ══════════════════════════════════════
+           TARJETAS IBM — métricas principales
+        ══════════════════════════════════════ */
+        .cards {
+            display:grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap:0;
+            margin-bottom:28px;
+            border:1px solid var(--ibm-gray-20);
+            border-radius:0;
+            overflow:hidden;
         }
 
-        /* TABLE */
-        table { width:100%; border-collapse:collapse; font-size:13px; }
-        th { background:#f8f9fc; font-weight:600; color:#6b7280; padding:10px 12px; text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; }
-        td { padding:11px 12px; border-bottom:1px solid #f3f4f6; color:#374151; }
-        tr:hover td { background:#fafafa; }
+        .metric-card {
+            background:white;
+            padding:24px 24px 20px;
+            position:relative;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            min-height:140px;
+            border-right:1px solid var(--ibm-gray-20);
+            transition:background 0.15s;
+            cursor:default;
+        }
+        .metric-card:last-child { border-right:none; }
+        .metric-card:hover { background:#fafafa; }
 
-        /* ACTIVITY */
-        .activity-item { padding:11px 0; border-bottom:1px solid #f3f4f6; font-size:13px; color:#374151; line-height:1.5; }
+        /* barra superior de color por categoría */
+        .metric-card::before {
+            content:'';
+            position:absolute;
+            top:0; left:0; right:0;
+            height:3px;
+        }
+        .metric-card.assets::before   { background:var(--ibm-blue); }
+        .metric-card.consumables::before { background:var(--ibm-teal); }
+        .metric-card.requests::before  { background:var(--ibm-yellow); }
+        .metric-card.reservations::before { background:var(--ibm-green); }
+
+        .metric-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+        }
+
+        .metric-label {
+            font-size:12px;
+            font-weight:500;
+            color:var(--ibm-gray-70);
+            letter-spacing:0.3px;
+            line-height:1.3;
+            max-width:120px;
+        }
+
+        .metric-icon {
+            width:32px;
+            height:32px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:2px;
+        }
+        .metric-card.assets .metric-icon       { background:var(--ibm-blue-10); color:var(--ibm-blue); }
+        .metric-card.consumables .metric-icon  { background:var(--ibm-teal-10); color:var(--ibm-teal); }
+        .metric-card.requests .metric-icon     { background:var(--ibm-yellow-10); color:var(--ibm-yellow); }
+        .metric-card.reservations .metric-icon { background:var(--ibm-green-10); color:var(--ibm-green); }
+        .metric-icon i { font-size:14px; }
+
+        .metric-value {
+            font-family:'IBM Plex Mono', monospace;
+            font-size:42px;
+            font-weight:600;
+            color:var(--ibm-gray-100);
+            line-height:1;
+            margin-top:auto;
+            padding-top:12px;
+            letter-spacing:-1px;
+        }
+        .metric-value.loading-val { color:var(--ibm-gray-30); font-size:36px; }
+
+        .metric-trend {
+            font-size:11px;
+            color:var(--ibm-gray-50);
+            margin-top:6px;
+            font-family:'IBM Plex Mono', monospace;
+        }
+
+        /* ══════════════════════════════════════
+           GRID INFERIOR
+        ══════════════════════════════════════ */
+        .grid {
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap:16px;
+        }
+
+        /* ── PANEL BASE ── */
+        .panel {
+            background:white;
+            border:1px solid var(--ibm-gray-20);
+            border-radius:0;
+            overflow:hidden;
+        }
+
+        .panel-header {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 20px 13px;
+            border-bottom:1px solid var(--ibm-gray-20);
+            background:#fafafa;
+        }
+        .panel-title {
+            font-size:12px;
+            font-weight:600;
+            color:var(--ibm-gray-90);
+            letter-spacing:0.8px;
+            text-transform:uppercase;
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .panel-title .dot {
+            width:8px; height:8px; border-radius:50%; flex-shrink:0;
+        }
+        .dot-blue   { background:var(--ibm-blue); }
+        .dot-green  { background:var(--ibm-green); }
+        .dot-yellow { background:var(--ibm-yellow); }
+
+        .panel-body { padding:0; }
+
+        /* ── PANEL: Descripción ── */
+        .panel-desc .panel-body {
+            padding:20px 20px 22px;
+        }
+        .panel-desc p {
+            font-size:13.5px;
+            color:var(--ibm-gray-70);
+            line-height:1.75;
+            font-weight:300;
+        }
+        .panel-desc .system-tag {
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            margin-top:16px;
+            padding:5px 10px;
+            background:var(--ibm-blue-10);
+            color:var(--ibm-blue);
+            font-size:11px;
+            font-weight:600;
+            letter-spacing:0.5px;
+            border:1px solid var(--ibm-blue-20);
+            border-radius:2px;
+        }
+
+        /* ── PANEL: Tabla Movimientos ── */
+        .panel-movements { grid-row: 1 / 3; }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+            font-size:13px;
+        }
+        thead tr {
+            border-bottom:1px solid var(--ibm-gray-20);
+        }
+        th {
+            background:var(--ibm-gray-10);
+            font-size:11px;
+            font-weight:600;
+            color:var(--ibm-gray-70);
+            padding:10px 16px;
+            text-align:left;
+            letter-spacing:0.8px;
+            text-transform:uppercase;
+            border-right:1px solid var(--ibm-gray-20);
+        }
+        th:last-child { border-right:none; }
+        td {
+            padding:12px 16px;
+            border-bottom:1px solid var(--ibm-gray-10);
+            color:var(--ibm-gray-90);
+            border-right:1px solid var(--ibm-gray-10);
+            font-size:13px;
+        }
+        td:last-child { border-right:none; }
+        tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:var(--ibm-blue-10); }
+
+        /* ID en mono */
+        td.mono { font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ibm-gray-50); }
+
+        .status-badge {
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            font-size:11px;
+            font-weight:600;
+            padding:3px 8px;
+            border-radius:2px;
+            letter-spacing:0.3px;
+        }
+        .status-badge::before {
+            content:'';
+            width:6px; height:6px;
+            border-radius:50%;
+            flex-shrink:0;
+        }
+        .status-available    { background:var(--ibm-green-10);  color:var(--ibm-green);  }
+        .status-available::before  { background:var(--ibm-green); }
+        .status-borrowed     { background:var(--ibm-yellow-10); color:var(--ibm-yellow); }
+        .status-borrowed::before   { background:var(--ibm-yellow); }
+        .status-maintenance  { background:var(--ibm-red-10);    color:var(--ibm-red);    }
+        .status-maintenance::before { background:var(--ibm-red); }
+
+        .loading-row td { text-align:center; color:var(--ibm-gray-30); padding:32px; font-style:italic; }
+
+        /* ── PANEL: Actividad ── */
+        .activity-list { padding:0; }
+        .activity-item {
+            display:flex;
+            gap:12px;
+            padding:13px 16px;
+            border-bottom:1px solid var(--ibm-gray-10);
+            align-items:flex-start;
+        }
         .activity-item:last-child { border-bottom:none; }
-        .activity-item .time { font-size:11px; color:#9ca3af; margin-top:3px; }
-
-        /* LOADING */
-        .loading-row td { text-align:center; color:#9ca3af; padding:30px; }
-
-        /* RESPONSIVE */
-        @media (max-width: 900px) {
-            .grid { grid-template-columns: 1fr; gap:18px; }
+        .activity-dot {
+            width:8px; height:8px;
+            background:var(--ibm-blue);
+            border-radius:50%;
+            flex-shrink:0;
+            margin-top:4px;
+        }
+        .activity-text {
+            flex:1;
+            font-size:13px;
+            color:var(--ibm-gray-90);
+            line-height:1.5;
+        }
+        .activity-text strong { font-weight:600; }
+        .activity-time {
+            font-size:11px;
+            font-family:'IBM Plex Mono', monospace;
+            color:var(--ibm-gray-50);
+            flex-shrink:0;
+            margin-top:2px;
         }
 
-        @media (max-width: 768px) {
+        /* ── ANIMACIÓN ENTRADA ── */
+        @keyframes ibm-in {
+            from { opacity:0; transform:translateY(8px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .metric-card { animation:ibm-in 0.4s ease both; }
+        .metric-card:nth-child(1) { animation-delay:0.05s; }
+        .metric-card:nth-child(2) { animation-delay:0.10s; }
+        .metric-card:nth-child(3) { animation-delay:0.15s; }
+        .metric-card:nth-child(4) { animation-delay:0.20s; }
+        .panel { animation:ibm-in 0.4s ease both; animation-delay:0.25s; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width:1100px) {
+            .cards { grid-template-columns:repeat(2,1fr); }
+            .metric-card:nth-child(2) { border-right:none; }
+            .metric-card:nth-child(3) { border-top:1px solid var(--ibm-gray-20); }
+        }
+        @media (max-width:900px) {
+            .grid { grid-template-columns:1fr; }
+            .panel-movements { grid-row:auto; }
+        }
+        @media (max-width:768px) {
             .sidebar { position:fixed; transform:translateX(-100%); z-index:999; width:250px; }
             .sidebar.open { transform:translateX(0); }
             .header { padding:0 15px; height:56px; }
-            .header h2 { font-size:15px; }
-            .content { padding:15px; }
-            .cards { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
-            .card-info h3 { font-size:22px; }
-            .card-icon { width:40px; height:40px; }
-            .panel { padding:16px; }
+            .header h2 { font-size:14px; }
+            .content { padding:16px; }
         }
-
-        @media (max-width: 480px) {
-            .cards { grid-template-columns: 1fr; }
+        @media (max-width:600px) {
+            .cards { grid-template-columns:1fr; }
+            .metric-card { border-right:none !important; border-top:1px solid var(--ibm-gray-20); }
+            .metric-card:first-child { border-top:none; }
         }
     </style>
 </head>
@@ -134,7 +365,7 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR — sin modificaciones -->
     <div class="sidebar" id="sidebar">
         <img src="public/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
         <div class="logo">SGIAC-ISC <small>Sistema de Gestión</small></div>
@@ -156,7 +387,7 @@
 
     <!-- MAIN -->
     <div class="main">
-        <!-- HEADER -->
+        <!-- HEADER — sin modificaciones -->
         <div class="header">
             <div class="header-left">
                 <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
@@ -170,88 +401,141 @@
 
         <!-- CONTENT -->
         <div class="content">
-            <!-- CARDS -->
+
+            <!-- MÉTRICAS IBM -->
+            <div class="section-label">Resumen General</div>
             <div class="cards">
-                <div class="card">
-                    <div class="card-info">
-                        <h3 id="cardAssets">—</h3>
-                        <p>Activos Totales</p>
+
+                <div class="metric-card assets">
+                    <div class="metric-top">
+                        <div class="metric-label">Activos Totales</div>
+                        <div class="metric-icon"><i class="fas fa-box"></i></div>
                     </div>
-                    <div class="card-icon"><i class="fas fa-box"></i></div>
-                </div>
-                <div class="card">
-                    <div class="card-info">
-                        <h3 id="cardConsumables">—</h3>
-                        <p>Consumibles</p>
+                    <div>
+                        <div class="metric-value loading-val" id="cardAssets">—</div>
+                        <div class="metric-trend">Inventario registrado</div>
                     </div>
-                    <div class="card-icon"><i class="fas fa-flask"></i></div>
                 </div>
-                <div class="card">
-                    <div class="card-info">
-                        <h3 id="cardRequests">—</h3>
-                        <p>Solicitudes Pendientes</p>
+
+                <div class="metric-card consumables">
+                    <div class="metric-top">
+                        <div class="metric-label">Consumibles</div>
+                        <div class="metric-icon"><i class="fas fa-flask"></i></div>
                     </div>
-                    <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
-                </div>
-                <div class="card">
-                    <div class="card-info">
-                        <h3 id="cardReservations">—</h3>
-                        <p>Reservas Hoy</p>
+                    <div>
+                        <div class="metric-value loading-val" id="cardConsumables">—</div>
+                        <div class="metric-trend">En almacén</div>
                     </div>
-                    <div class="card-icon"><i class="fas fa-calendar"></i></div>
                 </div>
+
+                <div class="metric-card requests">
+                    <div class="metric-top">
+                        <div class="metric-label">Solicitudes Pendientes</div>
+                        <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
+                    </div>
+                    <div>
+                        <div class="metric-value loading-val" id="cardRequests">—</div>
+                        <div class="metric-trend">Requieren atención</div>
+                    </div>
+                </div>
+
+                <div class="metric-card reservations">
+                    <div class="metric-top">
+                        <div class="metric-label">Reservas Hoy</div>
+                        <div class="metric-icon"><i class="fas fa-calendar-check"></i></div>
+                    </div>
+                    <div>
+                        <div class="metric-value loading-val" id="cardReservations">—</div>
+                        <div class="metric-trend" id="todayDate">—</div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- GRID -->
+            <!-- GRID INFERIOR -->
+            <div class="section-label">Operaciones</div>
             <div class="grid">
-                <!-- Descripción -->
-                <div class="panel">
-                    <p style="color:#6b7280; line-height:1.6;">
-                        Gestiona, controla y visualiza todos los activos, consumibles y movimientos del laboratorio de Ingeniería en Sistemas Computacionales.
-                    </p>
+
+                <!-- Últimos Movimientos (columna izquierda, 2 filas) -->
+                <div class="panel panel-movements">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span class="dot dot-blue"></span>
+                            Últimos Movimientos
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Activo</th>
+                                    <th>Usuario</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movementsBody">
+                                <tr class="loading-row"><td colspan="4">Cargando datos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- Últimos Movimientos -->
-                <div class="panel">
-                    <div class="panel-title"><i class="fas fa-exchange-alt" style="color:#4f46e5; margin-right:8px;"></i>Últimos Movimientos</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Activo</th>
-                                <th>Usuario</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="movementsBody">
-                            <tr class="loading-row"><td colspan="4">Cargando...</td></tr>
-                        </tbody>
-                    </table>
+                <!-- Descripción del sistema -->
+                <div class="panel panel-desc">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span class="dot dot-blue"></span>
+                            Acerca del Sistema
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <p>
+                            Gestiona, controla y visualiza todos los activos, consumibles y movimientos del laboratorio de Ingeniería en Sistemas Computacionales del Tecnológico Superior de Jalisco.
+                        </p>
+                        <div class="system-tag">
+                            <i class="fas fa-circle" style="font-size:7px;"></i>
+                            SGIAC-ISC · v1.0
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Actividad Reciente -->
                 <div class="panel">
-                    <div class="panel-title"><i class="fas fa-bell" style="color:#4f46e5; margin-right:8px;"></i>Actividad Reciente</div>
-                    <div id="activityContainer">
-                        <div class="activity-item" style="color:#9ca3af;">Cargando...</div>
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span class="dot dot-green"></span>
+                            Actividad Reciente
+                        </div>
+                    </div>
+                    <div class="panel-body activity-list" id="activityContainer">
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background:var(--ibm-gray-30);"></div>
+                            <div class="activity-text" style="color:var(--ibm-gray-50);">Cargando actividad...</div>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
     <script>
+        /* ── Sidebar toggle ── */
         function toggleMenu() {
             const s = document.getElementById("sidebar");
             const o = document.getElementById("sidebarOverlay");
             s.classList.toggle("open");
             o.classList.toggle("show");
         }
-
         function closeSidebar() {
             document.getElementById("sidebar").classList.remove("open");
             document.getElementById("sidebarOverlay").classList.remove("show");
         }
+
+        /* ── Fecha de hoy ── */
+        document.getElementById("todayDate").textContent =
+            new Date().toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"short" });
     </script>
     <script src="../js/realtime.js"></script>
     <script src="../js/dashboard.js"></script>
