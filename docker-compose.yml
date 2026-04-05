@@ -1,5 +1,5 @@
 services:
- 
+
   backend:
     build:
       context: ./backend
@@ -10,7 +10,7 @@ services:
     env_file:
       - ./backend/.env
     restart: unless-stopped
- 
+
   frontend:
     build:
       context: ./frontend
@@ -21,4 +21,13 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
- 
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: sgiac-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - frontend
