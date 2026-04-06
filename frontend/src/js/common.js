@@ -23,6 +23,24 @@ function getUser() {
 function getUserRole()  { return getUser()?.role     || "alumno"; }
 function getUsername()  { return getUser()?.username || "Usuario"; }
 
+/* ── CSS del sidebar inyectado globalmente (garantiza tamaño idéntico en todas las páginas) ── */
+(function injectSidebarCSS() {
+  if (document.getElementById("sgiac-sidebar-css")) return;
+  const style = document.createElement("style");
+  style.id = "sgiac-sidebar-css";
+  style.textContent = `
+    .sidebar {
+      width: 240px !important;
+      min-width: 240px !important;
+      max-width: 240px !important;
+      flex-shrink: 0 !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
 const rolePhotos = {
   administrador: "public/Captura de pantalla 2026-03-18 201833.png",
   docente:       "public/Captura de pantalla 2026-03-18 201617.png",
@@ -139,36 +157,122 @@ function doLogout() {
   window.location.href = "login.html";
 }
 
-/* ── SIDEBAR: oscurecer links no permitidos ── */
+/* ── SIDEBAR: reconstruir menú completo según rol ── */
+
+// Definición centralizada del menú por rol.
+// Cada entrada: { section, links: [{ icon, label, href }] }
+const MENU_BY_ROLE = {
+  administrador: [
+    {
+      section: "Principal",
+      links: [
+        { icon: "fa-chart-line",    label: "Panel Principal", href: "dashboard.html" },
+      ]
+    },
+    {
+      section: "Inventario",
+      links: [
+        { icon: "fa-box",           label: "Activos",         href: "activos.html" },
+        { icon: "fa-flask",         label: "Consumibles",     href: "consumibles.html" },
+      ]
+    },
+    {
+      section: "Gestión",
+      links: [
+        { icon: "fa-clipboard-list",label: "Solicitudes",     href: "solicitudes.html" },
+        { icon: "fa-calendar-check",label: "Reservas",        href: "reservas.html" },
+        { icon: "fa-users",         label: "Usuarios",        href: "usuarios.html" },
+      ]
+    },
+    {
+      section: "Sistema",
+      links: [
+        { icon: "fa-file-alt",      label: "Reportes",        href: "reportes.html" },
+        { icon: "fa-cog",           label: "Configuración",   href: "configuracion.html" },
+      ]
+    },
+  ],
+
+  docente: [
+    {
+      section: "Principal",
+      links: [
+        { icon: "fa-chart-line",    label: "Panel Principal", href: "dashboard.html" },
+      ]
+    },
+    {
+      section: "Inventario",
+      links: [
+        { icon: "fa-box",           label: "Activos",         href: "activos.html" },
+        { icon: "fa-flask",         label: "Consumibles",     href: "consumibles.html" },
+      ]
+    },
+    {
+      section: "Gestión",
+      links: [
+        { icon: "fa-clipboard-list",label: "Solicitudes",     href: "solicitudes.html" },
+        { icon: "fa-calendar-check",label: "Reservas",        href: "reservas.html" },
+      ]
+    },
+    {
+      section: "Sistema",
+      links: [
+        { icon: "fa-cog",           label: "Configuración",   href: "configuracion.html" },
+      ]
+    },
+  ],
+
+  alumno: [
+    {
+      section: "Principal",
+      links: [
+        { icon: "fa-home",          label: "Inicio",          href: "dashboard.html" },
+      ]
+    },
+    {
+      section: "Laboratorio",
+      links: [
+        { icon: "fa-box",           label: "Catálogo de Activos", href: "activos.html" },
+        { icon: "fa-flask",         label: "Consumibles",         href: "consumibles.html" },
+      ]
+    },
+    {
+      section: "Mis Trámites",
+      links: [
+        { icon: "fa-clipboard-list",label: "Mis Solicitudes", href: "solicitudes.html" },
+        { icon: "fa-calendar-check",label: "Mis Reservas",    href: "reservas.html" },
+      ]
+    },
+    {
+      section: "Mi Cuenta",
+      links: [
+        { icon: "fa-cog",           label: "Configuración",   href: "configuracion.html" },
+      ]
+    },
+  ],
+};
+
 function applyMenuByRole() {
-  const role = getUserRole();
+  const role    = getUserRole();
+  const menuEl  = document.querySelector(".menu");
+  if (!menuEl) return;
 
-  // Links completamente ocultos (solo admin)
-  const adminOnlyHidden  = ["usuarios.html", "reportes.html"];
-  // Links visibles pero con candado (no pueden acceder)
-  // configuracion.html → todos pueden entrar, el JS interno filtra secciones
+  const sections = MENU_BY_ROLE[role] || MENU_BY_ROLE.alumno;
+  const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
 
-  document.querySelectorAll(".menu a").forEach(link => {
-    const page = (link.getAttribute("href") || "").split("/").pop();
+  // Reconstruir el menú completo
+  menuEl.innerHTML = sections.map(sec => {
+    const links = sec.links.map(l => {
+      const page    = l.href.split("/").pop();
+      const active  = page === currentPage ? " active" : "";
+      return `<a href="${l.href}" class="${active}">
+        <i class="fas ${l.icon}"></i> ${l.label}
+      </a>`;
+    }).join("");
+    return `<div class="menu-section">${sec.section}</div>${links}`;
+  }).join("");
 
-    if (adminOnlyHidden.includes(page) && role !== "administrador") {
-      // Mantener visible pero apagado con tooltip
-      link.style.opacity   = "0.35";
-      link.style.pointerEvents = "none";
-      link.style.cursor    = "not-allowed";
-      link.title           = "Solo administradores";
-
-      // Añadir icono de candado
-      if (!link.querySelector(".lock-icon")) {
-        const lock = document.createElement("i");
-        lock.className = "fas fa-lock lock-icon";
-        lock.style.cssText = "font-size:10px;margin-left:auto;opacity:0.6;";
-        link.appendChild(lock);
-      }
-    }
-  });
-
-  // Ocultar botones de agregar activos/consumibles para docente y alumno
+  // Ocultar botones de acción según rol (clases usadas en activos/consumibles)
   if (role !== "administrador") {
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   }
