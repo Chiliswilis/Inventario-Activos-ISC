@@ -10,15 +10,17 @@ const assetsRoutes       = require("./src/assets");
 
 
 const consumiblesRoutes  = require("./src/consumibles");
-const statsRoutes        = require("./src/stats");
+
 const requestsRoutes     = require("./src/requests");
 const reservationsRoutes = require("./src/reservations");
 
 //Nuevos
 const eventsRouter = require("./src/modules/events/events.routes");
 const usersRoutes  = require("./src/modules/users/users.routes");
-
 const categoriesRoutes = require("./src/modules/categories/categories.routes");
+
+const statsRoutes = require("./src/modules/stats/stats.routes");
+
 
 const app = express();
 app.use(cors());
