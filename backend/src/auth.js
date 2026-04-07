@@ -1,7 +1,7 @@
 const express  = require("express");
 const router   = express.Router();
 const bcrypt   = require("bcrypt");
-const supabase = require("./supabase");
+const supabase = require("./config/supabase");
 
 /* ── LOGIN ── */
 router.post("/login", async (req, res) => {

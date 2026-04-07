@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const supabase = require("./supabase");
+const supabase = require("./config/supabase");
 
 /* LISTAR TODAS LAS CATEGORÍAS */
 router.get("/", async (req, res) => {
