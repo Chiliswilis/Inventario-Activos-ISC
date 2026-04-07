@@ -3,17 +3,22 @@ require("dotenv").config();
 const express = require("express");
 const cors    = require("cors");
 const path    = require("path");
-const supabase = require("./src/supabase");
+const supabase = require("./src/config/supabase");
 
 const authRoutes         = require("./src/auth");
 const assetsRoutes       = require("./src/assets");
-const categoriesRoutes   = require("./src/categories");
-const usersRoutes        = require("./src/users");
+
+
 const consumiblesRoutes  = require("./src/consumibles");
 const statsRoutes        = require("./src/stats");
 const requestsRoutes     = require("./src/requests");
 const reservationsRoutes = require("./src/reservations");
-const { router: eventsRouter } = require("./src/events");   // <-- NUEVO
+
+//Nuevos
+const eventsRouter = require("./src/modules/events/events.routes");
+const usersRoutes  = require("./src/modules/users/users.routes");
+
+const categoriesRoutes = require("./src/modules/categories/categories.routes");
 
 const app = express();
 app.use(cors());
@@ -28,7 +33,7 @@ app.use("/api/consumibles",  consumiblesRoutes);
 app.use("/api/stats",        statsRoutes);
 app.use("/api/requests",     requestsRoutes);
 app.use("/api/reservations", reservationsRoutes);
-app.use("/api/events",       eventsRouter);                 // <-- NUEVO
+app.use("/api/events",       eventsRouter);
 
 // ── LABS (catálogo dinámico de laboratorios) ──
 app.get("/api/labs", async (req, res) => {
