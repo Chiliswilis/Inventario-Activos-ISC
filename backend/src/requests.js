@@ -1,7 +1,7 @@
 const express  = require("express");
 const router   = express.Router();
-const supabase = require("./supabase");
-const { broadcast } = require("./events");   // <-- NUEVO
+const supabase = require("./config/supabase");
+const { broadcast } = require("./modules/events/events.service");
 
 const SELECT_FULL = `
   id, status, request_date, notes, request_type, purpose,
