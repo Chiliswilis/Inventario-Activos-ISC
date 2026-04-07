@@ -5,7 +5,7 @@ const cors    = require("cors");
 const path    = require("path");
 const supabase = require("./src/config/supabase");
 
-const authRoutes         = require("./src/auth");
+
 const assetsRoutes       = require("./src/assets");
 
 
@@ -18,6 +18,8 @@ const reservationsRoutes = require("./src/reservations");
 const eventsRouter = require("./src/modules/events/events.routes");
 const usersRoutes  = require("./src/modules/users/users.routes");
 const categoriesRoutes = require("./src/modules/categories/categories.routes");
+const authRoutes = require("./src/modules/auth/auth.routes");
+
 
 const statsRoutes = require("./src/modules/stats/stats.routes");
 
