@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="public/logoTsj.png">
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png">
     <title>SGIAC-ISC | Reportes</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="../responsive.css">
+    <link rel="stylesheet" href="../styles/responsive.css">
 
     <!-- Librerías necesarias -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -80,7 +80,7 @@
 <body>
 
 <div class="sidebar">
-    <img src="public/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
+    <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
     <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
     <div class="menu">
         <div class="menu-section">Principal</div>
@@ -437,8 +437,8 @@ async function loadStats() {
 window.onload = loadStats;
 </script>
 
-<script src="../js/common.js"></script>
-<script src="../js/realtime.js"></script>
+<script src="../scripts/pages/common.js"></script>
+<script src="../scripts/pages/realtime.js"></script>
 
 <style>
 .toast{position:fixed;bottom:25px;right:25px;padding:14px 22px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(15px);transition:all 0.3s;}

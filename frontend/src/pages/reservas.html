@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="public/logoTsj.png">
+<link rel="icon" type="image/png" href="../assets/logoTsj.png">
 <title>SGIAC-ISC | Reservas</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../responsive.css">
+<link rel="stylesheet" href="../styles/responsive.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
@@ -484,7 +484,7 @@ tr:hover td{background:#fafafa;}
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-  <img src="public/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
+  <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
   <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
   <div class="menu">
     <div class="menu-section">Principal</div>
@@ -1350,7 +1350,7 @@ document.querySelectorAll(".modal").forEach(m => {
   m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
 });
 </script>
-<script src="../js/realtime.js"></script>
-<script src="../js/common.js"></script>
+<script src="../scripts/pages/realtime.js"></script>
+<script src="../scripts/pages/common.js"></script>
 </body>
 </html>
