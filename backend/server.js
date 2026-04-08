@@ -1,43 +1,41 @@
 require("dotenv").config();
 
-const express  = require("express");
-const cors     = require("cors");
-const path     = require("path");
+const express = require("express");
+const cors    = require("cors");
+const path    = require("path");
 const supabase = require("./src/config/supabase");
 
-// ── Middlewares ──
-const { requireAuth, requireRole } = require("./src/middlewares/auth.middleware");
+const { requireAuth } = require("./src/middlewares/auth.middleware");
 
-// ── Módulos ──
-const authRoutes         = require("./src/modules/auth/auth.routes");
-const assetsRoutes       = require("./src/modules/assets/assets.routes");
-const categoriesRoutes   = require("./src/modules/categories/categories.routes");
-const consumiblesRoutes  = require("./src/modules/consumibles/consumibles.routes");
-const eventsRouter       = require("./src/modules/events/events.routes");
-const requestsRoutes     = require("./src/modules/requests/requests.routes");
+//Nuevos
+const eventsRouter = require("./src/modules/events/events.routes");
+const usersRoutes  = require("./src/modules/users/users.routes");
+const categoriesRoutes = require("./src/modules/categories/categories.routes");
+const authRoutes = require("./src/modules/auth/auth.routes");
+const consumiblesRoutes = require("./src/modules/consumibles/consumibles.routes");
+const requestsRoutes = require("./src/modules/requests/requests.routes");
 const reservationsRoutes = require("./src/modules/reservations/reservations.routes");
-const statsRoutes        = require("./src/modules/stats/stats.routes");
-const usersRoutes        = require("./src/modules/users/users.routes");
+const assetsRoutes = require("./src/modules/assets/assets.routes");
+const statsRoutes = require("./src/modules/stats/stats.routes");
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ── Rutas públicas (sin auth) ──
-app.use("/api/auth", authRoutes);
-
-// ── Rutas protegidas ──
-app.use("/api/assets",       requireAuth, assetsRoutes);
-app.use("/api/categories",   requireAuth, categoriesRoutes);
-app.use("/api/consumibles",  requireAuth, consumiblesRoutes);
-app.use("/api/requests",     requireAuth, requestsRoutes);
-app.use("/api/reservations", requireAuth, reservationsRoutes);
-app.use("/api/stats",        requireAuth, statsRoutes);
-app.use("/api/users",        requireAuth, requireRole("administrador"), usersRoutes);
+// ── API ROUTES ──
+app.use("/api/auth",         authRoutes);
+app.use("/api/assets",       assetsRoutes);
+app.use("/api/categories",   categoriesRoutes);
+app.use("/api/users",        usersRoutes);
+app.use("/api/consumibles",  consumiblesRoutes);
+app.use("/api/stats",        statsRoutes);
+app.use("/api/requests",     requestsRoutes);
+app.use("/api/reservations", reservationsRoutes);
 app.use("/api/events",       eventsRouter);
 
-// ── Labs (catálogo dinámico) ──
-app.get("/api/labs", requireAuth, async (req, res) => {
+// ── LABS (catálogo dinámico de laboratorios) ──
+app.get("/api/labs", async (req, res) => {
   const { data, error } = await supabase
     .from("labs")
     .select("id, edificio, nombre, capacidad, open_time, close_time")
@@ -48,7 +46,7 @@ app.get("/api/labs", requireAuth, async (req, res) => {
   res.json(data);
 });
 
-// ── Frontend estático ──
+// ── FRONTEND ESTÁTICO ──
 app.use(express.static(path.join(__dirname, "../frontend/src")));
 app.use("/public", express.static(path.join(__dirname, "../frontend/public")));
 app.get("*", (req, res) => {
