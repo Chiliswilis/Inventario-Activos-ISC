@@ -1,21 +1,3 @@
-// ============================================
-// SGIAC-ISC | common.js  — modelo de roles v2
-// ============================================
-//
-// ROLES Y PERMISOS:
-//
-// administrador → gestiona inventario (agregar/editar/eliminar activos y consumibles),
-//                 ve todos los logs, reportes y usuarios. NO aprueba solicitudes.
-//
-// docente       → aprueba/rechaza solicitudes y reservas de sus alumnos (o las propias).
-//                 puede ver activos y consumibles (solo lectura).
-//                 acceso a configuración con opciones limitadas.
-//
-// alumno        → crea solicitudes y reservas. Ve activos y consumibles (solo lectura).
-//                 configuración solo de su perfil (cambio de contraseña).
-//
-// ============================================================
-
 function getUser() {
   try { return JSON.parse(localStorage.getItem("user")) || null; }
   catch { return null; }
@@ -42,9 +24,9 @@ function getUsername()  { return getUser()?.username || "Usuario"; }
 })();
 
 const rolePhotos = {
-  administrador: "public/Captura de pantalla 2026-03-18 201833.png",
-  docente:       "public/Captura de pantalla 2026-03-18 201617.png",
-  alumno:        "public/Captura de pantalla 2026-03-18 201757.png"
+  administrador: "/assets/Captura de pantalla 2026-03-18 201833.png",
+  docente:       "/assets/Captura de pantalla 2026-03-18 201617.png",
+  alumno:        "/assets/Captura de pantalla 2026-03-18 201757.png"
 };
 
 function applyProfilePhoto() {
@@ -55,16 +37,13 @@ function applyProfilePhoto() {
 }
 
 function requireAuth() {
-  if (!getUser()) window.location.href = "login.html";
+  if (!getUser()) window.location.href = "/login.html";
 }
 
 // ── PERMISOS POR PÁGINA ──────────────────────────────────────
-// "admin_only"  → solo admin puede acceder (redirige al resto)
-// "dim"         → alumno y docente VEN el link pero con aviso al intentar acceder
 const PAGE_RULES = {
   "usuarios.html":      { access: "admin_only" },
   "reportes.html":      { access: "admin_only" },
-  // configuracion.html es accesible para todos, el JS de config.js filtra las secciones
 };
 
 function requirePagePermission() {
@@ -75,7 +54,6 @@ function requirePagePermission() {
   const role = getUserRole();
 
   if (rule.access === "admin_only" && role !== "administrador") {
-    // Mostrar pantalla de acceso denegado en lugar de redirigir bruscamente
     document.body.innerHTML = `
       <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
                   background:#f1f3f9;font-family:'Poppins',sans-serif;">
@@ -90,7 +68,7 @@ function requirePagePermission() {
             Esta sección es exclusiva para administradores.<br>
             Tu rol actual es <strong>${role}</strong>.
           </p>
-          <a href="dashboard.html" style="display:inline-block;background:#4f46e5;color:white;
+          <a href="/pages/dashboard.html" style="display:inline-block;background:#4f46e5;color:white;
              padding:11px 28px;border-radius:8px;text-decoration:none;font-size:14px;">
             ← Volver al inicio
           </a>
@@ -154,41 +132,38 @@ function showLogoutModal() {
 function doLogout() {
   localStorage.removeItem("user");
   localStorage.removeItem("session");
-  window.location.href = "login.html";
+  window.location.href = "/login.html";
 }
 
 /* ── SIDEBAR: reconstruir menú completo según rol ── */
-
-// Definición centralizada del menú por rol.
-// Cada entrada: { section, links: [{ icon, label, href }] }
 const MENU_BY_ROLE = {
   administrador: [
     {
       section: "Principal",
       links: [
-        { icon: "fa-chart-line",    label: "Panel Principal", href: "dashboard.html" },
+        { icon: "fa-chart-line",    label: "Panel Principal", href: "/pages/dashboard.html" },
       ]
     },
     {
       section: "Inventario",
       links: [
-        { icon: "fa-box",           label: "Activos",         href: "activos.html" },
-        { icon: "fa-flask",         label: "Consumibles",     href: "consumibles.html" },
+        { icon: "fa-box",           label: "Activos",         href: "/pages/activos.html" },
+        { icon: "fa-flask",         label: "Consumibles",     href: "/pages/consumibles.html" },
       ]
     },
     {
       section: "Gestión",
       links: [
-        { icon: "fa-clipboard-list",label: "Solicitudes",     href: "solicitudes.html" },
-        { icon: "fa-calendar-check",label: "Reservas",        href: "reservas.html" },
-        { icon: "fa-users",         label: "Usuarios",        href: "usuarios.html" },
+        { icon: "fa-clipboard-list",label: "Solicitudes",     href: "/pages/solicitudes.html" },
+        { icon: "fa-calendar-check",label: "Reservas",        href: "/pages/reservas.html" },
+        { icon: "fa-users",         label: "Usuarios",        href: "/pages/usuarios.html" },
       ]
     },
     {
       section: "Sistema",
       links: [
-        { icon: "fa-file-alt",      label: "Reportes",        href: "reportes.html" },
-        { icon: "fa-cog",           label: "Configuración",   href: "configuracion.html" },
+        { icon: "fa-file-alt",      label: "Reportes",        href: "/pages/reportes.html" },
+        { icon: "fa-cog",           label: "Configuración",   href: "/pages/configuracion.html" },
       ]
     },
   ],
@@ -197,27 +172,27 @@ const MENU_BY_ROLE = {
     {
       section: "Principal",
       links: [
-        { icon: "fa-chart-line",    label: "Panel Principal", href: "dashboard.html" },
+        { icon: "fa-chart-line",    label: "Panel Principal", href: "/pages/dashboard.html" },
       ]
     },
     {
       section: "Inventario",
       links: [
-        { icon: "fa-box",           label: "Activos",         href: "activos.html" },
-        { icon: "fa-flask",         label: "Consumibles",     href: "consumibles.html" },
+        { icon: "fa-box",           label: "Activos",         href: "/pages/activos.html" },
+        { icon: "fa-flask",         label: "Consumibles",     href: "/pages/consumibles.html" },
       ]
     },
     {
       section: "Gestión",
       links: [
-        { icon: "fa-clipboard-list",label: "Solicitudes",     href: "solicitudes.html" },
-        { icon: "fa-calendar-check",label: "Reservas",        href: "reservas.html" },
+        { icon: "fa-clipboard-list",label: "Solicitudes",     href: "/pages/solicitudes.html" },
+        { icon: "fa-calendar-check",label: "Reservas",        href: "/pages/reservas.html" },
       ]
     },
     {
       section: "Sistema",
       links: [
-        { icon: "fa-cog",           label: "Configuración",   href: "configuracion.html" },
+        { icon: "fa-cog",           label: "Configuración",   href: "/pages/configuracion.html" },
       ]
     },
   ],
@@ -226,27 +201,27 @@ const MENU_BY_ROLE = {
     {
       section: "Principal",
       links: [
-        { icon: "fa-home",          label: "Inicio",          href: "dashboard.html" },
+        { icon: "fa-home",          label: "Inicio",          href: "/pages/dashboard.html" },
       ]
     },
     {
       section: "Laboratorio",
       links: [
-        { icon: "fa-box",           label: "Catálogo de Activos", href: "activos.html" },
-        { icon: "fa-flask",         label: "Consumibles",         href: "consumibles.html" },
+        { icon: "fa-box",           label: "Catálogo de Activos", href: "/pages/activos.html" },
+        { icon: "fa-flask",         label: "Consumibles",         href: "/pages/consumibles.html" },
       ]
     },
     {
       section: "Mis Trámites",
       links: [
-        { icon: "fa-clipboard-list",label: "Mis Solicitudes", href: "solicitudes.html" },
-        { icon: "fa-calendar-check",label: "Mis Reservas",    href: "reservas.html" },
+        { icon: "fa-clipboard-list",label: "Mis Solicitudes", href: "/pages/solicitudes.html" },
+        { icon: "fa-calendar-check",label: "Mis Reservas",    href: "/pages/reservas.html" },
       ]
     },
     {
       section: "Mi Cuenta",
       links: [
-        { icon: "fa-cog",           label: "Configuración",   href: "configuracion.html" },
+        { icon: "fa-cog",           label: "Configuración",   href: "/pages/configuracion.html" },
       ]
     },
   ],
@@ -260,11 +235,10 @@ function applyMenuByRole() {
   const sections = MENU_BY_ROLE[role] || MENU_BY_ROLE.alumno;
   const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
 
-  // Reconstruir el menú completo
   menuEl.innerHTML = sections.map(sec => {
     const links = sec.links.map(l => {
-      const page    = l.href.split("/").pop();
-      const active  = page === currentPage ? " active" : "";
+      const page   = l.href.split("/").pop();
+      const active = page === currentPage ? " active" : "";
       return `<a href="${l.href}" class="${active}">
         <i class="fas ${l.icon}"></i> ${l.label}
       </a>`;
@@ -272,7 +246,6 @@ function applyMenuByRole() {
     return `<div class="menu-section">${sec.section}</div>${links}`;
   }).join("");
 
-  // Ocultar botones de acción según rol (clases usadas en activos/consumibles)
   if (role !== "administrador") {
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   }
@@ -300,17 +273,14 @@ function applyRoleUI() {
   const user = getUser();
   if (!user) return;
 
-  // Nombre de usuario
   ["username","usernameDisplay","userDisplayName"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = user.username;
   });
   document.querySelectorAll(".username-display").forEach(el => el.textContent = user.username);
 
-  // Foto de perfil por rol
   applyProfilePhoto();
 
-  // Badge de rol junto al nombre
   const userDiv = document.querySelector(".user");
   if (userDiv) {
     const nameSpan = userDiv.querySelector("span");
@@ -322,7 +292,6 @@ function applyRoleUI() {
     }
   }
 
-  // Botón de logout
   if (userDiv && !document.getElementById("logoutBtn")) {
     const btn = document.createElement("button");
     btn.id = "logoutBtn";
