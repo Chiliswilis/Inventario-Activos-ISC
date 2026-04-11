@@ -24,11 +24,56 @@ const getStats = async () => {
     .gte("start_time", startDay)
     .lte("start_time", endDay);
 
-  const { data: lastMovements } = await supabase
+  // ── Últimos activos modificados ──────────────────────────────────────────
+  const { data: rawAssets } = await supabase
     .from("assets")
     .select("id, name, status, updated_at")
     .order("updated_at", { ascending: false })
     .limit(5);
+
+  // Para activos "borrowed", buscar qué alumno tiene la solicitud aprobada
+  const borrowedIds = (rawAssets || [])
+    .filter(a => a.status === "borrowed")
+    .map(a => a.id);
+
+  // Mapa { asset_id → username }
+  const userByAsset = {};
+
+  if (borrowedIds.length > 0) {
+    // 1) Solicitudes multi-ítem (tabla request_items)
+    const { data: itemRows } = await supabase
+      .from("request_items")
+      .select("asset_id, requests!inner(status, users!requests_user_id_fkey(id, username))")
+      .in("asset_id", borrowedIds)
+      .eq("requests.status", "approved");
+
+    (itemRows || []).forEach(row => {
+      const username = row.requests?.users?.username;
+      if (username) userByAsset[row.asset_id] = username;
+    });
+
+    // 2) Solicitudes directas con asset_id (legacy)
+    const missingIds = borrowedIds.filter(id => !userByAsset[id]);
+    if (missingIds.length > 0) {
+      const { data: directRows } = await supabase
+        .from("requests")
+        .select("asset_id, users!requests_user_id_fkey(id, username)")
+        .in("asset_id", missingIds)
+        .eq("status", "approved");
+
+      (directRows || []).forEach(row => {
+        const username = row.users?.username;
+        if (username) userByAsset[row.asset_id] = username;
+      });
+    }
+  }
+
+  // Combinar: cada activo lleva el username si está prestado
+  const lastMovements = (rawAssets || []).map(a => ({
+    ...a,
+    username: userByAsset[a.id] || null
+  }));
+  // ────────────────────────────────────────────────────────────────────────
 
   const { data: recentActivity } = await supabase
     .from("logs")

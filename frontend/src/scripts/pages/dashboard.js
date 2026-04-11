@@ -1,9 +1,3 @@
-// ══════════════════════════════════════════════════════
-//  dashboard.js  —  SGIAC-ISC
-//  Fix: detección robusta de rol (window, localStorage,
-//       sessionStorage, JWT, DOM badge)
-// ══════════════════════════════════════════════════════
-
 const STATS_URL = "/api/stats";
 
 const statusLabel = {
@@ -107,20 +101,75 @@ function detectRole() {
   return "admin"; // default seguro para no romper el sistema
 }
 
+// ─── Cache de usuarios (admin) ────────────────────────
+let _usersCache = null;
+
+async function fetchUsersMap() {
+  if (_usersCache) return _usersCache;
+  try {
+    // Intentar endpoint estándar de usuarios
+    const endpoints = ["/api/users", "/api/usuarios", "/api/students", "/api/alumnos"];
+    for (const url of endpoints) {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data.users || data.data || data.alumnos || []);
+      if (list.length) {
+        // Construir mapa id → nombre
+        const map = {};
+        list.forEach(u => {
+          const id   = u.id || u.user_id || u.id_usuario;
+          const name = u.nombre || u.name || u.username || u.nombre_completo ||
+                       ((u.first_name || u.nombre) ? `${u.first_name || u.nombre} ${u.last_name || u.apellido || ""}`.trim() : null);
+          if (id && name) map[id] = name;
+        });
+        _usersCache = map;
+        return map;
+      }
+    }
+  } catch { /* silencioso */ }
+  return {};
+}
+
 // ─── Render Movimientos ───────────────────────────────
-function renderMovements(movements) {
+async function renderMovements(movements) {
   const tbody = document.getElementById("movementsBody");
   if (!tbody) return;
   if (!movements || !movements.length) {
     tbody.innerHTML = `<tr class="loading-row"><td colspan="4">Sin movimientos recientes</td></tr>`;
     return;
   }
+
+  // Verificar si algún movimiento no tiene usuario → enriquecer con mapa de usuarios
+  const needsEnrich = movements.some(m =>
+    !(m.user || m.username || m.user_name || m.assigned_to ||
+      m.borrower || m.nombre_usuario || m.nombre)
+  );
+  const usersMap = needsEnrich ? await fetchUsersMap() : {};
+
   tbody.innerHTML = "";
   movements.forEach(m => {
-    const st = statusLabel[m.status] || { text: m.status, cls: "" };
-    const usuario =
+    const st = statusLabel[m.status] || { text: m.status || "—", cls: "" };
+
+    // Resolver nombre del usuario
+    let usuario =
       m.user || m.username || m.user_name || m.assigned_to ||
-      m.borrower || m.nombre_usuario || m.nombre || "—";
+      m.borrower || m.nombre_usuario || m.nombre || m.alumno || m.student;
+
+    // Si sigue vacío, buscar en el mapa por user_id / alumno_id
+    if (!usuario) {
+      const uid = m.user_id || m.alumno_id || m.student_id || m.id_usuario || m.borrower_id;
+      if (uid && usersMap[uid]) {
+        usuario = usersMap[uid];
+      }
+    }
+
+    // Último recurso: mostrar el id del usuario si existe
+    if (!usuario) {
+      const uid = m.user_id || m.alumno_id || m.student_id || m.id_usuario || m.borrower_id;
+      usuario = uid ? `<span class="mono" style="font-size:11px;color:var(--ibm-gray-50);">ID ${uid}</span>` : "—";
+    }
+
     const activo = m.name || m.asset_name || m.activo || m.nombre_activo || "—";
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -213,7 +262,7 @@ async function loadStats() {
     animateCount(document.getElementById("cardRequestsD"),     data.totalRequests);
     animateCount(document.getElementById("cardReservationsD"), data.todayReservations);
 
-    renderMovements(data.lastMovements);
+    await renderMovements(data.lastMovements);
     renderActivity(data.recentActivity);
   } catch {
     console.warn("No se pudieron cargar las estadísticas");
