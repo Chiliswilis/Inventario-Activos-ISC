@@ -30,7 +30,7 @@ async function loadUsers() {
         <td><span style="background:${rl.color};color:white;padding:3px 10px;border-radius:12px;font-size:12px;">${rl.text}</span></td>
         <td>
           <i class="fas fa-edit"  title="Editar"   style="cursor:pointer;color:#4f46e5;margin-right:12px;" onclick="editUser(${u.id})"></i>
-          <i class="fas fa-trash" title="Eliminar" style="cursor:pointer;color:#dc2626;" onclick="deleteUser(${u.id})"></i>
+          <i class="fas fa-trash" title="Eliminar" style="cursor:pointer;color:#dc2626;" onclick="openDeleteUserModal(${u.id}, '${u.username}')"></i>
         </td>
       `;
       tbody.appendChild(tr);
@@ -40,9 +40,8 @@ async function loadUsers() {
   }
 }
 
-/* ── ABRIR MODAL ── */
+/* ── ABRIR MODAL CREAR/EDITAR ── */
 function openModal(mode = "add", user = null) {
-  // Crear modal si no existe
   let modal = document.getElementById("userModal");
   if (!modal) {
     modal = document.createElement("div");
@@ -86,7 +85,6 @@ function openModal(mode = "add", user = null) {
     document.body.appendChild(modal);
   }
 
-  // Resetear campos
   document.getElementById("userId").value    = "";
   document.getElementById("uUsername").value = "";
   document.getElementById("uEmail").value    = "";
@@ -111,6 +109,74 @@ function openModal(mode = "add", user = null) {
 function closeModal() {
   const modal = document.getElementById("userModal");
   if (modal) modal.style.display = "none";
+}
+
+/* ── MODAL CONFIRMAR ELIMINAR ── */
+function openDeleteUserModal(id, username) {
+  let modal = document.getElementById("deleteUserModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "deleteUserModal";
+    modal.style.cssText = `
+      display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);
+      justify-content:center;align-items:center;z-index:2000;
+    `;
+    modal.innerHTML = `
+      <div style="background:white;border-radius:16px;padding:32px;width:380px;
+                  box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center;
+                  animation:slideUp 0.22s ease;">
+        <style>@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}</style>
+        <div style="width:56px;height:56px;background:#fee2e2;border-radius:50%;
+          display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <i class="fas fa-trash" style="color:#dc2626;font-size:22px;"></i>
+        </div>
+        <h3 style="color:#1f2a3a;font-size:18px;margin-bottom:8px;">Eliminar Usuario</h3>
+        <p style="color:#6b7280;font-size:14px;margin-bottom:6px;">
+          ¿Estás seguro que deseas eliminar a:
+        </p>
+        <p id="deleteUserName" style="color:#1f2a3a;font-size:16px;font-weight:600;margin-bottom:6px;"></p>
+        <p style="color:#dc2626;font-size:12px;margin-bottom:24px;">
+          <i class="fas fa-exclamation-triangle"></i> Esta acción es irreversible.
+        </p>
+        <input type="hidden" id="deleteUserId">
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeDeleteUserModal()" style="
+            flex:1;padding:11px;background:#f3f4f6;color:#374151;border:none;
+            border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;">
+            Cancelar
+          </button>
+          <button onclick="confirmDeleteUser()" style="
+            flex:1;padding:11px;background:#dc2626;color:white;border:none;
+            border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;">
+            <i class="fas fa-trash"></i> Eliminar
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) closeDeleteUserModal(); });
+  }
+
+  document.getElementById("deleteUserId").value       = id;
+  document.getElementById("deleteUserName").textContent = username;
+  modal.style.display = "flex";
+}
+
+function closeDeleteUserModal() {
+  const modal = document.getElementById("deleteUserModal");
+  if (modal) modal.style.display = "none";
+}
+
+async function confirmDeleteUser() {
+  const id = document.getElementById("deleteUserId").value;
+  closeDeleteUserModal();
+  try {
+    const res = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error();
+    loadUsers();
+  } catch {
+    alert("No se pudo eliminar el usuario.");
+  }
 }
 
 /* ── GUARDAR ── */
@@ -166,18 +232,6 @@ async function editUser(id) {
     openModal("edit", user);
   } catch {
     alert("No se pudo cargar el usuario.");
-  }
-}
-
-/* ── ELIMINAR ── */
-async function deleteUser(id) {
-  if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
-  try {
-    const res = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error();
-    loadUsers();
-  } catch {
-    alert("No se pudo eliminar el usuario.");
   }
 }
 

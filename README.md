@@ -48,4 +48,18 @@ El sistema abarca la **administración, control y seguimiento** de los recursos 
 | Estudiantes desarrolladores | Referencia técnica para desarrollo |
 | Docentes responsables | Supervisión y validación del sistema |
 | Personal administrativo | Consulta de funcionalidades y alcance |
+<<<<<<< HEAD
 >>>>>>> d66b2a9 (WIP: cambios iniciales antes de ir a mi rama personal)
+=======
+
+## Credenciales de acceso
+
+| Rol | Usuario | Contraseña |
+| Administrador | adminOmar@gmail.com | Admin123 |
+| Docente | juan.rodriguez@lahuerta.tecmm.edu.mx | Docente123 |
+| Alumno | hu230111608@lahuerta.tecmm.edu.mx | Alumno123 |
+
+# Para clonar el repositorio, las instrucciones serán:
+cp .env.example backend/.env
+# Editar backend/.env con sus propias llaves de Supabase
+docker-compose up --build

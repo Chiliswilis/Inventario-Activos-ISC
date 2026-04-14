@@ -138,7 +138,7 @@ function renderTable(data) {
     }
 
     // Docente: editar sus propias solicitudes pending
-    if (role === "docente" && r.status === "pending" && String(r.docente_id) === String(currentUser.id)) {
+    if (role === "docente" && r.status === "pending" && String(r.user_id) === String(currentUser.id)) {
       acciones += `<button class="action-btn action-info" title="Editar solicitud" onclick="openEditRequest(${r.id})"><i class="fas fa-edit"></i></button>`;
     }
 
@@ -249,8 +249,20 @@ function openModal() {
   const todayStr   = new Date().toISOString().split("T")[0];
   const fechaSolEl = document.getElementById("reqFechaSol");
   const horaSolEl  = document.getElementById("reqHoraSol");
-  if (fechaSolEl) { fechaSolEl.min = todayStr; fechaSolEl.value = ""; }
-  if (horaSolEl)  { horaSolEl.value = ""; horaSolEl.min = "07:30"; horaSolEl.max = "15:00"; horaSolEl.step = "3600"; }
+  if (fechaSolEl) { fechaSolEl.min = todayStr; fechaSolEl.value = todayStr; }
+  if (horaSolEl) {
+    // Si es hoy, la hora mínima es la hora actual + 30 min redondeada al cuarto
+    const now    = new Date();
+    const mRound = Math.ceil((now.getMinutes() + 30) / 15) * 15;
+    const hMin   = now.getHours() + Math.floor(mRound / 60);
+    const mMin   = mRound % 60;
+    const minNow = `${String(hMin).padStart(2,"0")}:${String(mMin).padStart(2,"0")}`;
+    const minAllowed = minNow > "07:30" ? minNow : "07:30";
+    horaSolEl.value = "";
+    horaSolEl.min   = minAllowed;
+    horaSolEl.max   = "15:00";
+    horaSolEl.step  = "900";
+  }
 
   onTypeChange();
   document.getElementById("requestModal").classList.add("open");
@@ -535,6 +547,17 @@ async function saveRequest() {
     showToast(`Hora máxima: ${isSatSol ? "1:00 PM (sábado)" : "3:00 PM"}`, "error"); return;
   }
 
+  // Validar que si es hoy, la hora no sea pasada
+  const todayCheck = new Date().toISOString().split("T")[0];
+  if (fechaSol === todayCheck) {
+    const now     = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    if (minsSol < nowMins) {
+      showToast("No puedes seleccionar una hora que ya pas\xf3", "error");
+      return;
+    }
+  }
+
   // Docente encargado
   let docente_id = null;
   if (currentUser.role === "alumno") {
@@ -784,8 +807,12 @@ function openApproveModal(id) {
         <h3>Aprobar Solicitud</h3>
         <input type="hidden" id="approveId">
         <div class="form-group">
-          <label>Fecha y hora de entrega *</label>
-          <input type="datetime-local" id="approvePickupDate" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;">
+          <label>Fecha de entrega *</label>
+          <input type="date" id="approvePickupDate" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;">
+        </div>
+        <div class="form-group">
+          <label>Hora de entrega * <small style="color:#9ca3af;">(7:30 AM – 6:00 PM, Lun–Sáb)</small></label>
+          <input type="time" id="approvePickupTime" min="07:30" max="18:00" step="900" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;">
         </div>
         <div class="form-group">
           <label>Lugar de entrega *</label>
@@ -804,22 +831,40 @@ function openApproveModal(id) {
     modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
   document.getElementById("approveId").value              = id;
-  document.getElementById("approvePickupDate").value      = "";
   document.getElementById("approvePickupLocation").value  = "";
   document.getElementById("approveMessage").value         = "";
+  const todayStr = new Date().toISOString().split("T")[0];
+  document.getElementById("approvePickupDate").min   = todayStr;
+  document.getElementById("approvePickupDate").value = "";
+  if (document.getElementById("approvePickupTime"))
+    document.getElementById("approvePickupTime").value = "";
   modal.classList.add("open");
 }
 
 async function submitApprove() {
   const id  = document.getElementById("approveId").value;
   const pd  = document.getElementById("approvePickupDate").value;
+  const pt  = document.getElementById("approvePickupTime").value;
   const pl  = document.getElementById("approvePickupLocation").value.trim();
   const msg = document.getElementById("approveMessage").value.trim();
-  if (!pd || !pl) { showToast("Fecha y lugar son obligatorios", "error"); return; }
+  if (!pd || !pt || !pl) { showToast("Fecha, hora y lugar son obligatorios", "error"); return; }
+
+  // Validar que no sea domingo
+  const dow = new Date(pd + "T12:00:00").getDay();
+  if (dow === 0) { showToast("No se permiten entregas los domingos", "error"); return; }
+
+  // Validar rango horario 7:30 - 18:00
+  const [h, m] = pt.split(":").map(Number);
+  const mins   = h * 60 + m;
+  if (mins < 7*60+30) { showToast("Hora mínima: 7:30 AM", "error"); return; }
+  if (mins > 18*60)   { showToast("Hora máxima: 6:00 PM", "error"); return; }
+
+  const pickup_date = `${pd}T${pt}:00`;
+
   try {
     const res = await fetch(`${API}/${id}/approve`, {
       method: "PUT", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ pickup_date: pd, pickup_location: pl, admin_message: msg })
+      body: JSON.stringify({ pickup_date, pickup_location: pl, admin_message: msg })
     });
     if (!res.ok) throw new Error();
     showToast("Solicitud aprobada con éxito ✅", "success");
