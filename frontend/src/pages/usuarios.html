@@ -584,8 +584,7 @@ function closeSidebar(){
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
 
-const apiUrl = "http://localhost:3000/api/users";
-
+const apiUrl = "/api/users";
 const ORDER = ["administrador","docente","alumno"];
 
 const roleConfig = {
@@ -713,7 +712,7 @@ async function saveUser() {
       method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
     });
     if (!res.ok) { const err = await res.json(); showToast("Error: "+(err.message||"No se pudo guardar"), "error"); return; }
-    showToast(id ? "Usuario actualizado ✅" : "Usuario creado ✅", "success");
+    showToast(id ? "Usuario actualizado" : "Usuario creado", "success");
     closeModal();
     loadUsers();
   } catch { showToast("No se pudo conectar con el servidor", "error"); }
@@ -729,8 +728,60 @@ async function editUser(id) {
 }
 
 /* ── ELIMINAR ── */
-async function deleteUser(id) {
-  if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
+function deleteUser(id) {
+  const user = document.querySelector(`[onclick="deleteUser(${id})"]`)
+    ?.closest("tr")?.querySelector("td:nth-child(2)")?.textContent || "este usuario";
+  openDeleteUserModal(id, user);
+}
+
+function openDeleteUserModal(id, username) {
+  let modal = document.getElementById("deleteUserModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "deleteUserModal";
+    modal.style.cssText = `
+      display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);
+      justify-content:center;align-items:center;z-index:2000;`;
+    modal.innerHTML = `
+      <div style="background:white;border-radius:16px;padding:32px;width:380px;
+                  box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center;">
+        <div style="width:56px;height:56px;background:#fee2e2;border-radius:50%;
+          display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <i class="fas fa-trash" style="color:#dc2626;font-size:22px;"></i>
+        </div>
+        <h3 style="color:#1f2a3a;font-size:18px;margin-bottom:8px;">Eliminar Usuario</h3>
+        <p style="color:#6b7280;font-size:14px;margin-bottom:6px;">¿Estás seguro que deseas eliminar a:</p>
+        <p id="deleteUserName" style="color:#1f2a3a;font-size:16px;font-weight:600;margin-bottom:6px;"></p>
+        <p style="color:#dc2626;font-size:12px;margin-bottom:24px;">
+          <i class="fas fa-exclamation-triangle"></i> Esta acción es irreversible.
+        </p>
+        <input type="hidden" id="deleteUserId">
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeDeleteUserModal()" style="flex:1;padding:11px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;">
+            Cancelar
+          </button>
+          <button onclick="confirmDeleteUser()" style="flex:1;padding:11px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;">
+            <i class="fas fa-trash"></i> Eliminar
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => { if (e.target === modal) closeDeleteUserModal(); });
+  }
+  document.getElementById("deleteUserId").value        = id;
+  document.getElementById("deleteUserName").textContent = username;
+  modal.style.display = "flex";
+}
+
+function closeDeleteUserModal() {
+  const modal = document.getElementById("deleteUserModal");
+  if (modal) modal.style.display = "none";
+}
+
+async function confirmDeleteUser() {
+  const id = document.getElementById("deleteUserId").value;
+  closeDeleteUserModal();
   try {
     const res = await fetch(`${apiUrl}/${id}`, { method:"DELETE" });
     if (!res.ok) throw new Error();
