@@ -1,508 +1,220 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="../assets/logoTsj.png">
-    <title>SGIAC-ISC | Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="../styles/responsive.css">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --ibm-blue:       #0f62fe;
-            --ibm-blue-hover: #0353e9;
-            --ibm-blue-10:    #edf5ff;
-            --ibm-blue-20:    #d0e2ff;
-            --ibm-blue-60:    #0043ce;
-            --ibm-gray-10:    #f4f4f4;
-            --ibm-gray-20:    #e0e0e0;
-            --ibm-gray-30:    #c6c6c6;
-            --ibm-gray-50:    #8d8d8d;
-            --ibm-gray-70:    #525252;
-            --ibm-gray-90:    #262626;
-            --ibm-gray-100:   #161616;
-            --ibm-green:      #198038;
-            --ibm-green-10:   #defbe6;
-            --ibm-yellow:     #b28600;
-            --ibm-yellow-10:  #fcf4d6;
-            --ibm-red:        #da1e28;
-            --ibm-red-10:     #fff1f1;
-            --ibm-teal:       #007d79;
-            --ibm-teal-10:    #d9fbfb;
-            --ibm-purple:     #6929c4;
-            --ibm-purple-10:  #f6f2ff;
-            --sidebar-bg:     #1f2a3a;
-            --sidebar-hover:  #4f46e5;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/logoTsj.png">
+<title>SGIAC-ISC | Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../styles/sgiac-shared.css">
+<link rel="stylesheet" href="../styles/responsive.css">
 
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'IBM Plex Sans', sans-serif; }
-        i.fas, i.far, i.fab, i.fa { font-family:'Font Awesome 6 Free', 'Font Awesome 6 Brands' !important; }
-        body { display:flex; min-height:100vh; overflow-x:hidden; background:var(--ibm-gray-10); }
-
-        /* ══ SIDEBAR ══ */
-        .sidebar { width:240px; background:#1f2a3a; color:white; flex-shrink:0; height:100vh; position:sticky; top:0; overflow-y:auto; font-family:'Poppins', sans-serif; }
-        .sidebar, .sidebar *:not(i) { font-family:'Poppins', sans-serif; }
-        .logo { padding:22px; font-weight:600; font-size:18px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); }
-        .logo small { display:block; font-size:11px; font-weight:300; color:#94a3b8; margin-top:2px; }
-        .menu a { display:flex; align-items:center; padding:13px 22px; color:#cbd5e1; text-decoration:none; font-size:13.5px; transition:0.2s; }
-        .menu a i { margin-right:10px; width:18px; font-size:13px; }
-        .menu a:hover, .menu a.active { background:#4f46e5; color:white; }
-        .menu-section { padding:10px 22px 4px; font-size:10px; font-weight:600; color:#64748b; letter-spacing:1px; text-transform:uppercase; }
-        .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:998; }
-        .sidebar-overlay.show { display:block; }
-
-        /* ══ MAIN ══ */
-        .main { flex:1; display:flex; flex-direction:column; min-height:100vh; overflow:hidden; }
-
-        /* ══ HEADER ══ */
-        .header { height:65px; background:white; display:flex; align-items:center; justify-content:space-between; padding:0 25px; border-bottom:1px solid #e6e8f0; flex-shrink:0; }
-        .header-left { display:flex; align-items:center; gap:15px; flex:1; min-width:0; }
-        .menu-btn { font-size:20px; cursor:pointer; color:#374151; }
-        .header h2 { font-size:17px; color:#1f2a3a; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; flex:1; }
-        .user { display:flex; align-items:center; gap:10px; font-size:14px; color:#374151; flex-shrink:0; }
-        .user img { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb; }
-
-        /* ══ CONTENT — todas las vistas ocultas por defecto ══ */
-        .content { padding:28px 28px 36px; overflow-y:auto; flex:1; display:none; }
-
-        /* ══ SECTION LABEL ══ */
-        .section-label { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--ibm-gray-50); margin-bottom:12px; }
-
-        /* ══ TARJETAS IBM ══ */
-        .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-bottom:28px; border:1px solid var(--ibm-gray-20); overflow:hidden; }
-        .metric-card { background:white; padding:24px 24px 20px; position:relative; display:flex; flex-direction:column; justify-content:space-between; min-height:140px; border-right:1px solid var(--ibm-gray-20); transition:background 0.15s; cursor:default; }
-        .metric-card:last-child { border-right:none; }
-        .metric-card:hover { background:#fafafa; }
-        .metric-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-        .metric-card.assets::before       { background:var(--ibm-blue); }
-        .metric-card.consumables::before  { background:var(--ibm-teal); }
-        .metric-card.requests::before     { background:var(--ibm-yellow); }
-        .metric-card.reservations::before { background:var(--ibm-green); }
-        .metric-top { display:flex; justify-content:space-between; align-items:flex-start; }
-        .metric-label { font-size:12px; font-weight:500; color:var(--ibm-gray-70); letter-spacing:0.3px; line-height:1.3; max-width:120px; }
-        .metric-icon { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:2px; }
-        .metric-card.assets .metric-icon       { background:var(--ibm-blue-10);   color:var(--ibm-blue); }
-        .metric-card.consumables .metric-icon  { background:var(--ibm-teal-10);   color:var(--ibm-teal); }
-        .metric-card.requests .metric-icon     { background:var(--ibm-yellow-10); color:var(--ibm-yellow); }
-        .metric-card.reservations .metric-icon { background:var(--ibm-green-10);  color:var(--ibm-green); }
-        .metric-icon i { font-size:14px; }
-        .metric-value { font-family:'IBM Plex Mono', monospace; font-size:42px; font-weight:600; color:var(--ibm-gray-100); line-height:1; margin-top:auto; padding-top:12px; letter-spacing:-1px; }
-        .metric-value.loading-val { color:var(--ibm-gray-30); font-size:36px; }
-        .metric-trend { font-size:11px; color:var(--ibm-gray-50); margin-top:6px; font-family:'IBM Plex Mono', monospace; }
-
-        /* ══ GRID INFERIOR ══ */
-        .grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto auto; gap:16px; }
-
-        /* ══ PANEL BASE ══ */
-        .panel { background:white; border:1px solid var(--ibm-gray-20); overflow:hidden; }
-        .panel-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px 13px; border-bottom:1px solid var(--ibm-gray-20); background:#fafafa; }
-        .panel-title { font-size:12px; font-weight:600; color:var(--ibm-gray-90); letter-spacing:0.8px; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
-        .panel-title .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-        .dot-blue  { background:var(--ibm-blue); }
-        .dot-green { background:var(--ibm-green); }
-        .panel-body { padding:0; }
-        .panel-desc .panel-body { padding:20px 20px 22px; }
-        .panel-desc p { font-size:13.5px; color:var(--ibm-gray-70); line-height:1.75; font-weight:300; }
-        .panel-desc .system-tag { display:inline-flex; align-items:center; gap:6px; margin-top:16px; padding:5px 10px; background:var(--ibm-blue-10); color:var(--ibm-blue); font-size:11px; font-weight:600; letter-spacing:0.5px; border:1px solid var(--ibm-blue-20); border-radius:2px; }
-        .panel-movements { grid-row:1/3; }
-
-        /* Tabla */
-        table { width:100%; border-collapse:collapse; font-size:13px; }
-        thead tr { border-bottom:1px solid var(--ibm-gray-20); }
-        th { background:var(--ibm-gray-10); font-size:11px; font-weight:600; color:var(--ibm-gray-70); padding:10px 16px; text-align:left; letter-spacing:0.8px; text-transform:uppercase; border-right:1px solid var(--ibm-gray-20); }
-        th:last-child { border-right:none; }
-        td { padding:12px 16px; border-bottom:1px solid var(--ibm-gray-10); color:var(--ibm-gray-90); border-right:1px solid var(--ibm-gray-10); font-size:13px; }
-        td:last-child { border-right:none; }
-        tr:last-child td { border-bottom:none; }
-        tbody tr:hover td { background:var(--ibm-blue-10); }
-        td.mono { font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ibm-gray-50); }
-        .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 8px; border-radius:2px; letter-spacing:0.3px; }
-        .status-badge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-        .status-available   { background:var(--ibm-green-10);  color:var(--ibm-green); }
-        .status-available::before  { background:var(--ibm-green); }
-        .status-borrowed    { background:var(--ibm-yellow-10); color:var(--ibm-yellow); }
-        .status-borrowed::before   { background:var(--ibm-yellow); }
-        .status-maintenance { background:var(--ibm-red-10);    color:var(--ibm-red); }
-        .status-maintenance::before { background:var(--ibm-red); }
-        .loading-row td { text-align:center; color:var(--ibm-gray-30); padding:32px; font-style:italic; }
-
-        /* Actividad */
-        .activity-list { padding:0; }
-        .activity-item { display:flex; gap:12px; padding:13px 16px; border-bottom:1px solid var(--ibm-gray-10); align-items:flex-start; }
-        .activity-item:last-child { border-bottom:none; }
-        .activity-dot { width:8px; height:8px; background:var(--ibm-blue); border-radius:50%; flex-shrink:0; margin-top:4px; }
-        .activity-text { flex:1; font-size:13px; color:var(--ibm-gray-90); line-height:1.5; }
-        .activity-text strong { font-weight:600; }
-        .activity-time { font-size:11px; font-family:'IBM Plex Mono', monospace; color:var(--ibm-gray-50); flex-shrink:0; margin-top:2px; }
-
-        /* ══════════════════════════════════════
-           VISTA ALUMNO
-        ══════════════════════════════════════ */
-        .welcome-banner {
-            background:linear-gradient(135deg, #1f2a3a 0%, #0f62fe 100%);
-            border-radius:4px; padding:32px 36px; margin-bottom:24px;
-            display:flex; align-items:center; gap:28px;
-            position:relative; overflow:hidden;
-        }
-        .welcome-banner::after  { content:''; position:absolute; right:-60px; top:-60px; width:260px; height:260px; border-radius:50%; background:rgba(255,255,255,0.05); }
-        .welcome-banner::before { content:''; position:absolute; right:80px; bottom:-80px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.04); }
-        .welcome-logo img { width:72px; height:72px; object-fit:contain; filter:brightness(0) invert(1); opacity:0.9; }
-        .welcome-text h1  { font-size:22px; font-weight:600; color:white; font-family:'Poppins',sans-serif; margin-bottom:4px; }
-        .welcome-text p   { font-size:13.5px; color:rgba(255,255,255,0.75); line-height:1.6; max-width:520px; }
-        .welcome-text .badge-inst { display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:4px 12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:2px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.9); letter-spacing:0.5px; }
-
-        .student-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:28px; border:1px solid var(--ibm-gray-20); overflow:hidden; }
-        .student-metric { background:white; padding:22px 22px 18px; border-right:1px solid var(--ibm-gray-20); position:relative; }
-        .student-metric:last-child { border-right:none; }
-        .student-metric::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-        .student-metric.sm-req::before  { background:var(--ibm-yellow); }
-        .student-metric.sm-res::before  { background:var(--ibm-green); }
-        .student-metric.sm-pend::before { background:var(--ibm-blue); }
-        .student-metric-icon { font-size:20px; margin-bottom:10px; }
-        .student-metric.sm-req  .student-metric-icon { color:var(--ibm-yellow); }
-        .student-metric.sm-res  .student-metric-icon { color:var(--ibm-green); }
-        .student-metric.sm-pend .student-metric-icon { color:var(--ibm-blue); }
-        .student-metric-label { font-size:11px; font-weight:600; color:var(--ibm-gray-50); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
-        .student-metric-value { font-family:'IBM Plex Mono',monospace; font-size:36px; font-weight:600; color:var(--ibm-gray-100); line-height:1; letter-spacing:-1px; }
-        .student-metric-value.loading-val { color:var(--ibm-gray-30); }
-
-        .info-notice { background:var(--ibm-blue-10); border:1px solid var(--ibm-blue-20); padding:14px 18px; display:flex; align-items:flex-start; gap:12px; margin-bottom:24px; border-radius:2px; }
-        .info-notice i { color:var(--ibm-blue); margin-top:2px; font-size:14px; }
-        .info-notice p { font-size:13px; color:var(--ibm-blue-60); line-height:1.55; }
-        .info-notice strong { font-weight:600; }
-
-        /* Acceso rápido */
-        #quickAccessCards { display:flex; flex-direction:column; gap:10px; }
-        .quick-card { display:flex; align-items:center; gap:16px; background:white; border:1px solid var(--ibm-gray-20); padding:16px 20px; text-decoration:none; transition:border-color 0.15s, background 0.15s; }
-        .quick-card:hover { border-color:var(--ibm-blue); background:var(--ibm-blue-10); }
-        .quick-card-icon { width:40px; height:40px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
-        .quick-card-yellow .quick-card-icon { background:var(--ibm-yellow-10); color:var(--ibm-yellow); }
-        .quick-card-green  .quick-card-icon { background:var(--ibm-green-10);  color:var(--ibm-green); }
-        .quick-card-blue   .quick-card-icon { background:var(--ibm-blue-10);   color:var(--ibm-blue); }
-        .quick-card-teal   .quick-card-icon { background:var(--ibm-teal-10);   color:var(--ibm-teal); }
-        .quick-card-purple .quick-card-icon { background:var(--ibm-purple-10); color:var(--ibm-purple); }
-        .quick-card-info { flex:1; }
-        .quick-card-label { font-size:14px; font-weight:600; color:var(--ibm-gray-90); margin-bottom:2px; }
-        .quick-card-desc  { font-size:12px; color:var(--ibm-gray-50); }
-        .quick-card-arrow { color:var(--ibm-gray-30); font-size:12px; }
-        .quick-card:hover .quick-card-arrow { color:var(--ibm-blue); }
-
-        /* ══ ANIMACIONES ══ */
-        @keyframes ibm-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        .metric-card { animation:ibm-in 0.4s ease both; }
-        .metric-card:nth-child(1){animation-delay:.05s}
-        .metric-card:nth-child(2){animation-delay:.10s}
-        .metric-card:nth-child(3){animation-delay:.15s}
-        .metric-card:nth-child(4){animation-delay:.20s}
-        .panel { animation:ibm-in 0.4s ease both; animation-delay:.25s; }
-        .welcome-banner,.student-metrics,.quick-card,.info-notice { animation:ibm-in 0.45s ease both; }
-
-        /* ══ RESPONSIVE ══ */
-        @media(max-width:1100px){
-            .cards{grid-template-columns:repeat(2,1fr);}
-            .metric-card:nth-child(2){border-right:none;}
-            .metric-card:nth-child(3){border-top:1px solid var(--ibm-gray-20);}
-        }
-        @media(max-width:900px){
-            .grid{grid-template-columns:1fr;}
-            .panel-movements{grid-row:auto;}
-        }
-        @media(max-width:768px){
-            .sidebar{position:fixed;transform:translateX(-100%);z-index:999;width:250px;}
-            .sidebar.open{transform:translateX(0);}
-            .header{padding:0 15px;height:56px;}
-            .header h2{font-size:14px;}
-            .content{padding:16px;}
-            .welcome-banner{flex-direction:column;gap:16px;padding:24px 20px;}
-            .welcome-logo img{width:56px;height:56px;}
-            .welcome-text h1{font-size:18px;}
-        }
-        @media(max-width:600px){
-            .cards{grid-template-columns:1fr;}
-            .metric-card{border-right:none !important;border-top:1px solid var(--ibm-gray-20);}
-            .metric-card:first-child{border-top:none;}
-            .student-metrics{grid-template-columns:1fr;}
-            .student-metric{border-right:none;border-top:1px solid var(--ibm-gray-20);}
-            .student-metric:first-child{border-top:none;}
-        }
-    </style>
 </head>
 <body>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">SGIAC-ISC</div>
+    <div class="sidebar-brand-sub">Sistema de Gestión</div>
+  </div>
+  <div class="menu">
+<div class="menu-section">Principal</div>
+<a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Panel Principal</a>
+<div class="menu-section">Inventario</div>
+<a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+<a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+<div class="menu-section">Gestión</div>
+<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+<a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+<div class="menu-section">Sistema</div>
+<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
+</div>
+<div class="main">
 
-    <!-- ══ SIDEBAR ══ -->
-    <div class="sidebar" id="sidebar">
-        <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
-        <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
-        <div class="menu">
+<div class="header">
+  <div class="header-left">
+    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    <h2><i class="fas fa-chart-line"></i> Panel Principal</h2>
+  </div>
+  <div class="user">
+    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
+    <span id="username">Cargando...</span>
+  </div>
+</div>
+  <div class="content">
 
-            <!-- ADMIN -->
-            <div class="menu-admin">
-                <div class="menu-section">Principal</div>
-                <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Panel Principal</a>
-                <div class="menu-section">Inventario</div>
-                <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-                <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-                <div class="menu-section">Gestión</div>
-                <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-                <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-                <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-                <div class="menu-section">Sistema</div>
-                <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-                <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-            </div>
-
-            <!-- DOCENTE -->
-            <div class="menu-docente">
-                <div class="menu-section">Principal</div>
-                <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Panel Principal</a>
-                <div class="menu-section">Inventario</div>
-                <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-                <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-                <div class="menu-section">Gestión</div>
-                <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Mis Solicitudes</a>
-                <a href="reservas.html"><i class="fas fa-calendar-check"></i> Mis Reservas</a>
-                <div class="menu-section">Reportes</div>
-                <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-            </div>
-
-            <!-- ALUMNO -->
-            <div class="menu-alumno">
-                <div class="menu-section">Principal</div>
-                <a href="dashboard.html" class="active"><i class="fas fa-home"></i> Inicio</a>
-                <div class="menu-section">Laboratorio</div>
-                <a href="activos.html"><i class="fas fa-box"></i> Catálogo de Activos</a>
-                <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-                <div class="menu-section">Mis Trámites</div>
-                <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Mis Solicitudes</a>
-                <a href="reservas.html"><i class="fas fa-calendar-check"></i> Mis Reservas</a>
-            </div>
-
+    <!-- ════ VISTA ADMIN ════ -->
+    <div class="content-inner" id="view-admin" style="display:none;">
+      <div class="section-label">Resumen General</div>
+      <div class="cards">
+        <div class="metric-card assets">
+          <div class="metric-top">
+            <div class="metric-label">Activos Totales</div>
+            <div class="metric-icon"><i class="fas fa-box"></i></div>
+          </div>
+          <div>
+            <div class="metric-value loading-val" id="cardAssets">—</div>
+            <div class="metric-trend">Inventario registrado</div>
+          </div>
         </div>
+        <div class="metric-card consumables">
+          <div class="metric-top">
+            <div class="metric-label">Consumibles</div>
+            <div class="metric-icon"><i class="fas fa-flask"></i></div>
+          </div>
+          <div>
+            <div class="metric-value loading-val" id="cardConsumables">—</div>
+            <div class="metric-trend">En almacén</div>
+          </div>
+        </div>
+        <div class="metric-card requests">
+          <div class="metric-top">
+            <div class="metric-label">Solicitudes Pendientes</div>
+            <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
+          </div>
+          <div>
+            <div class="metric-value loading-val" id="cardRequests">—</div>
+            <div class="metric-trend">Requieren atención</div>
+          </div>
+        </div>
+        <div class="metric-card reservations">
+          <div class="metric-top">
+            <div class="metric-label">Reservas Hoy</div>
+            <div class="metric-icon"><i class="fas fa-calendar-check"></i></div>
+          </div>
+          <div>
+            <div class="metric-value loading-val" id="cardReservations">—</div>
+            <div class="metric-trend" id="todayDate">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Operaciones</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px;">
+        <div class="panel" style="grid-row:1/3;">
+          <div class="panel-header">
+            <div class="panel-title"><span class="dot dot-blue"></span> Últimos Movimientos</div>
+          </div>
+          <div class="panel-scroll">
+            <table>
+              <thead><tr><th>ID</th><th>Activo</th><th>Usuario</th><th>Estado</th></tr></thead>
+              <tbody id="movementsBody">
+                <tr class="loading-row"><td colspan="4">Cargando datos...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="dot dot-blue"></span> Acerca del Sistema</div>
+          </div>
+          <div class="panel-body">
+            <p style="font-size:13px;color:var(--ibm-gray-70);line-height:1.75;font-weight:300;">Gestiona, controla y visualiza todos los activos, consumibles y movimientos del laboratorio de Ingeniería en Sistemas Computacionales del Tecnológico Superior de Jalisco.</p>
+            <div style="margin-top:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--ibm-blue-10);color:var(--ibm-blue);font-size:11px;font-weight:700;letter-spacing:0.5px;border:1px solid var(--ibm-blue-20);">
+              <i class="fas fa-circle" style="font-size:6px;"></i> SGIAC-ISC · v1.0
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="dot dot-green"></span> Actividad Reciente</div>
+          </div>
+          <div id="activityContainer" style="padding:0;">
+            <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--ibm-gray-10);">
+              <div style="width:7px;height:7px;background:var(--ibm-gray-30);border-radius:50%;flex-shrink:0;margin-top:5px;"></div>
+              <div style="font-size:13px;color:var(--ibm-gray-50);">Cargando actividad...</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- ══ MAIN ══ -->
-    <div class="main">
-
-        <div class="header">
-            <div class="header-left">
-                <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-                <h2 id="headerTitle"><i class="fas fa-chart-line"></i> Panel Principal</h2>
-            </div>
-            <div class="user">
-                <img src="../assets/Captura de pantalla 2026-03-15 131358.png" alt="Avatar">
-                <span id="username">Cargando...</span>
-            </div>
+    <!-- ════ VISTA DOCENTE ════ -->
+    <div class="content-inner" id="view-docente" style="display:none;">
+      <div class="section-label">Resumen del Laboratorio</div>
+      <div class="cards">
+        <div class="metric-card assets">
+          <div class="metric-top"><div class="metric-label">Activos Totales</div><div class="metric-icon"><i class="fas fa-box"></i></div></div>
+          <div><div class="metric-value loading-val" id="cardAssetsD">—</div><div class="metric-trend">Inventario registrado</div></div>
         </div>
-
-        <!-- ════════════════════════════
-             VISTA ADMIN
-        ════════════════════════════ -->
-        <div class="content" id="view-admin">
-            <div class="section-label">Resumen General</div>
-            <div class="cards">
-                <div class="metric-card assets">
-                    <div class="metric-top">
-                        <div class="metric-label">Activos Totales</div>
-                        <div class="metric-icon"><i class="fas fa-box"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardAssets">—</div>
-                        <div class="metric-trend">Inventario registrado</div>
-                    </div>
-                </div>
-                <div class="metric-card consumables">
-                    <div class="metric-top">
-                        <div class="metric-label">Consumibles</div>
-                        <div class="metric-icon"><i class="fas fa-flask"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardConsumables">—</div>
-                        <div class="metric-trend">En almacén</div>
-                    </div>
-                </div>
-                <div class="metric-card requests">
-                    <div class="metric-top">
-                        <div class="metric-label">Solicitudes Pendientes</div>
-                        <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardRequests">—</div>
-                        <div class="metric-trend">Requieren atención</div>
-                    </div>
-                </div>
-                <div class="metric-card reservations">
-                    <div class="metric-top">
-                        <div class="metric-label">Reservas Hoy</div>
-                        <div class="metric-icon"><i class="fas fa-calendar-check"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardReservations">—</div>
-                        <div class="metric-trend" id="todayDate">—</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-label">Operaciones</div>
-            <div class="grid">
-                <div class="panel panel-movements">
-                    <div class="panel-header">
-                        <div class="panel-title"><span class="dot dot-blue"></span> Últimos Movimientos</div>
-                    </div>
-                    <div class="panel-body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Activo</th>
-                                    <th>Usuario</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="movementsBody">
-                                <tr class="loading-row"><td colspan="4">Cargando datos...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="panel panel-desc">
-                    <div class="panel-header">
-                        <div class="panel-title"><span class="dot dot-blue"></span> Acerca del Sistema</div>
-                    </div>
-                    <div class="panel-body">
-                        <p>Gestiona, controla y visualiza todos los activos, consumibles y movimientos del laboratorio de Ingeniería en Sistemas Computacionales del Tecnológico Superior de Jalisco.</p>
-                        <div class="system-tag"><i class="fas fa-circle" style="font-size:7px;"></i> SGIAC-ISC · v1.0</div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="panel-title"><span class="dot dot-green"></span> Actividad Reciente</div>
-                    </div>
-                    <div class="panel-body activity-list" id="activityContainer">
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background:var(--ibm-gray-30);"></div>
-                            <div class="activity-text" style="color:var(--ibm-gray-50);">Cargando actividad...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="metric-card consumables">
+          <div class="metric-top"><div class="metric-label">Consumibles</div><div class="metric-icon"><i class="fas fa-flask"></i></div></div>
+          <div><div class="metric-value loading-val" id="cardConsumablesD">—</div><div class="metric-trend">En almacén</div></div>
         </div>
-
-        <!-- ════════════════════════════
-             VISTA DOCENTE
-        ════════════════════════════ -->
-        <div class="content" id="view-docente">
-            <div class="section-label">Resumen del Laboratorio</div>
-            <div class="cards">
-                <div class="metric-card assets">
-                    <div class="metric-top">
-                        <div class="metric-label">Activos Totales</div>
-                        <div class="metric-icon"><i class="fas fa-box"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardAssetsD">—</div>
-                        <div class="metric-trend">Inventario registrado</div>
-                    </div>
-                </div>
-                <div class="metric-card consumables">
-                    <div class="metric-top">
-                        <div class="metric-label">Consumibles</div>
-                        <div class="metric-icon"><i class="fas fa-flask"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardConsumablesD">—</div>
-                        <div class="metric-trend">En almacén</div>
-                    </div>
-                </div>
-                <div class="metric-card requests">
-                    <div class="metric-top">
-                        <div class="metric-label">Mis Solicitudes</div>
-                        <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardRequestsD">—</div>
-                        <div class="metric-trend">Pendientes de atención</div>
-                    </div>
-                </div>
-                <div class="metric-card reservations">
-                    <div class="metric-top">
-                        <div class="metric-label">Reservas Hoy</div>
-                        <div class="metric-icon"><i class="fas fa-calendar-check"></i></div>
-                    </div>
-                    <div>
-                        <div class="metric-value loading-val" id="cardReservationsD">—</div>
-                        <div class="metric-trend" id="todayDateD">—</div>
-                    </div>
-                </div>
-            </div>
-            <div class="section-label">Acceso Rápido</div>
-            <div id="quickAccessCards"></div>
+        <div class="metric-card requests">
+          <div class="metric-top"><div class="metric-label">Mis Solicitudes</div><div class="metric-icon"><i class="fas fa-clipboard-list"></i></div></div>
+          <div><div class="metric-value loading-val" id="cardRequestsD">—</div><div class="metric-trend">Pendientes</div></div>
         </div>
-
-        <!-- ════════════════════════════
-             VISTA ALUMNO
-        ════════════════════════════ -->
-        <div class="content" id="view-alumno">
-            <div class="welcome-banner">
-                <div class="welcome-logo">
-                    <img src="../assets/logoTsj.png" alt="Logo TSJ">
-                </div>
-                <div class="welcome-text">
-                    <h1 id="welcomeName">Bienvenido/a</h1>
-                    <p>Aquí puedes consultar el catálogo de activos y consumibles del laboratorio, y gestionar tus solicitudes y reservas de equipos.</p>
-                    <span class="badge-inst">
-                        <i class="fas fa-university"></i>
-                        Tecnológico Superior de Jalisco &nbsp;·&nbsp; ISC
-                    </span>
-                </div>
-            </div>
-
-            <div class="info-notice">
-                <i class="fas fa-info-circle"></i>
-                <p><strong>Recuerda:</strong> Para solicitar un activo o reservar un equipo, verifica que esté disponible en el catálogo. Si tienes dudas, contacta al encargado del laboratorio.</p>
-            </div>
-
-            <div class="section-label">Mi Actividad</div>
-            <div class="student-metrics">
-                <div class="student-metric sm-req">
-                    <div class="student-metric-icon"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="student-metric-label">Mis Solicitudes</div>
-                    <div class="student-metric-value loading-val" id="myRequests">—</div>
-                </div>
-                <div class="student-metric sm-res">
-                    <div class="student-metric-icon"><i class="fas fa-calendar-check"></i></div>
-                    <div class="student-metric-label">Mis Reservas</div>
-                    <div class="student-metric-value loading-val" id="myReservations">—</div>
-                </div>
-                <div class="student-metric sm-pend">
-                    <div class="student-metric-icon"><i class="fas fa-clock"></i></div>
-                    <div class="student-metric-label">En Proceso</div>
-                    <div class="student-metric-value loading-val" id="myPending">—</div>
-                </div>
-            </div>
-
-            <div class="section-label">¿Qué deseas hacer?</div>
-            <div id="quickAccessCards"></div>
+        <div class="metric-card reservations">
+          <div class="metric-top"><div class="metric-label">Reservas Hoy</div><div class="metric-icon"><i class="fas fa-calendar-check"></i></div></div>
+          <div><div class="metric-value loading-val" id="cardReservationsD">—</div><div class="metric-trend" id="todayDateD">—</div></div>
         </div>
+      </div>
+      <div class="section-label">Acceso Rápido</div>
+      <div id="quickAccessCards"></div>
+    </div>
 
-    </div><!-- /main -->
+    <!-- ════ VISTA ALUMNO ════ -->
+    <div class="content-inner" id="view-alumno" style="display:none;">
+      <!-- Banner de bienvenida -->
+      <div style="background:linear-gradient(135deg,#1f2a3a 0%,#0f62fe 100%);padding:32px 36px;margin-bottom:24px;display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+        <img src="../assets/logoTsj.png" alt="Logo" style="width:64px;filter:brightness(0) invert(1);opacity:0.85;flex-shrink:0;">
+        <div>
+          <h1 id="welcomeName" style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;font-family:'IBM Plex Sans',sans-serif;">Bienvenido/a</h1>
+          <p style="font-size:13px;color:rgba(255,255,255,0.72);line-height:1.6;max-width:480px;">Aquí puedes consultar el catálogo de activos y consumibles del laboratorio, y gestionar tus solicitudes y reservas de equipos.</p>
+          <div style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);font-size:11px;font-weight:600;color:rgba(255,255,255,0.88);letter-spacing:0.4px;">
+            <i class="fas fa-university"></i> Tecnológico Superior de Jalisco &nbsp;·&nbsp; ISC
+          </div>
+        </div>
+      </div>
 
-    <script>
-        function toggleMenu() {
-            document.getElementById("sidebar").classList.toggle("open");
-            document.getElementById("sidebarOverlay").classList.toggle("show");
-        }
-        function closeSidebar() {
-            document.getElementById("sidebar").classList.remove("open");
-            document.getElementById("sidebarOverlay").classList.remove("show");
-        }
-    </script>
+      <div style="background:var(--ibm-blue-10);border:1px solid var(--ibm-blue-20);padding:13px 18px;display:flex;align-items:flex-start;gap:12px;margin-bottom:22px;">
+        <i class="fas fa-info-circle" style="color:var(--ibm-blue);margin-top:1px;"></i>
+        <p style="font-size:13px;color:var(--ibm-blue-60);line-height:1.55;"><strong>Recuerda:</strong> Para solicitar un activo o reservar un equipo, verifica que esté disponible en el catálogo. Si tienes dudas, contacta al encargado del laboratorio.</p>
+      </div>
 
-    <!-- ORDEN IMPORTANTE: realtime → common (establece USER_ROLE) → dashboard (lee USER_ROLE) -->
-    <script src="../scripts/pages/realtime.js"></script>
-    <script src="../scripts/pages/common.js"></script>
-    <script src="../scripts/pages/dashboard.js"></script>
+      <div class="section-label">Mi Actividad</div>
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card" style="--c:var(--ibm-yellow);">
+          <div class="stat-icon orange"><i class="fas fa-clipboard-list"></i></div>
+          <div><div class="stat-label">Mis Solicitudes</div><div class="stat-value loading-val" id="myRequests">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+          <div><div class="stat-label">Mis Reservas</div><div class="stat-value loading-val" id="myReservations">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+          <div><div class="stat-label">En Proceso</div><div class="stat-value loading-val" id="myPending">—</div></div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">¿Qué deseas hacer?</div>
+      <div id="quickAccessCards"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+</script>
+<script src="../scripts/pages/realtime.js"></script>
+<script src="../scripts/pages/common.js"></script>
+<script src="../scripts/pages/dashboard.js"></script>
 </body>
 </html>

@@ -5,538 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="../assets/logoTsj.png">
 <title>SGIAC-ISC | Usuarios</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../styles/sgiac-shared.css">
 <link rel="stylesheet" href="../styles/responsive.css">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
-/* SIDEBAR */
-.sidebar{width:240px;background:#1f2a3a;color:white;flex-shrink:0;height:100vh;position:sticky;top:0;overflow-y:auto;}
-.logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.logo small{display:block;font-size:11px;font-weight:300;color:#94a3b8;margin-top:2px;}
-.menu a{display:flex;align-items:center;padding:13px 22px;color:#cbd5e1;text-decoration:none;font-size:13.5px;transition:0.2s;}
-.menu a i{margin-right:10px;width:18px;font-size:13px;}
-.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-.menu-section{padding:10px 22px 4px;font-size:10px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;}
 
-/* OVERLAY */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998;}
-.sidebar-overlay.show{display:block;}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
-.header h2{font-size:18px;color:#1f2a3a;}
-.header-left{display:flex;align-items:center;gap:15px;}
-.menu-btn{font-size:20px;cursor:pointer;color:#374151;}
-.user{display:flex;align-items:center;gap:10px;font-size:14px;}
-.user img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
-.content{padding:25px;overflow-y:auto;flex:1;}
-
-.panel{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;}
-.panel-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #f3f4f6;}
-.panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
-
-.btn{background:#4f46e5;color:white;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:0.2s;font-family:'Poppins',sans-serif;display:inline-flex;align-items:center;gap:6px;}
-.btn:hover{background:#3730a3;}
-
-/* Tabla única */
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th{background:#f8f9fc;font-weight:600;color:#6b7280;padding:10px 20px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
-td{padding:12px 20px;border-bottom:1px solid #f3f4f6;color:#374151;}
-tr.data-row:last-of-type td{border-bottom:none;}
-tr.data-row:hover td{background:#fafafa;}
-
-/* Separador de grupo */
-tr.group-header td{
-  padding:10px 20px;
-  background:#f8f9fc;
-  border-top:2px solid #e5e7eb;
-  border-bottom:1px solid #e5e7eb;
-}
-tr.group-header:first-child td{border-top:none;}
-.group-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
-.group-label .grp-icon{width:22px;height:22px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
-.group-label.admin{color:#7c3aed;} .group-label.admin .grp-icon{background:#ede9fe;}
-.group-label.docente{color:#0369a1;} .group-label.docente .grp-icon{background:#e0f2fe;}
-.group-label.alumno{color:#15803d;} .group-label.alumno .grp-icon{background:#dcfce7;}
-.group-count{margin-left:4px;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;}
-.group-count.admin{background:#ede9fe;color:#7c3aed;}
-.group-count.docente{background:#e0f2fe;color:#0369a1;}
-.group-count.alumno{background:#dcfce7;color:#15803d;}
-
-/* Badges */
-.badge-role{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;}
-.badge-admin{background:#ede9fe;color:#7c3aed;}
-.badge-docente{background:#e0f2fe;color:#0369a1;}
-.badge-alumno{background:#dcfce7;color:#15803d;}
-
-/* Acciones */
-.action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:5px;font-size:13px;transition:0.2s;}
-.action-edit{color:#4f46e5;} .action-edit:hover{background:#ede9fe;}
-.action-delete{color:#dc2626;} .action-delete:hover{background:#fee2e2;}
-.empty-row td{text-align:center;color:#9ca3af;padding:16px;font-size:13px;font-style:italic;}
-
-/* Modal */
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
-.modal.open{display:flex;}
-.modal-box{background:white;padding:28px;border-radius:12px;width:440px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.15);}
-.modal-box h3{font-size:17px;font-weight:600;color:#1f2a3a;margin-bottom:20px;}
-.modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#9ca3af;background:none;border:none;}
-.form-group{margin-bottom:14px;}
-.form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;}
-.form-group input,.form-group select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:0.2s;color:#374151;}
-.form-group input:focus,.form-group select:focus{border-color:#4f46e5;}
-.modal-actions{display:flex;gap:10px;margin-top:6px;}
-.btn-cancel{flex:1;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:white;color:#374151;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
-.hint{font-size:11px;color:#9ca3af;margin-top:3px;}
-
-/* Toast */
-.toast{position:fixed;bottom:25px;right:25px;padding:12px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:#10b981;}
-.toast.error{background:#ef4444;}
-
-/* RESPONSIVE */
-@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){
-  body{flex-direction:column;}
-  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:999;width:250px;}
-  .sidebar.open{transform:translateX(0);}
-  .main{width:100%;}
-  .header{padding:0 15px;height:56px;}
-  .header h2{font-size:14px;}
-  .user span{display:none;}
-  .content{padding:12px;}
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .panel{padding:14px;}
-  .modal{align-items:flex-end;padding:0;}
-  .modal-content{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:90vh;}
-  .form-row,.form-row-3{grid-template-columns:1fr;}
-  .toast{left:12px;right:12px;bottom:12px;text-align:center;}
-  .filters-bar{flex-direction:column;}
-  .filters-bar input,.filters-bar select{width:100%;}
-  .area-tabs{width:100%;}
-  .area-tab{flex:1;text-align:center;}
-}
-</style>
-
-    <!-- ══ IBM Design Language overrides ══ -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-    :root {
-      --ibm-blue:      #0f62fe;
-      --ibm-blue-10:   #edf5ff;
-      --ibm-blue-20:   #d0e2ff;
-      --ibm-gray-10:   #f4f4f4;
-      --ibm-gray-20:   #e0e0e0;
-      --ibm-gray-30:   #c6c6c6;
-      --ibm-gray-50:   #8d8d8d;
-      --ibm-gray-70:   #525252;
-      --ibm-gray-90:   #262626;
-      --ibm-gray-100:  #161616;
-      --ibm-green:     #198038;
-      --ibm-green-10:  #defbe6;
-      --ibm-yellow:    #b28600;
-      --ibm-yellow-10: #fcf4d6;
-      --ibm-red:       #da1e28;
-      --ibm-red-10:    #fff1f1;
-      --ibm-teal:      #007d79;
-      --ibm-teal-10:   #d9fbfb;
-      --ibm-purple:    #6929c4;
-      --ibm-purple-10: #f6f2ff;
-      --ibm-cyan:      #00539a;
-      --ibm-cyan-10:   #e5f6ff;
-      --ibm-orange:    #b45309;
-      --ibm-orange-10: #fff7ed;
-    }
-
-    /* ── Background ── */
-    body { background: var(--ibm-gray-10) !important; }
-
-    /* ── STAT / METRIC CARDS ── */
-    .stat-card, .stats-row .stat-card {
-      background: white !important;
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-      padding: 20px 22px !important;
-      position: relative;
-      overflow: hidden;
-    }
-    .stats-row {
-      border: 1px solid var(--ibm-gray-20);
-      display: grid;
-      gap: 0 !important;
-    }
-    .stats-row .stat-card { border-right: 1px solid var(--ibm-gray-20) !important; border-top: none !important; border-bottom: none !important; border-left: none !important; }
-    .stats-row .stat-card:first-child { border-left: none !important; }
-    .stat-card .stat-icon {
-      width: 32px !important;
-      height: 32px !important;
-      border-radius: 2px !important;
-      font-size: 14px !important;
-      flex-shrink: 0;
-    }
-    .stat-icon.purple  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .stat-icon.blue    { background: var(--ibm-blue-10)   !important; color: var(--ibm-blue)   !important; }
-    .stat-icon.green   { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
-    .stat-icon.orange  { background: var(--ibm-orange-10) !important; color: var(--ibm-orange) !important; }
-    .stat-icon.red     { background: var(--ibm-red-10)    !important; color: var(--ibm-red)    !important; }
-    .stat-icon.teal    { background: var(--ibm-teal-10)   !important; color: var(--ibm-teal)   !important; }
-    .stat-info strong, .stat-info .stat-value {
-      font-family: 'IBM Plex Mono', monospace !important;
-      font-size: 36px !important;
-      font-weight: 600 !important;
-      color: var(--ibm-gray-100) !important;
-      line-height: 1 !important;
-      letter-spacing: -1px;
-    }
-    .stat-info p, .stat-label {
-      font-size: 12px !important;
-      color: var(--ibm-gray-70) !important;
-      margin-bottom: 4px;
-    }
-
-    /* Barra de color superior en stat-card por posición */
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--ibm-gray-20);
-    }
-    .stats-row .stat-card:nth-child(1)::before { background: var(--ibm-blue);   }
-    .stats-row .stat-card:nth-child(2)::before { background: var(--ibm-red);    }
-    .stats-row .stat-card:nth-child(3)::before { background: var(--ibm-yellow); }
-    .stats-row .stat-card:nth-child(4)::before { background: var(--ibm-green);  }
-
-    /* ── PANELS ── */
-    .panel {
-      background: white !important;
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-      padding: 0 !important;
-    }
-    .panel-header {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      padding: 14px 20px 13px !important;
-      border-bottom: 1px solid var(--ibm-gray-20) !important;
-      background: #fafafa !important;
-      margin-bottom: 0 !important;
-    }
-    .panel-header h3, .panel-title {
-      font-size: 12px !important;
-      font-weight: 600 !important;
-      color: var(--ibm-gray-90) !important;
-      letter-spacing: 0.8px !important;
-      text-transform: uppercase !important;
-    }
-    /* Inner content padding */
-    .panel > .filters-bar,
-    .panel > .area-tabs,
-    .panel > .active-filters,
-    .panel > #tableWrapper,
-    .panel > .table-scroll,
-    .panel > .labs-grid,
-    .panel > .filters,
-    .panel > .toolbar,
-    .panel > .panel-body {
-      padding: 16px 20px;
-    }
-    .panel > .table-scroll { padding: 0 !important; }
-    .panel > #tableWrapper  { padding: 0 !important; }
-
-    /* ── TABLES ── */
-    table { border-collapse: collapse !important; }
-    th {
-      background: var(--ibm-gray-10) !important;
-      color: var(--ibm-gray-70) !important;
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      padding: 10px 16px !important;
-      letter-spacing: 0.8px !important;
-      text-transform: uppercase !important;
-      border-right: 1px solid var(--ibm-gray-20) !important;
-      border-bottom: 1px solid var(--ibm-gray-20) !important;
-    }
-    th:last-child { border-right: none !important; }
-    td {
-      padding: 12px 16px !important;
-      border-bottom: 1px solid var(--ibm-gray-10) !important;
-      border-right: 1px solid var(--ibm-gray-10) !important;
-      color: var(--ibm-gray-90) !important;
-      font-size: 13px !important;
-    }
-    td:last-child { border-right: none !important; }
-    tr:last-child td { border-bottom: none !important; }
-    tbody tr:hover td { background: var(--ibm-blue-10) !important; }
-
-    /* ── BADGES ── */
-    .badge, .status-badge {
-      border-radius: 2px !important;
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      padding: 3px 8px !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 5px !important;
-      letter-spacing: 0.2px;
-    }
-    .badge::before, .status-badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: currentColor;
-    }
-    /* Status */
-    .badge-available, .badge.badge-available { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
-    .badge-borrowed                          { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
-    .badge-maintenance                       { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
-    .badge-damaged                           { background: var(--ibm-purple-10)!important; color: var(--ibm-purple)!important; border: none !important; }
-    .badge-pending                           { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
-    .badge-approved                          { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
-    .badge-rejected                          { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
-    .badge-returned, .badge-released         { background: var(--ibm-teal-10)  !important; color: var(--ibm-teal)  !important; border: none !important; }
-    .badge-info, .badge-occupied             { background: var(--ibm-blue-10)  !important; color: var(--ibm-blue)  !important; border: none !important; }
-    .badge-cancelled                         { background: var(--ibm-gray-10)  !important; color: var(--ibm-gray-70)!important; border: none !important; }
-    .badge-low                               { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
-    .badge-mid                               { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
-    .badge-ok                                { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
-    .badge-sistemas                          { background: var(--ibm-blue-10)  !important; color: var(--ibm-blue)  !important; border: none !important; }
-    .badge-laboratorio, .badge-lab           { background: var(--ibm-teal-10)  !important; color: var(--ibm-teal)  !important; border: none !important; }
-    /* Role badges */
-    .badge-role.badge-admin    { background: var(--ibm-purple-10)!important; color: var(--ibm-purple)!important; }
-    .badge-role.badge-docente  { background: var(--ibm-cyan-10)  !important; color: var(--ibm-cyan)  !important; }
-    .badge-role.badge-alumno   { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; }
-    /* Status badges (configuracion) */
-    .status-ok      { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border-radius: 2px !important; }
-    .status-warning { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border-radius: 2px !important; }
-    .status-error   { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border-radius: 2px !important; }
-
-    /* ── BUTTONS ── */
-    .btn {
-      border-radius: 2px !important;
-      font-size: 13px !important;
-      font-weight: 500 !important;
-      padding: 9px 18px !important;
-      letter-spacing: 0.3px;
-    }
-    .btn:hover { background: #0353e9 !important; }
-    .btn-export, .btn-outline {
-      border-radius: 2px !important;
-      font-size: 13px !important;
-    }
-    .btn-report {
-      border-radius: 2px !important;
-      font-size: 13px !important;
-      font-weight: 500 !important;
-    }
-    .btn-csv { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .btn-csv:hover { background: var(--ibm-purple) !important; color: white !important; }
-    .btn-pdf { background: var(--ibm-red-10) !important; color: var(--ibm-red) !important; }
-    .btn-pdf:hover { background: var(--ibm-red) !important; color: white !important; }
-
-    /* ── FILTERS / TOOLBAR ── */
-    .filters-bar, .toolbar, .filters { padding: 14px 20px !important; background: #fafafa; border-bottom: 1px solid var(--ibm-gray-20); gap: 8px; }
-    .filters-bar input, .filters-bar select,
-    .toolbar select, .toolbar input,
-    .filters select, .filters input,
-    .search-box, .filter-select {
-      border-radius: 2px !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      font-size: 13px !important;
-    }
-    .filters-bar input:focus, .filters-bar select:focus,
-    .toolbar select:focus, .toolbar input:focus,
-    .filter-select:focus {
-      border-color: var(--ibm-blue) !important;
-      box-shadow: none !important;
-      outline: 1px solid var(--ibm-blue) !important;
-    }
-    .area-tabs { padding: 12px 20px 0 !important; border-bottom: none !important; background: transparent !important; }
-    .area-pill, .area-tab {
-      border-radius: 2px !important;
-      font-size: 12px !important;
-    }
-
-    /* ── REPORT CARDS ── */
-    .report-card {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-      border-top: 3px solid var(--ibm-gray-20) !important;
-    }
-    .report-card.assets       { border-top-color: var(--ibm-purple) !important; }
-    .report-card.consumables  { border-top-color: var(--ibm-blue)   !important; }
-    .report-card.requests     { border-top-color: var(--ibm-green)  !important; }
-    .report-card.reservations { border-top-color: var(--ibm-orange) !important; }
-    .report-card:hover { transform: none !important; box-shadow: 0 0 0 2px var(--ibm-blue) !important; }
-    .report-card-icon { border-radius: 2px !important; }
-
-    /* ── CHART PANELS ── */
-    .chart-panel {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-    }
-
-    /* ── LAB CARDS (Reservas) ── */
-    .lab-status-card {
-      border-radius: 2px !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-    }
-    .lab-status-card.available { border-color: var(--ibm-green) !important; background: var(--ibm-green-10) !important; }
-    .lab-status-card.occupied  { border-color: var(--ibm-red)   !important; background: var(--ibm-red-10)   !important; }
-    .pill-available { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border-radius: 2px !important; }
-    .pill-occupied  { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border-radius: 2px !important; }
-
-    /* ── CONFIG sections ── */
-    .config-section {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-    }
-    .config-nav {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-    }
-    .config-nav-item { border-radius: 0 !important; }
-    .config-nav-item.active { background: var(--ibm-blue-10) !important; color: var(--ibm-blue) !important; }
-    .config-section-icon { border-radius: 2px !important; }
-    .config-section-icon.purple  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .config-section-icon.blue    { background: var(--ibm-blue-10)   !important; color: var(--ibm-blue)   !important; }
-    .config-section-icon.green   { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
-    .config-section-icon.orange  { background: var(--ibm-orange-10) !important; color: var(--ibm-orange) !important; }
-    .config-section-icon.red     { background: var(--ibm-red-10)    !important; color: var(--ibm-red)    !important; }
-    .config-section-icon.gray    { background: var(--ibm-gray-10)   !important; color: var(--ibm-gray-70)!important; }
-    .db-field { border-radius: 2px !important; background: var(--ibm-gray-10) !important; }
-    .role-card { border-radius: 2px !important; }
-    .role-card.admin   { background: var(--ibm-purple-10) !important; border-color: #e0cfff !important; }
-    .role-card.docente { background: var(--ibm-cyan-10)   !important; border-color: #b3daff !important; }
-    .role-card.alumno  { background: var(--ibm-green-10)  !important; border-color: #a2f0c0 !important; }
-    .role-card.admin h4   { color: var(--ibm-purple) !important; }
-    .role-card.docente h4 { color: var(--ibm-cyan)   !important; }
-    .role-card.alumno h4  { color: var(--ibm-green)  !important; }
-    .toggle input:checked + .toggle-slider { background: var(--ibm-blue) !important; }
-
-    /* ── MODALS ── */
-    .modal-box, .modal-content {
-      border-radius: 0 !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      border-radius: 2px !important;
-      border-color: var(--ibm-gray-20) !important;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color: var(--ibm-blue) !important;
-      box-shadow: none !important;
-      outline: 1px solid var(--ibm-blue) !important;
-    }
-    .btn-cancel { border-radius: 2px !important; }
-    .btn-danger { border-radius: 2px !important; }
-
-    /* ── USER SECTION table (Usuarios) ── */
-    tr.group-header td { background: var(--ibm-gray-10) !important; border-top: 2px solid var(--ibm-gray-20) !important; }
-    .group-label.admin  { color: var(--ibm-purple) !important; }
-    .group-label.docente{ color: var(--ibm-cyan)   !important; }
-    .group-label.alumno { color: var(--ibm-green)  !important; }
-    .group-label .grp-icon { border-radius: 2px !important; }
-    .group-count.admin  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .group-count.docente{ background: var(--ibm-cyan-10)   !important; color: var(--ibm-cyan)   !important; }
-    .group-count.alumno { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
-    .badge-admin   { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; border-radius: 2px !important; }
-    .badge-docente { background: var(--ibm-cyan-10)   !important; color: var(--ibm-cyan)   !important; border-radius: 2px !important; }
-    .badge-alumno  { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; border-radius: 2px !important; }
-
-    /* ── SECTION LABELS ── */
-    .section-title {
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      letter-spacing: 1.5px !important;
-      color: var(--ibm-gray-50) !important;
-      text-transform: uppercase !important;
-    }
-
-    /* ── TOAST ── */
-    .toast { border-radius: 2px !important; }
-
-    /* ── Entrada suave ── */
-    @keyframes ibm-fade {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .panel, .stat-card, .report-card, .chart-panel, .config-section {
-      animation: ibm-fade 0.35s ease both;
-    }
-    </style>
 </head>
 <body>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-  <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
-  <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
+  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">SGIAC-ISC</div>
+    <div class="sidebar-brand-sub">Sistema de Gestión</div>
+  </div>
   <div class="menu">
-    <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-    <div class="menu-section">Inventario</div>
-    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-    <div class="menu-section">Gestión</div>
-    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-    <a href="usuarios.html" class="active"><i class="fas fa-users"></i> Usuarios</a>
-    <div class="menu-section">Sistema</div>
-    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+<div class="menu-section">Principal</div>
+<a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
+<div class="menu-section">Inventario</div>
+<a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+<a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+<div class="menu-section">Gestión</div>
+<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+<a href="usuarios.html" class="active"><i class="fas fa-users"></i> Usuarios</a>
+<div class="menu-section">Sistema</div>
+<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
   </div>
 </div>
-
 <div class="main">
-  <div class="header">
-    <div class="header-left">
-      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-      <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
-    </div>
-    <div class="user">
-      <img src="https://i.pravatar.cc/40" alt="Avatar">
-      <span id="username">Cargando...</span>
-    </div>
-  </div>
 
+<div class="header">
+  <div class="header-left">
+    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+  </div>
+  <div class="user">
+    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
+    <span id="username">Cargando...</span>
+  </div>
+</div>
   <div class="content">
     <div class="panel">
       <div class="panel-header">
-        <h3>Usuarios del Sistema</h3>
-        <button class="btn" onclick="openModal()">
-          <i class="fas fa-user-plus"></i> Nuevo Usuario
-        </button>
+        <div class="panel-title"><span class="dot dot-blue"></span> Usuarios del Sistema</div>
+        <button class="btn" onclick="openModal()"><i class="fas fa-user-plus"></i> Nuevo Usuario</button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="usersTableBody"></tbody>
-      </table>
+      <div class="panel-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL USUARIO -->
 <div class="modal" id="userModal">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:440px;">
     <button class="modal-close" onclick="closeModal()">&times;</button>
     <h3 id="modalTitle">Nuevo Usuario</h3>
     <input type="hidden" id="userId">
@@ -563,9 +96,7 @@ tr.group-header:first-child td{border-top:none;}
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" style="flex:1;justify-content:center;" onclick="saveUser()">
-        <i class="fas fa-save"></i> Guardar
-      </button>
+      <button class="btn" style="flex:1;justify-content:center;" onclick="saveUser()"><i class="fas fa-save"></i> Guardar</button>
     </div>
   </div>
 </div>
@@ -574,235 +105,151 @@ tr.group-header:first-child td{border-top:none;}
 
 <script>
 function toggleMenu(){
-  const s=document.getElementById("sidebar");
-  const o=document.getElementById("sidebarOverlay");
-  s.classList.toggle("open");
-  o.classList.toggle("show");
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
 }
 function closeSidebar(){
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
-
+</script>
+<script>
 const apiUrl = "/api/users";
-const ORDER = ["administrador","docente","alumno"];
-
+const ORDER  = ["administrador","docente","alumno"];
 const roleConfig = {
   administrador: { label:"Administrador", badge:"badge-admin",   icon:"fa-shield-alt",        cls:"admin"   },
   docente:       { label:"Docente",       badge:"badge-docente", icon:"fa-chalkboard-teacher", cls:"docente" },
   alumno:        { label:"Alumno",        badge:"badge-alumno",  icon:"fa-user-graduate",      cls:"alumno"  }
 };
 
-/* ── CARGAR ── */
 async function loadUsers() {
   const tbody = document.getElementById("usersTableBody");
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:30px;">
-    <i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--ibm-gray-50);"><i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</td></tr>`;
   try {
-    const res   = await fetch(apiUrl);
-    const users = await res.json();
+    const users = await fetch(apiUrl).then(r => r.json());
     renderTable(users);
   } catch {
-    document.getElementById("usersTableBody").innerHTML =
-      `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px;">
-        <i class="fas fa-exclamation-circle"></i> Error al conectar con el servidor</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--ibm-red);padding:20px;"><i class="fas fa-exclamation-circle"></i> Error al conectar</td></tr>`;
   }
 }
 
-/* ── RENDER tabla única agrupada ── */
 function renderTable(users) {
   const tbody = document.getElementById("usersTableBody");
   tbody.innerHTML = "";
-
-  // Agrupar manteniendo orden de llegada dentro de cada grupo
   const groups = { administrador:[], docente:[], alumno:[] };
   users.forEach(u => { if (groups[u.role]) groups[u.role].push(u); });
-
   ORDER.forEach(role => {
     const list = groups[role];
     const cfg  = roleConfig[role];
-
-    // Fila de encabezado de grupo
-    const sep = document.createElement("tr");
+    const sep  = document.createElement("tr");
     sep.className = "group-header";
-    sep.innerHTML = `
-      <td colspan="5">
-        <span class="group-label ${cfg.cls}">
-          <span class="grp-icon"><i class="fas ${cfg.icon}"></i></span>
-          ${cfg.label}s
-          <span class="group-count ${cfg.cls}">${list.length}</span>
-        </span>
-      </td>`;
+    sep.innerHTML = `<td colspan="5" style="padding:10px 16px;background:var(--ibm-gray-10);border-top:2px solid var(--ibm-gray-20);border-bottom:1px solid var(--ibm-gray-20);">
+      <span style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ibm-gray-70);">
+        <span style="width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;background:var(--ibm-gray-20);"><i class="fas ${cfg.icon}"></i></span>
+        ${cfg.label}s
+        <span style="padding:1px 7px;font-size:11px;font-weight:700;" class="badge ${cfg.badge}">${list.length}</span>
+      </span>
+    </td>`;
     tbody.appendChild(sep);
-
     if (!list.length) {
       const empty = document.createElement("tr");
-      empty.className = "empty-row";
-      empty.innerHTML = `<td colspan="5">Sin ${cfg.label.toLowerCase()}s registrados</td>`;
+      empty.innerHTML = `<td colspan="5" style="text-align:center;color:var(--ibm-gray-50);padding:14px;font-size:13px;font-style:italic;">Sin ${cfg.label.toLowerCase()}s registrados</td>`;
       tbody.appendChild(empty);
       return;
     }
-
-    // Usuarios del grupo — el más nuevo queda al final (orden de la API)
     list.forEach(u => {
       const tr = document.createElement("tr");
-      tr.className = "data-row";
       tr.innerHTML = `
-        <td><strong>#${u.id}</strong></td>
+        <td><strong style="font-family:'IBM Plex Mono',monospace;font-size:12px;">#${u.id}</strong></td>
         <td>${esc(u.username)}</td>
-        <td>${esc(u.email || "—")}</td>
-        <td><span class="badge-role ${cfg.badge}">${cfg.label}</span></td>
+        <td style="color:var(--ibm-gray-70);">${esc(u.email||"—")}</td>
+        <td><span class="badge ${cfg.badge}">${cfg.label}</span></td>
         <td>
-          <button class="action-btn action-edit"   title="Editar"   onclick="editUser(${u.id})">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="action-btn action-delete" title="Eliminar" onclick="deleteUser(${u.id})">
-            <i class="fas fa-trash"></i>
-          </button>
+          <button class="action-btn action-edit" title="Editar" onclick="editUser(${u.id})"><i class="fas fa-edit"></i></button>
+          <button class="action-btn action-delete" title="Eliminar" onclick="deleteUser(${u.id})"><i class="fas fa-trash"></i></button>
         </td>`;
       tbody.appendChild(tr);
     });
   });
 }
 
-/* ── MODAL ── */
-function openModal(mode = "add", user = null) {
-  document.getElementById("userId").value    = "";
-  document.getElementById("uUsername").value = "";
-  document.getElementById("uEmail").value    = "";
-  document.getElementById("uPassword").value = "";
-  document.getElementById("uRole").value     = "alumno";
-  document.getElementById("passHint").style.display = "none";
-
-  if (mode === "edit" && user) {
-    document.getElementById("modalTitle").textContent = "Editar Usuario";
-    document.getElementById("userId").value           = user.id;
-    document.getElementById("uUsername").value        = user.username;
-    document.getElementById("uEmail").value           = user.email || "";
-    document.getElementById("uRole").value            = user.role;
-    document.getElementById("passHint").style.display = "block";
-  } else {
-    document.getElementById("modalTitle").textContent = "Nuevo Usuario";
+function openModal(mode="add", user=null) {
+  ["userId","uUsername","uEmail","uPassword"].forEach(id => document.getElementById(id).value="");
+  document.getElementById("uRole").value="alumno";
+  document.getElementById("passHint").style.display="none";
+  document.getElementById("modalTitle").textContent="Nuevo Usuario";
+  if (mode==="edit"&&user) {
+    document.getElementById("modalTitle").textContent="Editar Usuario";
+    document.getElementById("userId").value=user.id;
+    document.getElementById("uUsername").value=user.username;
+    document.getElementById("uEmail").value=user.email||"";
+    document.getElementById("uRole").value=user.role;
+    document.getElementById("passHint").style.display="block";
   }
   document.getElementById("userModal").classList.add("open");
 }
 
-function closeModal() {
-  document.getElementById("userModal").classList.remove("open");
-}
+function closeModal() { document.getElementById("userModal").classList.remove("open"); }
 
-/* ── GUARDAR ── */
 async function saveUser() {
-  const id       = document.getElementById("userId").value;
-  const username = document.getElementById("uUsername").value.trim();
-  const email    = document.getElementById("uEmail").value.trim();
-  const password = document.getElementById("uPassword").value;
-  const role     = document.getElementById("uRole").value;
-
-  if (!username || !email) { showToast("Nombre y correo son obligatorios", "error"); return; }
-  if (!id && !password)    { showToast("La contraseña es obligatoria para nuevos usuarios", "error"); return; }
-  if (password && password.length < 6) { showToast("La contraseña debe tener al menos 6 caracteres", "error"); return; }
-
-  const body   = { username, email, password, role };
-  const url    = id ? `${apiUrl}/${id}` : apiUrl;
-  const method = id ? "PUT" : "POST";
-
+  const id=document.getElementById("userId").value, username=document.getElementById("uUsername").value.trim(),
+        email=document.getElementById("uEmail").value.trim(), password=document.getElementById("uPassword").value,
+        role=document.getElementById("uRole").value;
+  if (!username||!email) return showToast("Nombre y correo son obligatorios","error");
+  if (!id&&!password) return showToast("La contraseña es obligatoria para nuevos usuarios","error");
+  if (password&&password.length<6) return showToast("La contraseña debe tener al menos 6 caracteres","error");
   try {
-    const res = await fetch(url, {
-      method, headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
-    });
-    if (!res.ok) { const err = await res.json(); showToast("Error: "+(err.message||"No se pudo guardar"), "error"); return; }
-    showToast(id ? "Usuario actualizado" : "Usuario creado", "success");
-    closeModal();
-    loadUsers();
-  } catch { showToast("No se pudo conectar con el servidor", "error"); }
+    const res=await fetch(id?`${apiUrl}/${id}`:apiUrl,{method:id?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,email,password,role})});
+    if (!res.ok) { const e=await res.json(); return showToast("Error: "+(e.message||"No se pudo guardar"),"error"); }
+    showToast(id?"Usuario actualizado":"Usuario creado","success");
+    closeModal(); loadUsers();
+  } catch { showToast("No se pudo conectar con el servidor","error"); }
 }
 
-/* ── EDITAR ── */
 async function editUser(id) {
-  try {
-    const res  = await fetch(`${apiUrl}/${id}`);
-    const user = await res.json();
-    openModal("edit", user);
-  } catch { showToast("No se pudo cargar el usuario", "error"); }
+  try { const user=await fetch(`${apiUrl}/${id}`).then(r=>r.json()); openModal("edit",user); }
+  catch { showToast("No se pudo cargar el usuario","error"); }
 }
 
-/* ── ELIMINAR ── */
-function deleteUser(id) {
-  const user = document.querySelector(`[onclick="deleteUser(${id})"]`)
-    ?.closest("tr")?.querySelector("td:nth-child(2)")?.textContent || "este usuario";
-  openDeleteUserModal(id, user);
-}
+function deleteUser(id) { openDeleteModal(id); }
 
-function openDeleteUserModal(id, username) {
-  let modal = document.getElementById("deleteUserModal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "deleteUserModal";
-    modal.style.cssText = `
-      display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-      background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);
-      justify-content:center;align-items:center;z-index:2000;`;
-    modal.innerHTML = `
-      <div style="background:white;border-radius:16px;padding:32px;width:380px;
-                  box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center;">
-        <div style="width:56px;height:56px;background:#fee2e2;border-radius:50%;
-          display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-          <i class="fas fa-trash" style="color:#dc2626;font-size:22px;"></i>
-        </div>
-        <h3 style="color:#1f2a3a;font-size:18px;margin-bottom:8px;">Eliminar Usuario</h3>
-        <p style="color:#6b7280;font-size:14px;margin-bottom:6px;">¿Estás seguro que deseas eliminar a:</p>
-        <p id="deleteUserName" style="color:#1f2a3a;font-size:16px;font-weight:600;margin-bottom:6px;"></p>
-        <p style="color:#dc2626;font-size:12px;margin-bottom:24px;">
-          <i class="fas fa-exclamation-triangle"></i> Esta acción es irreversible.
-        </p>
-        <input type="hidden" id="deleteUserId">
-        <div style="display:flex;gap:10px;">
-          <button onclick="closeDeleteUserModal()" style="flex:1;padding:11px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;">
-            Cancelar
-          </button>
-          <button onclick="confirmDeleteUser()" style="flex:1;padding:11px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;">
-            <i class="fas fa-trash"></i> Eliminar
-          </button>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    modal.addEventListener("click", e => { if (e.target === modal) closeDeleteUserModal(); });
+function openDeleteModal(id) {
+  if (!document.getElementById("deleteUserModal")) {
+    const m=document.createElement("div"); m.id="deleteUserModal"; m.className="modal";
+    m.innerHTML=`<div class="modal-box" style="max-width:400px;text-align:center;">
+      <div style="font-size:40px;color:var(--ibm-red);margin-bottom:12px;"><i class="fas fa-trash"></i></div>
+      <h3>Eliminar Usuario</h3>
+      <p style="font-size:13px;color:var(--ibm-gray-70);margin:10px 0;">Esta acción es irreversible.</p>
+      <input type="hidden" id="deleteUserId">
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn-cancel" onclick="document.getElementById('deleteUserModal').classList.remove('open')">Cancelar</button>
+        <button class="btn-danger" onclick="confirmDeleteUser()"><i class="fas fa-trash"></i> Eliminar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("open"); });
   }
-  document.getElementById("deleteUserId").value        = id;
-  document.getElementById("deleteUserName").textContent = username;
-  modal.style.display = "flex";
-}
-
-function closeDeleteUserModal() {
-  const modal = document.getElementById("deleteUserModal");
-  if (modal) modal.style.display = "none";
+  document.getElementById("deleteUserId").value=id;
+  document.getElementById("deleteUserModal").classList.add("open");
 }
 
 async function confirmDeleteUser() {
-  const id = document.getElementById("deleteUserId").value;
-  closeDeleteUserModal();
+  const id=document.getElementById("deleteUserId").value;
+  document.getElementById("deleteUserModal").classList.remove("open");
   try {
-    const res = await fetch(`${apiUrl}/${id}`, { method:"DELETE" });
+    const res=await fetch(`${apiUrl}/${id}`,{method:"DELETE"});
     if (!res.ok) throw new Error();
-    showToast("Usuario eliminado", "success");
-    loadUsers();
-  } catch { showToast("No se pudo eliminar el usuario", "error"); }
+    showToast("Usuario eliminado","success"); loadUsers();
+  } catch { showToast("No se pudo eliminar el usuario","error"); }
 }
 
-/* ── UTILS ── */
-function esc(str) {
-  return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function showToast(msg,type="success") {
+  const t=document.getElementById("toast"); t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove("show"),3000);
 }
-function showToast(msg, type = "success") {
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove("show"), 3000);
-}
-document.getElementById("userModal").addEventListener("click", e => {
-  if (e.target === document.getElementById("userModal")) closeModal();
-});
 
+document.getElementById("userModal").addEventListener("click",e=>{ if(e.target===document.getElementById("userModal")) closeModal(); });
 loadUsers();
 </script>
 <script src="../scripts/pages/realtime.js"></script>

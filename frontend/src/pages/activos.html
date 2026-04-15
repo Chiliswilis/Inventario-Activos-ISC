@@ -5,290 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="../assets/logoTsj.png">
 <title>SGIAC-ISC | Activos</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../styles/sgiac-shared.css">
 <link rel="stylesheet" href="../styles/responsive.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{display:flex;background:#f1f3f9;color:#374151;min-height:100vh;overflow-x:hidden;}
 
-/* SIDEBAR */
-.sidebar{width:240px;background:#1f2a3a;color:white;flex-shrink:0;height:100vh;position:sticky;top:0;overflow-y:auto;}
-.logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.logo small{display:block;font-size:11px;font-weight:300;color:#94a3b8;margin-top:2px;}
-.menu a{display:flex;align-items:center;padding:13px 22px;color:#cbd5e1;text-decoration:none;font-size:13.5px;transition:0.2s;}
-.menu a i{margin-right:10px;width:18px;font-size:13px;}
-.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-.menu-section{padding:10px 22px 4px;font-size:10px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;}
-
-/* OVERLAY */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998;}
-.sidebar-overlay.show{display:block;}
-
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;}
-.header{height:62px;background:white;display:flex;align-items:center;justify-content:space-between;
-  padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;position:sticky;top:0;z-index:10;}
-.header-left{display:flex;align-items:center;gap:12px;}
-.header h2{font-size:16px;font-weight:600;color:#1f2a3a;}
-.header h2 span{color:#6b7280;font-weight:400;}
-.menu-btn{font-size:18px;cursor:pointer;color:#374151;}
-.user{display:flex;align-items:center;gap:10px;font-size:13px;}
-.user img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
-.content{padding:22px;overflow-y:auto;flex:1;}
-
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-.stat-card{background:white;border-radius:10px;padding:16px 18px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;align-items:center;gap:14px;}
-.stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:17px;flex-shrink:0;}
-.stat-icon.purple{background:#ede9fe;color:#7c3aed;}
-.stat-icon.red{background:#fee2e2;color:#dc2626;}
-.stat-icon.orange{background:#ffedd5;color:#d97706;}
-.stat-icon.green{background:#d1fae5;color:#059669;}
-.stat-info p{font-size:11px;color:#9ca3af;margin-bottom:1px;}
-.stat-info strong{font-size:22px;font-weight:600;color:#1f2a3a;}
-
-/* PANEL */
-.panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.07);}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
-.panel-title{font-size:15px;font-weight:600;color:#1f2a3a;}
-.panel-actions{display:flex;gap:8px;flex-wrap:wrap;}
-/* Alias para compatibilidad con activos.html */
-.panel-header h3{font-size:15px;font-weight:600;color:#1f2a3a;}
-.panel-header-btns{display:flex;gap:8px;flex-wrap:wrap;}
-
-/* BOTONES */
-.btn{background:#4f46e5;color:white;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;
-  font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
-.btn:hover{background:#3730a3;}
-.btn-outline{background:white;color:#374151;border:1px solid #d1d5db;padding:7px 14px;border-radius:7px;
-  cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
-.btn-outline:hover{border-color:#4f46e5;color:#4f46e5;}
-.btn-export{background:#10b981;color:white;border:none;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
-.btn-export:hover{background:#059669;}
-.btn-cancel{background:#f3f4f6;color:#374151;border:none;padding:8px 16px;border-radius:7px;
-  cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
-.btn-cancel:hover{background:#e5e7eb;}
-
-/* ÁREA TABS */
-.area-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid #e5e7eb;border-radius:8px;
-  overflow:hidden;width:fit-content;}
-.area-tab{padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;
-  border:none;background:white;color:#6b7280;transition:0.2s;font-weight:500;
-  position:relative;z-index:1;}
-.area-tab:not(:last-child){border-right:1px solid #e5e7eb;}
-.area-tab:hover:not(.active){background:#f3f4f6;color:#374151;}
-.area-tab.active.all{background:#1f2a3a;color:white;}
-.area-tab.active.sistemas{background:#4f46e5;color:white;}
-.area-tab.active.lab{background:#0891b2;color:white;}
-/* Alias pills para compatibilidad */
-.area-pills{display:flex;gap:6px;flex-wrap:wrap;}
-.area-pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;
-  border:1px solid #d1d5db;background:white;color:#374151;transition:0.2s;font-family:'Poppins',sans-serif;}
-.area-pill:hover{border-color:#4f46e5;color:#4f46e5;}
-.area-pill.active-all{background:#1f2a3a;color:white;border-color:#1f2a3a;}
-.area-pill.active-sistemas{background:#4f46e5;color:white;border-color:#4f46e5;}
-.area-pill.active-laboratorio{background:#0891b2;color:white;border-color:#0891b2;}
-.filter-divider{width:1px;height:28px;background:#e5e7eb;margin:0 4px;}
-
-/* FILTROS */
-.filters-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
-.filters-bar input,.filters-bar select,
-.filter-select{
-  padding:8px 12px;border-radius:7px;border:1px solid #d1d5db;
-  font-size:13px;font-family:'Poppins',sans-serif;color:#374151;
-  outline:none;transition:0.2s;background:white;}
-.filters-bar input:focus,.filters-bar select:focus,.filter-select:focus{
-  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);}
-.filters-bar input{min-width:220px;}
-/* Search box alias */
-.search-box{display:flex;align-items:center;gap:6px;background:white;border:1px solid #d1d5db;border-radius:7px;padding:6px 12px;min-width:180px;max-width:240px;}
-.search-box i{color:#9ca3af;font-size:13px;}
-.search-box input{border:none;background:none;outline:none;font-size:13px;font-family:'Poppins',sans-serif;color:#374151;width:100%;}
-
-/* Chips de filtros activos */
-.active-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.filter-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;background:#ede9fe;color:#4f46e5;}
-.filter-chip button{background:none;border:none;cursor:pointer;color:#4f46e5;padding:0;font-size:12px;line-height:1;}
-
-/* TABLA */
-.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:900px;}
-th,td{padding:11px 14px;border-bottom:1px solid #f0f0f4;text-align:left;}
-th{background:#f8f9fc;font-weight:600;color:#6b7280;font-size:11.5px;
-  text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
-tr:hover td{background:#fafbff;}
-.actions i{cursor:pointer;margin-right:6px;transition:0.2s;color:#9ca3af;font-size:14px;}
-.actions i.edit-btn:hover{color:#4f46e5;}
-.actions i.delete-btn:hover{color:#ef4444;}
-.action-btn{background:none;border:none;cursor:pointer;padding:5px 8px;border-radius:5px;font-size:14px;transition:0.2s;}
-.action-edit{color:#4f46e5;}.action-edit:hover{background:#ede9fe;}
-.action-delete{color:#dc2626;}.action-delete:hover{background:#fee2e2;}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
-  font-size:11px;font-weight:500;white-space:nowrap;}
-.badge-available{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
-.badge-borrowed{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
-.badge-maintenance{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
-.badge-damaged{background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;}
-.badge-sistemas{background:#ede9fe;color:#6d28d9;border:1px solid #ddd6fe;}
-.badge-laboratorio{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
-
-/* EMPTY / LOADING */
-.empty-state{text-align:center;padding:50px 20px;color:#9ca3af;}
-.empty-state i{font-size:38px;margin-bottom:12px;display:block;}
-.loading{text-align:center;padding:35px;color:#6b7280;}
-.loading i{animation:spin 1s linear infinite;font-size:22px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* MODAL */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
-  justify-content:center;align-items:center;z-index:1000;}
-.modal.open{display:flex;}
-.modal-box,.modal-content{background:white;padding:26px;border-radius:12px;width:500px;max-width:95vw;
-  position:relative;box-shadow:0 12px 32px rgba(0,0,0,0.18);max-height:92vh;overflow-y:auto;}
-.modal-box h3,.modal-content h3{margin-bottom:20px;font-size:17px;color:#1f2a3a;font-weight:600;}
-.modal-close,.modal-content .close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;
-  color:#9ca3af;background:none;border:none;line-height:1;}
-.modal-close:hover,.modal-content .close:hover{color:#374151;}
-.form-group{margin-bottom:14px;}
-.form-group label{display:block;font-size:12.5px;font-weight:500;color:#374151;margin-bottom:5px;}
-.form-group input,.form-group select,.form-group textarea{
-  width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
-  font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
-  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);}
-.form-group textarea{resize:none;height:60px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
-.modal-actions{display:flex;gap:10px;margin-top:6px;}
-.modal-actions .btn,.modal-actions .btn-cancel{flex:1;justify-content:center;}
-.form-divider{border:none;border-top:1px solid #f0f0f4;margin:16px 0;}
-.form-section-title,.section-sep{font-size:11px;font-weight:600;color:#9ca3af;
-  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;
-  border-bottom:1px solid #f0f0f4;padding-bottom:5px;margin-top:14px;}
-
-/* CONFIRM */
-.confirm-box{max-width:400px;text-align:center;}
-.confirm-icon{font-size:44px;color:#dc2626;margin-bottom:12px;}
-.confirm-box p{font-size:14px;color:#374151;margin-bottom:4px;font-weight:500;}
-.confirm-box small{font-size:12px;color:#9ca3af;}
-.btn-danger{background:#dc2626;color:white;border:none;padding:10px 20px;border-radius:7px;cursor:pointer;font-size:14px;font-family:'Poppins',sans-serif;transition:0.2s;flex:1;}
-.btn-danger:hover{background:#b91c1c;}
-
-/* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;
-  color:white;font-size:13.5px;z-index:9999;opacity:0;transform:translateY(8px);
-  transition:all 0.3s;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,0.2);}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:#10b981;}
-.toast.error{background:#ef4444;}
-.toast.info{background:#0891b2;}
-
-/* RESPONSIVE */
-@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){
-  body{flex-direction:column;}
-  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:999;width:250px;}
-  .sidebar.open{transform:translateX(0);}
-  .main{width:100%;}
-  .header{padding:0 15px;height:56px;}
-  .header h2{font-size:14px;}
-  .user span{display:none;}
-  .content{padding:12px;}
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .panel{padding:14px;}
-  .modal{align-items:flex-end;padding:0;}
-  .modal-box,.modal-content{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:90vh;}
-  .form-row,.form-row-3{grid-template-columns:1fr;}
-  .toast{left:12px;right:12px;bottom:12px;text-align:center;}
-  .filters-bar{flex-direction:column;}
-  .filters-bar input,.filters-bar select{width:100%;}
-  .area-tabs{width:100%;}
-  .area-tab{flex:1;text-align:center;}
-}
-</style>
 </head>
 <body>
+
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-  <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
-  <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
+  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">SGIAC-ISC</div>
+    <div class="sidebar-brand-sub">Sistema de Gestión</div>
+  </div>
   <div class="menu">
-    <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-    <div class="menu-section">Inventario</div>
-    <a href="activos.html" class="active"><i class="fas fa-box"></i> Activos</a>
-    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-    <div class="menu-section">Gestión</div>
-    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-    <div class="menu-section">Sistema</div>
-    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+<div class="menu-section">Principal</div>
+<a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
+<div class="menu-section">Inventario</div>
+<a href="activos.html" class="active"><i class="fas fa-box"></i> Activos</a>
+<a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+<div class="menu-section">Gestión</div>
+<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+<a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+<div class="menu-section">Sistema</div>
+<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
   </div>
 </div>
-
 <div class="main">
-  <div class="header">
-    <div class="header-left">
-      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-      <h2><i class="fas fa-box"></i> GESTION DE ACTIVOS</h2>
-    </div>
-    <div class="user">
-      <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-      <span id="username">Cargando...</span>
-    </div>
-  </div>
 
+<div class="header">
+  <div class="header-left">
+    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    <h2><i class="fas fa-box"></i> Gestión de Activos</h2>
+  </div>
+  <div class="user">
+    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
+    <span id="username">Cargando...</span>
+  </div>
+</div>
   <div class="content">
     <div class="panel">
       <div class="panel-header">
-        <h3>Vista Principal de Activos</h3>
-        <div class="panel-header-btns">
-          <button class="btn-export admin-only" onclick="exportCSV()">
-            <i class="fas fa-file-csv"></i> Exportar
-          </button>
-          <button class="btn admin-only" onclick="openModal()">
-            <i class="fas fa-plus"></i> Agregar Activo
-          </button>
+        <div class="panel-title"><span class="dot dot-blue"></span> Inventario de Activos</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-export admin-only" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar</button>
+          <button class="btn admin-only" onclick="openModal()"><i class="fas fa-plus"></i> Agregar Activo</button>
         </div>
       </div>
 
-      <!-- ══ BARRA DE FILTROS ══ -->
       <div class="filters-bar">
-        <!-- Área / Departamento -->
-        <span class="filter-label"><i class="fas fa-layer-group" style="margin-right:4px;"></i>Área</span>
+        <span style="font-size:12px;font-weight:600;color:var(--ibm-gray-70);">Área</span>
         <div class="area-pills">
-          <button class="area-pill active-all" data-area="" onclick="setAreaFilter(this, '')">
-            <i class="fas fa-globe-americas"></i> Todos
-          </button>
-          <button class="area-pill" data-area="sistemas" onclick="setAreaFilter(this, 'sistemas')">
-            <i class="fas fa-desktop"></i> Sistemas
-          </button>
-          <button class="area-pill" data-area="laboratorio" onclick="setAreaFilter(this, 'laboratorio')">
-            <i class="fas fa-flask"></i> Laboratorio
-          </button>
+          <button class="area-pill active-all" data-area="" onclick="setAreaFilter(this, '')"><i class="fas fa-globe-americas"></i> Todos</button>
+          <button class="area-pill" data-area="sistemas" onclick="setAreaFilter(this, 'sistemas')"><i class="fas fa-desktop"></i> Sistemas</button>
+          <button class="area-pill" data-area="laboratorio" onclick="setAreaFilter(this, 'laboratorio')"><i class="fas fa-flask"></i> Laboratorio</button>
         </div>
-
-        <div class="filter-divider"></div>
-
-        <!-- Búsqueda por nombre -->
         <div class="search-box">
           <i class="fas fa-search"></i>
           <input type="text" id="searchInput" placeholder="Buscar por nombre..." oninput="applyFilters()">
         </div>
-
-        <!-- Filtro categoría (dinámico según área) -->
         <select class="filter-select" id="filterCategory" onchange="applyFilters()">
           <option value="">Todas las categorías</option>
         </select>
-
-        <!-- Filtro estado -->
         <select class="filter-select" id="filterStatus" onchange="applyFilters()">
           <option value="">Todos los estados</option>
           <option value="available">Disponible</option>
@@ -296,31 +78,26 @@ tr:hover td{background:#fafbff;}
           <option value="maintenance">En Mantenimiento</option>
           <option value="damaged">Dañado</option>
         </select>
-
-        <!-- Filtro ubicación -->
         <select class="filter-select" id="filterLocation" onchange="applyFilters()">
           <option value="">Todas las ubicaciones</option>
         </select>
       </div>
 
-      <!-- Chips de filtros activos -->
       <div class="active-filters" id="activeFilters"></div>
 
-      <!-- La tabla se renderiza aquí por JS -->
-      <div id="tableWrapper">
-        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+      <div id="tableWrapper" class="panel-scroll">
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando activos...</p></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL AGREGAR / EDITAR ══ -->
+<!-- MODAL AGREGAR / EDITAR -->
 <div class="modal" id="assetModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&times;</button>
     <h3 id="modalTitle">Agregar Activo</h3>
     <input type="hidden" id="assetId">
-
     <div class="form-group">
       <label>Nombre *</label>
       <input type="text" id="assetName" placeholder="Ej. Laptop HP ProBook">
@@ -329,30 +106,24 @@ tr:hover td{background:#fafbff;}
       <label>Descripción</label>
       <textarea id="assetDescription" placeholder="Descripción breve del activo..."></textarea>
     </div>
-
-    <!-- NUEVO: Área / Departamento -->
     <div class="form-group">
       <label>Área / Departamento *</label>
       <select id="assetArea" onchange="onAreaChangeModal()">
         <option value="" disabled selected>Selecciona área</option>
-        <option value="sistemas">🖥️ Sistemas</option>
-        <option value="laboratorio">🔬 Laboratorio / Alimentos</option>
+        <option value="sistemas">Sistemas</option>
+        <option value="laboratorio">Laboratorio / Alimentos</option>
       </select>
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label>Categoría *</label>
-        <select id="assetCategory">
-          <option value="" disabled selected>Selecciona categoría</option>
-        </select>
+        <select id="assetCategory"><option value="" disabled selected>Selecciona categoría</option></select>
       </div>
       <div class="form-group">
         <label>Número de serie *</label>
         <input type="text" id="assetSerial" placeholder="Ej. ABC-123456">
       </div>
     </div>
-
     <div class="section-sep">Ubicación</div>
     <div class="form-row">
       <div class="form-group">
@@ -361,10 +132,9 @@ tr:hover td{background:#fafbff;}
       </div>
       <div class="form-group">
         <label id="lblLaboratorio">Laboratorio *</label>
-        <input type="text" id="assetLaboratorio" placeholder="Ej. Laboratorio de Sistemas">
+        <input type="text" id="assetLaboratorio" placeholder="Ej. Lab. de Sistemas">
       </div>
     </div>
-
     <div class="section-sep">Estado y cantidad</div>
     <div class="form-row">
       <div class="form-group">
@@ -381,38 +151,31 @@ tr:hover td{background:#fafbff;}
         <input type="number" id="assetQuantity" value="1" min="1">
       </div>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" style="flex:1;" onclick="saveAsset()">
-        <i class="fas fa-save"></i> Guardar
-      </button>
+      <button class="btn" style="flex:1;justify-content:center;" onclick="saveAsset()"><i class="fas fa-save"></i> Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL CONFIRMAR ELIMINAR ══ -->
+<!-- MODAL ELIMINAR -->
 <div class="modal" id="deleteModal">
-  <div class="modal-box confirm-box">
+  <div class="modal-box" style="max-width:420px;text-align:center;">
     <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
-    <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
-    <h3 style="margin-bottom:10px;">¿Eliminar activo?</h3>
-    <p id="deleteAssetName">Este activo será eliminado permanentemente.</p>
-    <small>Esta acción no se puede deshacer.</small>
+    <div style="font-size:42px;color:var(--ibm-red);margin-bottom:12px;"><i class="fas fa-exclamation-triangle"></i></div>
+    <h3 style="margin-bottom:8px;">¿Eliminar activo?</h3>
+    <p id="deleteAssetName" style="font-size:13px;color:var(--ibm-gray-70);">Este activo será eliminado permanentemente.</p>
+    <small style="font-size:12px;color:var(--ibm-gray-50);">Esta acción no se puede deshacer.</small>
     <input type="hidden" id="deleteAssetId">
     <div class="modal-actions" style="margin-top:20px;">
       <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
-      <button class="btn-danger" onclick="confirmDelete()">
-        <i class="fas fa-trash"></i> Sí, eliminar
-      </button>
+      <button class="btn-danger" onclick="confirmDelete()"><i class="fas fa-trash"></i> Sí, eliminar</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="../scripts/pages/activos.js"></script>
-<script src="../scripts/pages/realtime.js"></script>
 <script>
 function toggleMenu(){
   document.getElementById("sidebar").classList.toggle("open");
@@ -422,10 +185,9 @@ function closeSidebar(){
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
-document.querySelectorAll(".modal").forEach(m => {
-  m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
-});
 </script>
+<script src="../scripts/pages/activos.js"></script>
+<script src="../scripts/pages/realtime.js"></script>
 <script src="../scripts/pages/common.js"></script>
 </body>
 </html>

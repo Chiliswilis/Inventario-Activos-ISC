@@ -1,452 +1,237 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="../assets/logoTsj.png">
-    <title>SGIAC-ISC | Reportes</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="../styles/responsive.css">
-
-    <!-- Librerías necesarias -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-        body{display:flex;min-height:100vh;overflow-x:hidden;background:#f1f3f9;color:#374151;}
-        
-        /* Sidebar */
-        .sidebar{width:240px;background:#1f2a3a;color:white;flex-shrink:0;height:100vh;position:sticky;top:0;overflow-y:auto;}
-        .logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-        .logo small{display:block;font-size:11px;font-weight:300;color:#94a3b8;margin-top:2px;}
-        .menu a{display:flex;align-items:center;padding:13px 22px;color:#cbd5e1;text-decoration:none;font-size:13.5px;transition:0.2s;}
-        .menu a i{margin-right:10px;width:18px;font-size:13px;}
-        .menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-        .menu-section{padding:10px 22px 4px;font-size:10px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;}
-
-        .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-        .header{height:65px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;}
-        .header h2{font-size:18px;color:#1f2a3a;}
-        
-        /* Usuario mejorado */
-        .user{display:flex;align-items:center;gap:12px;font-size:14px;}
-        .user img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;box-shadow:0 2px 6px rgba(0,0,0,0.08);}
-        .user span{font-weight:500;color:#1f2a3a;}
-
-        .content{padding:25px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:24px;}
-
-        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;}
-        .stat-card{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:flex;align-items:center;gap:16px;}
-        .stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-        .stat-icon.purple{background:#ede9fe;color:#7c3aed;}
-        .stat-icon.blue{background:#dbeafe;color:#1d4ed8;}
-        .stat-icon.green{background:#dcfce7;color:#15803d;}
-        .stat-icon.orange{background:#ffedd5;color:#c2410c;}
-        .stat-label{font-size:12.5px;color:#6b7280;margin-bottom:4px;}
-        .stat-value{font-size:24px;font-weight:600;color:#1f2a3a;}
-
-        .report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;}
-        .report-card{background:white;border-radius:12px;padding:22px;box-shadow:0 3px 12px rgba(0,0,0,0.07);border-top:5px solid transparent;transition:0.3s;}
-        .report-card:hover{transform:translateY(-4px);box-shadow:0 10px 25px rgba(0,0,0,0.12);}
-        
-        .report-card.assets {border-color:#7c3aed;}
-        .report-card.consumables {border-color:#0369a1;}
-        .report-card.requests {border-color:#15803d;}
-        .report-card.reservations {border-color:#c2410c;}
-
-        .report-card-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px;}
-        .report-card h3{font-size:15.5px;font-weight:600;color:#1f2a3a;margin-bottom:8px;}
-        .report-card p{font-size:13.2px;color:#6b7280;line-height:1.5;margin-bottom:20px;}
-
-        .btn-group{display:flex;gap:10px;}
-        .btn-report{flex:1;padding:11px 14px;border:none;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px;transition:0.2s;}
-        .btn-csv{background:#f3e8ff;color:#7c3aed;}
-        .btn-csv:hover{background:#7c3aed;color:white;}
-        .btn-pdf{background:#fee2e2;color:#dc2626;}
-        .btn-pdf:hover{background:#dc2626;color:white;}
-
-        /* Gráficas */
-        .chart-panel{background:white;border-radius:12px;padding:24px;box-shadow:0 3px 12px rgba(0,0,0,0.07);}
-        .chart-panel h4{font-size:15px;font-weight:600;color:#1f2a3a;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
-        .chart-wrap{position:relative;height:260px;}
-
-        .section-title{font-size:13.5px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px;}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/logoTsj.png">
+<title>SGIAC-ISC | Reportes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../styles/sgiac-shared.css">
+<link rel="stylesheet" href="../styles/responsive.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--ibm-gray-20);border:1px solid var(--ibm-gray-20);margin-top:1px;}
+.report-card{background:#fff;padding:22px;position:relative;border-top:3px solid var(--ibm-gray-20);transition:box-shadow 0.15s;}
+.report-card:hover{box-shadow:inset 0 0 0 2px var(--ibm-blue);}
+.report-card.assets{border-top-color:var(--ibm-purple);}
+.report-card.consumables{border-top-color:var(--ibm-blue);}
+.report-card.requests{border-top-color:var(--ibm-green);}
+.report-card.reservations{border-top-color:var(--ibm-orange);}
+.report-card-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;}
+.report-card h3{font-size:14px;font-weight:700;color:var(--ibm-gray-90);margin-bottom:6px;}
+.report-card p{font-size:12.5px;color:var(--ibm-gray-70);line-height:1.5;margin-bottom:18px;}
+.btn-group{display:flex;gap:8px;}
+.btn-report{flex:1;padding:9px 12px;border:none;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background 0.15s;}
+.btn-csv{background:var(--ibm-purple-10);color:var(--ibm-purple);}
+.btn-csv:hover{background:var(--ibm-purple);color:#fff;}
+.btn-pdf{background:var(--ibm-red-10);color:var(--ibm-red);}
+.btn-pdf:hover{background:var(--ibm-red);color:#fff;}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+.chart-panel{background:#fff;border:1px solid var(--ibm-gray-20);padding:22px;}
+.chart-panel h4{font-size:12.5px;font-weight:700;color:var(--ibm-gray-90);margin-bottom:16px;display:flex;align-items:center;gap:8px;letter-spacing:0.5px;text-transform:uppercase;}
+.chart-wrap{position:relative;height:240px;}
+@media(max-width:768px){.chart-grid{grid-template-columns:1fr;}}
+</style>
 </head>
 <body>
 
-<div class="sidebar">
-    <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
-    <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
-    <div class="menu">
-        <div class="menu-section">Principal</div>
-        <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-        
-        <div class="menu-section">Inventario</div>
-        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-        
-        <div class="menu-section">Gestión</div>
-        <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-        <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-        
-        <div class="menu-section">Sistema</div>
-        <a href="reportes.html" class="active"><i class="fas fa-file-alt"></i> Reportes</a>
-        <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-    </div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">SGIAC-ISC</div>
+    <div class="sidebar-brand-sub">Sistema de Gestión</div>
+  </div>
+  <div class="menu">
+    <div class="menu-section">Principal</div>
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
+    <div class="menu-section">Inventario</div>
+    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+    <div class="menu-section">Gestión</div>
+    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+    <div class="menu-section">Sistema</div>
+    <a href="reportes.html" class="active"><i class="fas fa-file-alt"></i> Reportes</a>
+    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+  </div>
 </div>
-
 <div class="main">
-    <div class="header">
-        <div class="header-left">
-            <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-            <h2><i class="fas fa-file-alt"></i> Reportes y Estadísticas</h2>
-        </div>
-        <div class="user">
-            <img src="https://i.pravatar.cc/40" alt="Avatar">
-            <span id="username">Willy Administrador</span>
-        </div>
+
+<div class="header">
+  <div class="header-left">
+    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    <h2><i class="fas fa-file-alt"></i> Reportes y Estadísticas</h2>
+  </div>
+  <div class="user">
+    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
+    <span id="username">Cargando...</span>
+  </div>
+</div>
+  <div class="content">
+    <!-- Resumen -->
+    <div class="section-label">Resumen del Sistema</div>
+    <div class="stats-row" style="margin-bottom:24px;">
+      <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-box"></i></div><div><div class="stat-label">Activos</div><div class="stat-value" id="statActivos">—</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-flask"></i></div><div><div class="stat-label">Consumibles</div><div class="stat-value" id="statConsumibles">—</div></div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="fas fa-clipboard-list"></i></div><div><div class="stat-label">Solicitudes</div><div class="stat-value" id="statSolicitudes">—</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div><div><div class="stat-label">Reservas</div><div class="stat-value" id="statReservas">—</div></div></div>
     </div>
 
-    <div class="content">
-        <!-- Resumen del Sistema -->
-        <div>
-            <p class="section-title">Resumen del Sistema</p>
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-icon purple"><i class="fas fa-box"></i></div>
-                    <div><div class="stat-label">Activos</div><div class="stat-value" id="statActivos">—</div></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="fas fa-flask"></i></div>
-                    <div><div class="stat-label">Consumibles</div><div class="stat-value" id="statConsumibles">—</div></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i class="fas fa-clipboard-list"></i></div>
-                    <div><div class="stat-label">Solicitudes</div><div class="stat-value" id="statSolicitudes">—</div></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
-                    <div><div class="stat-label">Reservas</div><div class="stat-value" id="statReservas">—</div></div>
-                </div>
-            </div>
+    <!-- Exportar -->
+    <div class="section-label">Generar Reportes</div>
+    <div class="report-grid">
+      <div class="report-card assets">
+        <div class="report-card-icon" style="background:var(--ibm-purple-10);color:var(--ibm-purple);"><i class="fas fa-box"></i></div>
+        <h3>Reporte de Activos</h3>
+        <p>Inventario completo con estado, ubicación y número de serie.</p>
+        <div class="btn-group">
+          <button class="btn-report btn-csv" onclick="exportCSV('assets')"><i class="fas fa-file-csv"></i> CSV</button>
+          <button class="btn-report btn-pdf" onclick="exportPDF('assets')"><i class="fas fa-file-pdf"></i> PDF</button>
         </div>
-
-        <!-- Generar Reportes -->
-        <div>
-            <p class="section-title">Generar Reportes</p>
-            <div class="report-grid">
-                <div class="report-card assets">
-                    <div class="report-card-icon" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-box"></i></div>
-                    <h3>Reporte de Activos</h3>
-                    <p>Inventario completo con estado, ubicación y número de serie.</p>
-                    <div class="btn-group">
-                        <button class="btn-report btn-csv" onclick="exportCSV('assets')"><i class="fas fa-file-csv"></i> CSV</button>
-                        <button class="btn-report btn-pdf" onclick="exportPDF('assets')"><i class="fas fa-file-pdf"></i> PDF</button>
-                    </div>
-                </div>
-
-                <div class="report-card consumables">
-                    <div class="report-card-icon" style="background:#e0f2fe;color:#0369a1;"><i class="fas fa-flask"></i></div>
-                    <h3>Reporte de Consumibles</h3>
-                    <p>Stock actual, mínimos y alertas de inventario bajo.</p>
-                    <div class="btn-group">
-                        <button class="btn-report btn-csv" onclick="exportCSV('consumables')"><i class="fas fa-file-csv"></i> CSV</button>
-                        <button class="btn-report btn-pdf" onclick="exportPDF('consumables')"><i class="fas fa-file-pdf"></i> PDF</button>
-                    </div>
-                </div>
-
-                <div class="report-card requests">
-                    <div class="report-card-icon" style="background:#dcfce7;color:#15803d;"><i class="fas fa-clipboard-list"></i></div>
-                    <h3>Reporte de Solicitudes</h3>
-                    <p>Historial de préstamos, estados y fechas de devolución.</p>
-                    <div class="btn-group">
-                        <button class="btn-report btn-csv" onclick="exportCSV('requests')"><i class="fas fa-file-csv"></i> CSV</button>
-                        <button class="btn-report btn-pdf" onclick="exportPDF('requests')"><i class="fas fa-file-pdf"></i> PDF</button>
-                    </div>
-                </div>
-
-                <div class="report-card reservations">
-                    <div class="report-card-icon" style="background:#ffedd5;color:#c2410c;"><i class="fas fa-calendar-check"></i></div>
-                    <h3>Reporte de Reservas</h3>
-                    <p>Uso de laboratorios, bitácoras de entrada y salida.</p>
-                    <div class="btn-group">
-                        <button class="btn-report btn-csv" onclick="exportCSV('reservations')"><i class="fas fa-file-csv"></i> CSV</button>
-                        <button class="btn-report btn-pdf" onclick="exportPDF('reservations')"><i class="fas fa-file-pdf"></i> PDF</button>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="report-card consumables">
+        <div class="report-card-icon" style="background:var(--ibm-blue-10);color:var(--ibm-blue);"><i class="fas fa-flask"></i></div>
+        <h3>Reporte de Consumibles</h3>
+        <p>Stock actual, mínimos y alertas de inventario bajo.</p>
+        <div class="btn-group">
+          <button class="btn-report btn-csv" onclick="exportCSV('consumables')"><i class="fas fa-file-csv"></i> CSV</button>
+          <button class="btn-report btn-pdf" onclick="exportPDF('consumables')"><i class="fas fa-file-pdf"></i> PDF</button>
         </div>
-
-        <!-- Gráficas -->
-        <div>
-            <p class="section-title">Gráficos Estadísticos</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                <div class="chart-panel">
-                    <h4><i class="fas fa-chart-bar"></i> Estado de Activos</h4>
-                    <div class="chart-wrap">
-                        <canvas id="assetsChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-panel">
-                    <h4><i class="fas fa-chart-pie"></i> Solicitudes por Estado</h4>
-                    <div class="chart-wrap">
-                        <canvas id="requestsChart"></canvas>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="report-card requests">
+        <div class="report-card-icon" style="background:var(--ibm-green-10);color:var(--ibm-green);"><i class="fas fa-clipboard-list"></i></div>
+        <h3>Reporte de Solicitudes</h3>
+        <p>Historial de préstamos, estados y fechas de devolución.</p>
+        <div class="btn-group">
+          <button class="btn-report btn-csv" onclick="exportCSV('requests')"><i class="fas fa-file-csv"></i> CSV</button>
+          <button class="btn-report btn-pdf" onclick="exportPDF('requests')"><i class="fas fa-file-pdf"></i> PDF</button>
         </div>
+      </div>
+      <div class="report-card reservations">
+        <div class="report-card-icon" style="background:var(--ibm-orange-10);color:var(--ibm-orange);"><i class="fas fa-calendar-check"></i></div>
+        <h3>Reporte de Reservas</h3>
+        <p>Uso de laboratorios, bitácoras de entrada y salida.</p>
+        <div class="btn-group">
+          <button class="btn-report btn-csv" onclick="exportCSV('reservations')"><i class="fas fa-file-csv"></i> CSV</button>
+          <button class="btn-report btn-pdf" onclick="exportPDF('reservations')"><i class="fas fa-file-pdf"></i> PDF</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Gráficas -->
+    <div class="section-label" style="margin-top:24px;">Gráficos Estadísticos</div>
+    <div class="chart-grid">
+      <div class="chart-panel">
+        <h4><span class="dot dot-blue" style="display:inline-block;"></span> Estado de Activos</h4>
+        <div class="chart-wrap"><canvas id="assetsChart"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <h4><span class="dot dot-green" style="display:inline-block;"></span> Solicitudes por Estado</h4>
+        <div class="chart-wrap"><canvas id="requestsChart"></canvas></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ==================== FUNCIONES BÁSICAS ====================
-function toggleMenu() {
-    const sidebar = document.getElementById("sidebar");
-    sidebar.classList.toggle("open");
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
 }
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+</script>
 
+<script>
 const BASE = "http://localhost:3000/api";
 
-// ==================== EXPORT CSV (tu versión original) ====================
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+
 async function exportCSV(type) {
   showToast("Generando reporte...", "info");
   try {
     let data, headers, rows;
-
-    if (type === "assets") {
-      data = await fetch(`${BASE}/assets`).then(r => r.json());
-      headers = ["ID","Nombre","Categoría","Serie","Ubicación","Estado","Cantidad"];
-      rows = data.map(a => [a.id, a.name, a.categories?.name || "", a.serial_number || "", a.location || "", a.status, a.quantity]);
-    } else if (type === "consumables") {
-      data = await fetch(`${BASE}/consumibles`).then(r => r.json());
-      headers = ["ID","Nombre","Categoría","Cantidad","Mínimo","Unidad","Estado"];
-      rows = data.map(c => [c.id, c.name, c.categories?.name || "", c.quantity, c.min_quantity, c.unit, c.quantity <= c.min_quantity ? "Stock bajo" : "OK"]);
-    } else if (type === "requests") {
-      data = await fetch(`${BASE}/requests`).then(r => r.json());
-      headers = ["ID","Alumno","Tipo","Ítem","Cantidad","Estado","Fecha"];
-      rows = data.map(r => [r.id, r.users?.username || "", r.request_type, r.assets?.name || r.consumibles?.name || "", r.quantity_requested, r.status, r.request_date?.split("T")[0] || ""]);
-    } else if (type === "reservations") {
-      data = await fetch(`${BASE}/reservations`).then(r => r.json()).catch(() => []);
-      headers = ["ID","Alumno","Docente","Edificio","Laboratorio","Fecha","Hora inicio","Hora fin","Estado"];
-      rows = data.map(r => [r.id, r.alumno?.username || "", r.docente?.username || "", r.edificio, r.laboratorio, r.fecha_uso, r.hora_inicio, r.hora_fin, r.status]);
-    }
-
-    const csv = [headers, ...rows]
-      .map(row => row.map(v => `"${String(v||"").replace(/"/g,'""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reporte_${type}_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast("Reporte exportado ✅", "success");
-  } catch (e) {
-    showToast("Error al generar el reporte", "error");
-  }
+    if (type==="assets") { data=await fetch(`${BASE}/assets`).then(r=>r.json()); headers=["ID","Nombre","Categoría","Serie","Ubicación","Estado","Cantidad"]; rows=data.map(a=>[a.id,a.name,a.categories?.name||"",a.serial_number||"",a.location||"",a.status,a.quantity]); }
+    else if (type==="consumables") { data=await fetch(`${BASE}/consumibles`).then(r=>r.json()); headers=["ID","Nombre","Categoría","Cantidad","Mínimo","Unidad","Estado"]; rows=data.map(c=>[c.id,c.name,c.categories?.name||"",c.quantity,c.min_quantity,c.unit,c.quantity<=c.min_quantity?"Stock bajo":"OK"]); }
+    else if (type==="requests") { data=await fetch(`${BASE}/requests`).then(r=>r.json()); headers=["ID","Alumno","Tipo","Ítem","Cantidad","Estado","Fecha"]; rows=data.map(r=>[r.id,r.users?.username||"",r.request_type,r.assets?.name||r.consumibles?.name||"",r.quantity_requested,r.status,r.request_date?.split("T")[0]||""]); }
+    else if (type==="reservations") { data=await fetch(`${BASE}/reservations`).then(r=>r.json()).catch(()=>[]); headers=["ID","Alumno","Docente","Edificio","Laboratorio","Fecha","Hora inicio","Hora fin","Estado"]; rows=data.map(r=>[r.id,r.alumno?.username||"",r.docente?.username||"",r.edificio,r.laboratorio,r.fecha_uso,r.hora_inicio,r.hora_fin,r.status]); }
+    const csv=[headers,...rows].map(row=>row.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}), url=URL.createObjectURL(blob), a=document.createElement("a");
+    a.href=url; a.download=`reporte_${type}_${new Date().toISOString().split("T")[0]}.csv`; a.click(); URL.revokeObjectURL(url);
+    showToast("Reporte exportado ✅","success");
+  } catch { showToast("Error al generar el reporte","error"); }
 }
 
-// ==================== EXPORT PDF (profesional) ====================
 async function exportPDF(type) {
-    showToast("Generando reporte PDF...", "info");
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-
-        let title = "", subtitle = "";
-        let data = [], headers = [];
-
-        if (type === "assets") {
-            title = "REPORTE DE ACTIVOS";
-            subtitle = "Inventario de Activos";
-            data = await fetch(`${BASE}/assets`).then(r => r.json());
-            headers = ["ID", "Nombre", "Categoría", "No. Serie", "Ubicación", "Estado", "Cantidad"];
-            const rows = data.map(a => [a.id, a.name || "-", a.categories?.name || "-", a.serial_number || "-", a.location || "-", a.status || "-", a.quantity || "-"]);
-            generateProfessionalTable(doc, title, headers, rows, subtitle);
-        } 
-        // ... (mantengo el resto igual que antes para consumables, requests y reservations)
-        else if (type === "consumables") {
-            title = "REPORTE DE CONSUMIBLES";
-            subtitle = "Control de Consumibles";
-            data = await fetch(`${BASE}/consumibles`).then(r => r.json());
-            headers = ["ID", "Nombre", "Categoría", "Stock Actual", "Stock Mínimo", "Unidad", "Estado"];
-            const rows = data.map(c => [c.id, c.name || "-", c.categories?.name || "-", c.quantity, c.min_quantity, c.unit || "-", c.quantity <= c.min_quantity ? "STOCK BAJO" : "NORMAL"]);
-            generateProfessionalTable(doc, title, headers, rows, subtitle);
-        } 
-        else if (type === "requests") {
-            title = "REPORTE DE SOLICITUDES";
-            subtitle = "Historial de Solicitudes";
-            data = await fetch(`${BASE}/requests`).then(r => r.json());
-            headers = ["ID", "Usuario", "Tipo", "Ítem", "Cantidad", "Estado", "Fecha Solicitud"];
-            const rows = data.map(r => [r.id, r.users?.username || "-", r.request_type || "-", r.assets?.name || r.consumibles?.name || "-", r.quantity_requested || "-", r.status || "-", r.request_date ? r.request_date.split("T")[0] : "-"]);
-            generateProfessionalTable(doc, title, headers, rows, subtitle);
-        } 
-        else if (type === "reservations") {
-            title = "REPORTE DE RESERVAS";
-            subtitle = "Uso de Laboratorios";
-            data = await fetch(`${BASE}/reservations`).then(r => r.json()).catch(() => []);
-            headers = ["ID", "Alumno", "Docente", "Laboratorio", "Fecha", "Hora Inicio", "Hora Fin", "Estado"];
-            const rows = data.map(r => [r.id, r.alumno?.username || "-", r.docente?.username || "-", r.laboratorio || "-", r.fecha_uso || "-", r.hora_inicio || "-", r.hora_fin || "-", r.status || "-"]);
-            generateProfessionalTable(doc, title, headers, rows, subtitle);
-        }
-
-        doc.save(`SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.pdf`);
-        showToast("Reporte PDF generado correctamente ✅", "success");
-    } catch (e) {
-        console.error(e);
-        showToast("Error al generar el PDF", "error");
-    }
+  showToast("Generando PDF...","info");
+  try {
+    const {jsPDF}=window.jspdf, doc=new jsPDF("p","mm","a4");
+    let title="", data=[], headers=[];
+    if(type==="assets"){title="REPORTE DE ACTIVOS";data=await fetch(`${BASE}/assets`).then(r=>r.json());headers=["ID","Nombre","Categoría","No. Serie","Ubicación","Estado","Cantidad"];const rows=data.map(a=>[a.id,a.name||"-",a.categories?.name||"-",a.serial_number||"-",a.location||"-",a.status||"-",a.quantity||"-"]);generatePDF(doc,title,headers,rows);}
+    else if(type==="consumables"){title="REPORTE DE CONSUMIBLES";data=await fetch(`${BASE}/consumibles`).then(r=>r.json());headers=["ID","Nombre","Categoría","Stock","Mínimo","Unidad","Estado"];const rows=data.map(c=>[c.id,c.name||"-",c.categories?.name||"-",c.quantity,c.min_quantity,c.unit||"-",c.quantity<=c.min_quantity?"BAJO":"NORMAL"]);generatePDF(doc,title,headers,rows);}
+    else if(type==="requests"){title="REPORTE DE SOLICITUDES";data=await fetch(`${BASE}/requests`).then(r=>r.json());headers=["ID","Usuario","Tipo","Ítem","Cantidad","Estado","Fecha"];const rows=data.map(r=>[r.id,r.users?.username||"-",r.request_type||"-",r.assets?.name||r.consumibles?.name||"-",r.quantity_requested||"-",r.status||"-",r.request_date?r.request_date.split("T")[0]:"-"]);generatePDF(doc,title,headers,rows);}
+    else if(type==="reservations"){title="REPORTE DE RESERVAS";data=await fetch(`${BASE}/reservations`).then(r=>r.json()).catch(()=>[]);headers=["ID","Alumno","Docente","Lab","Fecha","Inicio","Fin","Estado"];const rows=data.map(r=>[r.id,r.alumno?.username||"-",r.docente?.username||"-",r.laboratorio||"-",r.fecha_uso||"-",r.hora_inicio||"-",r.hora_fin||"-",r.status||"-"]);generatePDF(doc,title,headers,rows);}
+    doc.save(`SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.pdf`);
+    showToast("PDF generado ✅","success");
+  } catch(e){ console.error(e); showToast("Error al generar el PDF","error"); }
 }
 
-function generateProfessionalTable(doc, title, headers, rows, subtitle = "") {
-    doc.setFillColor(31, 42, 58);
-    doc.rect(0, 0, 210, 35, 'F');
-    
-    doc.setTextColor(255);
-    doc.setFontSize(18);
-    doc.text("SGIAC-ISC", 105, 15, { align: "center" });
-    doc.setFontSize(11);
-    doc.text("Sistema de Gestión de Inventario - ISC", 105, 22, { align: "center" });
-    doc.text("Tecnológico Superior de Jalisco", 105, 28, { align: "center" });
-
-    doc.setTextColor(0);
-    doc.setFontSize(16);
-    doc.text(title, 14, 50);
-    if (subtitle) doc.text(subtitle, 14, 58);
-
-    doc.setFontSize(10);
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX', {year:'numeric', month:'long', day:'numeric'})}`, 14, 68);
-
-    doc.autoTable({
-        startY: 80,
-        head: [headers],
-        body: rows,
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 4 },
-        headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold', halign: 'center' },
-        alternateRowStyles: { fillColor: [245, 247, 250] },
-        margin: { left: 14, right: 14 }
-    });
+function generatePDF(doc,title,headers,rows) {
+  doc.setFillColor(31,42,58); doc.rect(0,0,210,35,"F");
+  doc.setTextColor(255); doc.setFontSize(18); doc.text("SGIAC-ISC",105,15,{align:"center"});
+  doc.setFontSize(10); doc.text("Sistema de Gestión · TecMM Campus La Huerta",105,23,{align:"center"});
+  doc.setTextColor(0); doc.setFontSize(15); doc.text(title,14,50);
+  doc.setFontSize(10); doc.text(`Fecha: ${new Date().toLocaleDateString("es-MX",{year:"numeric",month:"long",day:"numeric"})}`,14,60);
+  doc.autoTable({startY:70,head:[headers],body:rows,theme:"grid",styles:{fontSize:9,cellPadding:4},headStyles:{fillColor:[79,70,229],textColor:255,fontStyle:"bold",halign:"center"},alternateRowStyles:{fillColor:[245,247,250]},margin:{left:14,right:14}});
 }
 
-// ==================== TOAST ====================
-function showToast(msg, type = "success") {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
-    setTimeout(() => t.classList.remove("show"), 3000);
-}
-
-// ==================== GRÁFICAS ====================
 function renderAssetsChart(assets) {
-    const ctx = document.getElementById("assetsChart");
-    if (!ctx) return;
-
-    const counts = { available: 0, borrowed: 0, maintenance: 0 };
-    assets.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
-
-    if (window.assetsChartInstance) window.assetsChartInstance.destroy();
-
-    window.assetsChartInstance = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: ["Disponibles", "Prestados", "En Mantenimiento"],
-            datasets: [{
-                data: [counts.available, counts.borrowed, counts.maintenance],
-                backgroundColor: ["#86efac", "#fde047", "#fca5a5"],
-                borderColor: ["#15803d", "#a16207", "#dc2626"],
-                borderWidth: 2,
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-        }
-    });
+  const ctx=document.getElementById("assetsChart"); if(!ctx) return;
+  const c={available:0,borrowed:0,maintenance:0}; assets.forEach(a=>{if(c[a.status]!==undefined)c[a.status]++;});
+  if(window._assetsChart) window._assetsChart.destroy();
+  window._assetsChart=new Chart(ctx,{type:"bar",data:{labels:["Disponibles","Prestados","Mantenimiento"],datasets:[{data:[c.available,c.borrowed,c.maintenance],backgroundColor:["#defbe6","#fcf4d6","#fff1f1"],borderColor:["#198038","#b28600","#da1e28"],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
 }
 
 function renderRequestsChart(requests) {
-    const ctx = document.getElementById("requestsChart");
-    if (!ctx) return;
-
-    const counts = { pending: 0, approved: 0, rejected: 0, returned: 0 };
-    requests.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
-
-    if (window.requestsChartInstance) window.requestsChartInstance.destroy();
-
-    window.requestsChartInstance = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: ["Pendientes", "Aprobadas", "Rechazadas", "Devueltas"],
-            datasets: [{
-                data: [counts.pending, counts.approved, counts.rejected, counts.returned],
-                backgroundColor: ["#fde047", "#86efac", "#fca5a5", "#93c5fd"],
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: "bottom", labels: { font: { size: 12 }, padding: 15, usePointStyle: true }}
-            }
-        }
-    });
+  const ctx=document.getElementById("requestsChart"); if(!ctx) return;
+  const c={pending:0,approved:0,rejected:0,returned:0}; requests.forEach(r=>{if(c[r.status]!==undefined)c[r.status]++;});
+  if(window._requestsChart) window._requestsChart.destroy();
+  window._requestsChart=new Chart(ctx,{type:"doughnut",data:{labels:["Pendientes","Aprobadas","Rechazadas","Devueltas"],datasets:[{data:[c.pending,c.approved,c.rejected,c.returned],backgroundColor:["#fcf4d6","#defbe6","#fff1f1","#d9fbfb"],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:12},padding:14,usePointStyle:true}}}}});
 }
 
-// ==================== LOAD STATS ====================
 async function loadStats() {
-    try {
-        const [assets, consumables, requests, reservations] = await Promise.all([
-            fetch(`${BASE}/assets`).then(r => r.json()),
-            fetch(`${BASE}/consumibles`).then(r => r.json()),
-            fetch(`${BASE}/requests`).then(r => r.json()),
-            fetch(`${BASE}/reservations`).then(r => r.json()).catch(() => [])
-        ]);
-
-        document.getElementById("statActivos").textContent = assets.length || 0;
-        document.getElementById("statConsumibles").textContent = consumables.length || 0;
-        document.getElementById("statSolicitudes").textContent = requests.length || 0;
-        document.getElementById("statReservas").textContent = reservations.length || 0;
-
-        renderAssetsChart(assets);
-        renderRequestsChart(requests);
-    } catch (e) {
-        console.error("Error cargando stats:", e);
-        document.getElementById("statActivos").textContent = "0";
-        document.getElementById("statConsumibles").textContent = "0";
-        document.getElementById("statSolicitudes").textContent = "0";
-        document.getElementById("statReservas").textContent = "0";
-    }
+  try {
+    const [assets,consumables,requests,reservations]=await Promise.all([
+      fetch(`${BASE}/assets`).then(r=>r.json()),
+      fetch(`${BASE}/consumibles`).then(r=>r.json()),
+      fetch(`${BASE}/requests`).then(r=>r.json()),
+      fetch(`${BASE}/reservations`).then(r=>r.json()).catch(()=>[])
+    ]);
+    document.getElementById("statActivos").textContent=assets.length||0;
+    document.getElementById("statConsumibles").textContent=consumables.length||0;
+    document.getElementById("statSolicitudes").textContent=requests.length||0;
+    document.getElementById("statReservas").textContent=reservations.length||0;
+    renderAssetsChart(assets); renderRequestsChart(requests);
+  } catch(e) { console.error("Error stats:",e); }
 }
 
-// Iniciar la página
-window.onload = loadStats;
-</script>
+function showToast(msg,type="success") { const t=document.getElementById("toast"); t.textContent=msg; t.className=`toast ${type} show`; setTimeout(()=>t.classList.remove("show"),3000); }
 
+window.onload=loadStats;
+</script>
 <script src="../scripts/pages/common.js"></script>
 <script src="../scripts/pages/realtime.js"></script>
-
-<style>
-.toast{position:fixed;bottom:25px;right:25px;padding:14px 22px;border-radius:8px;color:white;font-size:14px;z-index:9999;opacity:0;transform:translateY(15px);transition:all 0.3s;}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:#10b981;}
-.toast.error{background:#ef4444;}
-.toast.info{background:#0891b2;}
-</style>
-
 </body>
 </html>
