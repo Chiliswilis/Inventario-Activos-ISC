@@ -101,9 +101,9 @@ El sistema incluye usuarios de demostración para probar cada rol:
 
 | Rol | Correo | Contraseña |
 |-----|--------|-----------|
-| Administrador | adminOmar@gmail.com | Admin123 |
-| Docente | juan.rodriguez@lahuerta.tecmm.edu.mx | Docente123 |
-| Alumno | hu230111608@lahuerta.tecmm.edu.mx | Alumno123 |
+| Administrador | admin.example@gmail.com | Admin123 |
+| Docente | docente.example@gmail.com | Docente123 |
+| Alumno | alumno.example@gmail.com | Alumno123 |
 
 > Estas credenciales funcionan sobre la base de datos de Supabase configurada en tu `.env`. Si usas tu propia instancia de Supabase, necesitas crear estos usuarios desde el panel o ejecutar `backend/db/schema.sql`.
 
