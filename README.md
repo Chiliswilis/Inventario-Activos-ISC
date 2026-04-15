@@ -54,10 +54,84 @@ El sistema abarca la **administración, control y seguimiento** de los recursos 
 
 ## Credenciales de acceso
 
+<<<<<<< HEAD
 | Rol | Usuario | Contraseña |
 | Administrador | adminOmar@gmail.com | Admin123 |
 | Docente | juan.rodriguez@lahuerta.tecmm.edu.mx | Docente123 |
 | Alumno | hu230111608@lahuerta.tecmm.edu.mx | Alumno123 |
+=======
+## Requisitos previos
+
+Antes de clonar el proyecto necesitas tener instalado:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — incluye Docker y Docker Compose
+- [Git](https://git-scm.com/downloads)
+- Una cuenta en [Supabase](https://supabase.com) con un proyecto creado
+
+> No necesitas instalar Node.js ni Nginx por separado — Docker los maneja automáticamente.
+
+---
+
+## Instalación y configuración
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/Inventario-Activos-ISC-Victor.git
+cd Inventario-Activos-ISC-Victor
+```
+
+### 2. Configurar las variables de entorno
+
+```bash
+cp .env.example backend/.env
+```
+
+Abre el archivo `backend/.env` y rellena tus credenciales de Supabase:
+
+```env
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu_service_role_key_aqui
+```
+
+> **¿Dónde encuentro estas llaves?**  
+> En tu proyecto de Supabase ve a: **Project Settings → API**  
+> - `SUPABASE_URL` → Project URL  
+> - `SUPABASE_KEY` → service_role (secret)
+
+### 3. Levantar el proyecto con Docker
+
+```bash
+docker-compose up --build
+```
+
+La primera vez tarda unos minutos mientras descarga las imágenes. Las siguientes veces es más rápido.
+
+### 4. Acceder al sistema
+
+Una vez que Docker termine de levantar los contenedores, abre tu navegador en:
+
+```
+http://localhost:8080
+```
+
+Para detener el sistema:
+
+```bash
+docker-compose down
+```
+
+---
+
+## Credenciales de prueba
+
+El sistema incluye usuarios de demostración para probar cada rol:
+
+| Rol | Correo | Contraseña |
+|-----|--------|-----------|
+| Administrador | admin.example@gmail.com | Admin123 |
+| Docente | docente.example@gmail.com | Docente123 |
+| Alumno | alumno.example@gmail.com | Alumno123 |
 
 # Para clonar el repositorio, las instrucciones serán:
 cp .env.example backend/.env
