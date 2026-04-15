@@ -5,661 +5,94 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="../assets/logoTsj.png">
 <title>SGIAC-ISC | Consumibles</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../styles/sgiac-shared.css">
 <link rel="stylesheet" href="../styles/responsive.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{display:flex;background:#f1f3f9;color:#374151;min-height:100vh;overflow-x:hidden;}
 
-/* SIDEBAR */
-.sidebar{width:240px;background:#1f2a3a;color:white;flex-shrink:0;height:100vh;position:sticky;top:0;overflow-y:auto;}
-.logo{padding:22px;font-weight:600;font-size:18px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.logo small{display:block;font-size:11px;font-weight:300;color:#94a3b8;margin-top:2px;}
-.menu a{display:flex;align-items:center;padding:13px 22px;color:#cbd5e1;text-decoration:none;font-size:13.5px;transition:0.2s;}
-.menu a i{margin-right:10px;width:18px;font-size:13px;}
-.menu a:hover,.menu a.active{background:#4f46e5;color:white;}
-.menu-section{padding:10px 22px 4px;font-size:10px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;}
-
-/* OVERLAY */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998;}
-.sidebar-overlay.show{display:block;}
-
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;}
-.header{height:62px;background:white;display:flex;align-items:center;justify-content:space-between;
-  padding:0 25px;border-bottom:1px solid #e6e8f0;flex-shrink:0;position:sticky;top:0;z-index:10;}
-.header-left{display:flex;align-items:center;gap:12px;}
-.header h2{font-size:16px;font-weight:600;color:#1f2a3a;}
-.header h2 span{color:#6b7280;font-weight:400;}
-.menu-btn{font-size:18px;cursor:pointer;color:#374151;}
-.user{display:flex;align-items:center;gap:10px;font-size:13px;}
-.user img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;}
-.content{padding:22px;overflow-y:auto;flex:1;}
-
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-.stat-card{background:white;border-radius:10px;padding:16px 18px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;align-items:center;gap:14px;}
-.stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:17px;flex-shrink:0;}
-.stat-icon.purple{background:#ede9fe;color:#7c3aed;}
-.stat-icon.red{background:#fee2e2;color:#dc2626;}
-.stat-icon.orange{background:#ffedd5;color:#d97706;}
-.stat-icon.green{background:#d1fae5;color:#059669;}
-.stat-info p{font-size:11px;color:#9ca3af;margin-bottom:1px;}
-.stat-info strong{font-size:22px;font-weight:600;color:#1f2a3a;}
-
-/* PANEL */
-.panel{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.07);}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
-.panel-title{font-size:15px;font-weight:600;color:#1f2a3a;}
-.panel-actions{display:flex;gap:8px;flex-wrap:wrap;}
-
-/* BOTONES */
-.btn{background:#4f46e5;color:white;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;
-  font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
-.btn:hover{background:#3730a3;}
-.btn-outline{background:white;color:#374151;border:1px solid #d1d5db;padding:7px 14px;border-radius:7px;
-  cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
-.btn-outline:hover{border-color:#4f46e5;color:#4f46e5;}
-.btn-cancel{background:#f3f4f6;color:#374151;border:none;padding:8px 16px;border-radius:7px;
-  cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:0.2s;}
-.btn-cancel:hover{background:#e5e7eb;}
-
-/* ÁREA TABS — botones tipo toggle */
-.area-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid #e5e7eb;border-radius:8px;
-  overflow:hidden;width:fit-content;}
-.area-tab{padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;
-  border:none;background:white;color:#6b7280;transition:0.2s;font-weight:500;
-  /* Forzar que sean clickeables sin importar z-index */
-  position:relative;z-index:1;}
-.area-tab:not(:last-child){border-right:1px solid #e5e7eb;}
-.area-tab:hover:not(.active){background:#f3f4f6;color:#374151;}
-.area-tab.active.all{background:#1f2a3a;color:white;}
-.area-tab.active.sistemas{background:#4f46e5;color:white;}
-.area-tab.active.lab{background:#0891b2;color:white;}
-
-/* FILTROS */
-.filters-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
-.filters-bar input,.filters-bar select{
-  padding:8px 12px;border-radius:7px;border:1px solid #d1d5db;
-  font-size:13px;font-family:'Poppins',sans-serif;color:#374151;
-  outline:none;transition:0.2s;background:white;}
-.filters-bar input:focus,.filters-bar select:focus{
-  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);}
-.filters-bar input{min-width:220px;}
-
-/* TABLA */
-.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:900px;}
-th,td{padding:11px 14px;border-bottom:1px solid #f0f0f4;text-align:left;}
-th{background:#f8f9fc;font-weight:600;color:#6b7280;font-size:11.5px;
-  text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
-tr:hover td{background:#fafbff;}
-.actions i{cursor:pointer;margin-right:6px;transition:0.2s;color:#9ca3af;font-size:14px;}
-.actions i.edit-btn:hover{color:#4f46e5;}
-.actions i.delete-btn:hover{color:#ef4444;}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
-  font-size:11px;font-weight:500;white-space:nowrap;}
-.badge-low{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
-.badge-mid{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
-.badge-ok{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
-.badge-sistemas{background:#ede9fe;color:#6d28d9;border:1px solid #ddd6fe;}
-.badge-lab{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
-
-/* CADUCIDAD */
-.expiry-ok{color:#374151;}
-.expiry-soon{color:#d97706;font-weight:500;}
-.expiry-expired{color:#dc2626;font-weight:500;}
-.expiry-none{color:#9ca3af;font-style:italic;font-size:12px;}
-
-/* EMPTY / LOADING */
-.empty-state{text-align:center;padding:50px 20px;color:#9ca3af;}
-.empty-state i{font-size:38px;margin-bottom:12px;display:block;}
-.loading{text-align:center;padding:35px;color:#6b7280;}
-.loading i{animation:spin 1s linear infinite;font-size:22px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* MODAL */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
-  justify-content:center;align-items:center;z-index:1000;}
-.modal.open{display:flex;}
-.modal-content{background:white;padding:26px;border-radius:12px;width:500px;max-width:95vw;
-  position:relative;box-shadow:0 12px 32px rgba(0,0,0,0.18);max-height:92vh;overflow-y:auto;}
-.modal-content h3{margin-bottom:20px;font-size:17px;color:#1f2a3a;font-weight:600;}
-.modal-content .close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;
-  color:#9ca3af;background:none;border:none;line-height:1;}
-.modal-content .close:hover{color:#374151;}
-.form-group{margin-bottom:14px;}
-.form-group label{display:block;font-size:12.5px;font-weight:500;color:#374151;margin-bottom:5px;}
-.form-group input,.form-group select,.form-group textarea{
-  width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
-  font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
-  border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08);}
-.form-group textarea{resize:none;height:60px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
-.modal-actions{display:flex;gap:10px;margin-top:6px;}
-.modal-actions .btn,.modal-actions .btn-cancel{flex:1;justify-content:center;}
-.form-divider{border:none;border-top:1px solid #f0f0f4;margin:16px 0;}
-.form-section-title{font-size:11px;font-weight:600;color:#9ca3af;
-  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;}
-
-/* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;
-  color:white;font-size:13.5px;z-index:9999;opacity:0;transform:translateY(8px);
-  transition:all 0.3s;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,0.2);}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:#10b981;}
-.toast.error{background:#ef4444;}
-
-/* RESPONSIVE */
-@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){
-  body{flex-direction:column;}
-  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:999;width:250px;}
-  .sidebar.open{transform:translateX(0);}
-  .main{width:100%;}
-  .header{padding:0 15px;height:56px;}
-  .header h2{font-size:14px;}
-  .user span{display:none;}
-  .content{padding:12px;}
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .panel{padding:14px;}
-  .modal{align-items:flex-end;padding:0;}
-  .modal-content{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:90vh;}
-  .form-row,.form-row-3{grid-template-columns:1fr;}
-  .toast{left:12px;right:12px;bottom:12px;text-align:center;}
-  .filters-bar{flex-direction:column;}
-  .filters-bar input,.filters-bar select{width:100%;}
-  .area-tabs{width:100%;}
-  .area-tab{flex:1;text-align:center;}
-}
-</style>
-
-    <!-- ══ IBM Design Language overrides ══ -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-    :root {
-      --ibm-blue:      #0f62fe;
-      --ibm-blue-10:   #edf5ff;
-      --ibm-blue-20:   #d0e2ff;
-      --ibm-gray-10:   #f4f4f4;
-      --ibm-gray-20:   #e0e0e0;
-      --ibm-gray-30:   #c6c6c6;
-      --ibm-gray-50:   #8d8d8d;
-      --ibm-gray-70:   #525252;
-      --ibm-gray-90:   #262626;
-      --ibm-gray-100:  #161616;
-      --ibm-green:     #198038;
-      --ibm-green-10:  #defbe6;
-      --ibm-yellow:    #b28600;
-      --ibm-yellow-10: #fcf4d6;
-      --ibm-red:       #da1e28;
-      --ibm-red-10:    #fff1f1;
-      --ibm-teal:      #007d79;
-      --ibm-teal-10:   #d9fbfb;
-      --ibm-purple:    #6929c4;
-      --ibm-purple-10: #f6f2ff;
-      --ibm-cyan:      #00539a;
-      --ibm-cyan-10:   #e5f6ff;
-      --ibm-orange:    #b45309;
-      --ibm-orange-10: #fff7ed;
-    }
-
-    /* ── Background ── */
-    body { background: var(--ibm-gray-10) !important; }
-
-    /* ── STAT / METRIC CARDS ── */
-    .stat-card, .stats-row .stat-card {
-      background: white !important;
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-      padding: 20px 22px !important;
-      position: relative;
-      overflow: hidden;
-    }
-    .stats-row {
-      border: 1px solid var(--ibm-gray-20);
-      display: grid;
-      gap: 0 !important;
-    }
-    .stats-row .stat-card { border-right: 1px solid var(--ibm-gray-20) !important; border-top: none !important; border-bottom: none !important; border-left: none !important; }
-    .stats-row .stat-card:first-child { border-left: none !important; }
-    .stat-card .stat-icon {
-      width: 32px !important;
-      height: 32px !important;
-      border-radius: 2px !important;
-      font-size: 14px !important;
-      flex-shrink: 0;
-    }
-    .stat-icon.purple  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .stat-icon.blue    { background: var(--ibm-blue-10)   !important; color: var(--ibm-blue)   !important; }
-    .stat-icon.green   { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
-    .stat-icon.orange  { background: var(--ibm-orange-10) !important; color: var(--ibm-orange) !important; }
-    .stat-icon.red     { background: var(--ibm-red-10)    !important; color: var(--ibm-red)    !important; }
-    .stat-icon.teal    { background: var(--ibm-teal-10)   !important; color: var(--ibm-teal)   !important; }
-    .stat-info strong, .stat-info .stat-value {
-      font-family: 'IBM Plex Mono', monospace !important;
-      font-size: 36px !important;
-      font-weight: 600 !important;
-      color: var(--ibm-gray-100) !important;
-      line-height: 1 !important;
-      letter-spacing: -1px;
-    }
-    .stat-info p, .stat-label {
-      font-size: 12px !important;
-      color: var(--ibm-gray-70) !important;
-      margin-bottom: 4px;
-    }
-
-    /* Barra de color superior en stat-card por posición */
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--ibm-gray-20);
-    }
-    .stats-row .stat-card:nth-child(1)::before { background: var(--ibm-blue);   }
-    .stats-row .stat-card:nth-child(2)::before { background: var(--ibm-red);    }
-    .stats-row .stat-card:nth-child(3)::before { background: var(--ibm-yellow); }
-    .stats-row .stat-card:nth-child(4)::before { background: var(--ibm-green);  }
-
-    /* ── PANELS ── */
-    .panel {
-      background: white !important;
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-      padding: 0 !important;
-    }
-    .panel-header {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      padding: 14px 20px 13px !important;
-      border-bottom: 1px solid var(--ibm-gray-20) !important;
-      background: #fafafa !important;
-      margin-bottom: 0 !important;
-    }
-    .panel-header h3, .panel-title {
-      font-size: 12px !important;
-      font-weight: 600 !important;
-      color: var(--ibm-gray-90) !important;
-      letter-spacing: 0.8px !important;
-      text-transform: uppercase !important;
-    }
-    /* Inner content padding */
-    .panel > .filters-bar,
-    .panel > .area-tabs,
-    .panel > .active-filters,
-    .panel > #tableWrapper,
-    .panel > .table-scroll,
-    .panel > .labs-grid,
-    .panel > .filters,
-    .panel > .toolbar,
-    .panel > .panel-body {
-      padding: 16px 20px;
-    }
-    .panel > .table-scroll { padding: 0 !important; }
-    .panel > #tableWrapper  { padding: 0 !important; }
-
-    /* ── TABLES ── */
-    table { border-collapse: collapse !important; }
-    th {
-      background: var(--ibm-gray-10) !important;
-      color: var(--ibm-gray-70) !important;
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      padding: 10px 16px !important;
-      letter-spacing: 0.8px !important;
-      text-transform: uppercase !important;
-      border-right: 1px solid var(--ibm-gray-20) !important;
-      border-bottom: 1px solid var(--ibm-gray-20) !important;
-    }
-    th:last-child { border-right: none !important; }
-    td {
-      padding: 12px 16px !important;
-      border-bottom: 1px solid var(--ibm-gray-10) !important;
-      border-right: 1px solid var(--ibm-gray-10) !important;
-      color: var(--ibm-gray-90) !important;
-      font-size: 13px !important;
-    }
-    td:last-child { border-right: none !important; }
-    tr:last-child td { border-bottom: none !important; }
-    tbody tr:hover td { background: var(--ibm-blue-10) !important; }
-
-    /* ── BADGES ── */
-    .badge, .status-badge {
-      border-radius: 2px !important;
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      padding: 3px 8px !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 5px !important;
-      letter-spacing: 0.2px;
-    }
-    .badge::before, .status-badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: currentColor;
-    }
-    /* Status */
-    .badge-available, .badge.badge-available { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
-    .badge-borrowed                          { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
-    .badge-maintenance                       { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
-    .badge-damaged                           { background: var(--ibm-purple-10)!important; color: var(--ibm-purple)!important; border: none !important; }
-    .badge-pending                           { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
-    .badge-approved                          { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
-    .badge-rejected                          { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
-    .badge-returned, .badge-released         { background: var(--ibm-teal-10)  !important; color: var(--ibm-teal)  !important; border: none !important; }
-    .badge-info, .badge-occupied             { background: var(--ibm-blue-10)  !important; color: var(--ibm-blue)  !important; border: none !important; }
-    .badge-cancelled                         { background: var(--ibm-gray-10)  !important; color: var(--ibm-gray-70)!important; border: none !important; }
-    .badge-low                               { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border: none !important; }
-    .badge-mid                               { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border: none !important; }
-    .badge-ok                                { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border: none !important; }
-    .badge-sistemas                          { background: var(--ibm-blue-10)  !important; color: var(--ibm-blue)  !important; border: none !important; }
-    .badge-laboratorio, .badge-lab           { background: var(--ibm-teal-10)  !important; color: var(--ibm-teal)  !important; border: none !important; }
-    /* Role badges */
-    .badge-role.badge-admin    { background: var(--ibm-purple-10)!important; color: var(--ibm-purple)!important; }
-    .badge-role.badge-docente  { background: var(--ibm-cyan-10)  !important; color: var(--ibm-cyan)  !important; }
-    .badge-role.badge-alumno   { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; }
-    /* Status badges (configuracion) */
-    .status-ok      { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border-radius: 2px !important; }
-    .status-warning { background: var(--ibm-yellow-10)!important; color: var(--ibm-yellow)!important; border-radius: 2px !important; }
-    .status-error   { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border-radius: 2px !important; }
-
-    /* ── BUTTONS ── */
-    .btn {
-      border-radius: 2px !important;
-      font-size: 13px !important;
-      font-weight: 500 !important;
-      padding: 9px 18px !important;
-      letter-spacing: 0.3px;
-    }
-    .btn:hover { background: #0353e9 !important; }
-    .btn-export, .btn-outline {
-      border-radius: 2px !important;
-      font-size: 13px !important;
-    }
-    .btn-report {
-      border-radius: 2px !important;
-      font-size: 13px !important;
-      font-weight: 500 !important;
-    }
-    .btn-csv { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .btn-csv:hover { background: var(--ibm-purple) !important; color: white !important; }
-    .btn-pdf { background: var(--ibm-red-10) !important; color: var(--ibm-red) !important; }
-    .btn-pdf:hover { background: var(--ibm-red) !important; color: white !important; }
-
-    /* ── FILTERS / TOOLBAR ── */
-    .filters-bar, .toolbar, .filters { padding: 14px 20px !important; background: #fafafa; border-bottom: 1px solid var(--ibm-gray-20); gap: 8px; }
-    .filters-bar input, .filters-bar select,
-    .toolbar select, .toolbar input,
-    .filters select, .filters input,
-    .search-box, .filter-select {
-      border-radius: 2px !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      font-size: 13px !important;
-    }
-    .filters-bar input:focus, .filters-bar select:focus,
-    .toolbar select:focus, .toolbar input:focus,
-    .filter-select:focus {
-      border-color: var(--ibm-blue) !important;
-      box-shadow: none !important;
-      outline: 1px solid var(--ibm-blue) !important;
-    }
-    .area-tabs { padding: 12px 20px 0 !important; border-bottom: none !important; background: transparent !important; }
-    .area-pill, .area-tab {
-      border-radius: 2px !important;
-      font-size: 12px !important;
-    }
-
-    /* ── REPORT CARDS ── */
-    .report-card {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-      border-top: 3px solid var(--ibm-gray-20) !important;
-    }
-    .report-card.assets       { border-top-color: var(--ibm-purple) !important; }
-    .report-card.consumables  { border-top-color: var(--ibm-blue)   !important; }
-    .report-card.requests     { border-top-color: var(--ibm-green)  !important; }
-    .report-card.reservations { border-top-color: var(--ibm-orange) !important; }
-    .report-card:hover { transform: none !important; box-shadow: 0 0 0 2px var(--ibm-blue) !important; }
-    .report-card-icon { border-radius: 2px !important; }
-
-    /* ── CHART PANELS ── */
-    .chart-panel {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-    }
-
-    /* ── LAB CARDS (Reservas) ── */
-    .lab-status-card {
-      border-radius: 2px !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-    }
-    .lab-status-card.available { border-color: var(--ibm-green) !important; background: var(--ibm-green-10) !important; }
-    .lab-status-card.occupied  { border-color: var(--ibm-red)   !important; background: var(--ibm-red-10)   !important; }
-    .pill-available { background: var(--ibm-green-10) !important; color: var(--ibm-green) !important; border-radius: 2px !important; }
-    .pill-occupied  { background: var(--ibm-red-10)   !important; color: var(--ibm-red)   !important; border-radius: 2px !important; }
-
-    /* ── CONFIG sections ── */
-    .config-section {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-    }
-    .config-nav {
-      border-radius: 0 !important;
-      border: 1px solid var(--ibm-gray-20) !important;
-      box-shadow: none !important;
-    }
-    .config-nav-item { border-radius: 0 !important; }
-    .config-nav-item.active { background: var(--ibm-blue-10) !important; color: var(--ibm-blue) !important; }
-    .config-section-icon { border-radius: 2px !important; }
-    .config-section-icon.purple  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .config-section-icon.blue    { background: var(--ibm-blue-10)   !important; color: var(--ibm-blue)   !important; }
-    .config-section-icon.green   { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
-    .config-section-icon.orange  { background: var(--ibm-orange-10) !important; color: var(--ibm-orange) !important; }
-    .config-section-icon.red     { background: var(--ibm-red-10)    !important; color: var(--ibm-red)    !important; }
-    .config-section-icon.gray    { background: var(--ibm-gray-10)   !important; color: var(--ibm-gray-70)!important; }
-    .db-field { border-radius: 2px !important; background: var(--ibm-gray-10) !important; }
-    .role-card { border-radius: 2px !important; }
-    .role-card.admin   { background: var(--ibm-purple-10) !important; border-color: #e0cfff !important; }
-    .role-card.docente { background: var(--ibm-cyan-10)   !important; border-color: #b3daff !important; }
-    .role-card.alumno  { background: var(--ibm-green-10)  !important; border-color: #a2f0c0 !important; }
-    .role-card.admin h4   { color: var(--ibm-purple) !important; }
-    .role-card.docente h4 { color: var(--ibm-cyan)   !important; }
-    .role-card.alumno h4  { color: var(--ibm-green)  !important; }
-    .toggle input:checked + .toggle-slider { background: var(--ibm-blue) !important; }
-
-    /* ── MODALS ── */
-    .modal-box, .modal-content {
-      border-radius: 0 !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      border-radius: 2px !important;
-      border-color: var(--ibm-gray-20) !important;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color: var(--ibm-blue) !important;
-      box-shadow: none !important;
-      outline: 1px solid var(--ibm-blue) !important;
-    }
-    .btn-cancel { border-radius: 2px !important; }
-    .btn-danger { border-radius: 2px !important; }
-
-    /* ── USER SECTION table (Usuarios) ── */
-    tr.group-header td { background: var(--ibm-gray-10) !important; border-top: 2px solid var(--ibm-gray-20) !important; }
-    .group-label.admin  { color: var(--ibm-purple) !important; }
-    .group-label.docente{ color: var(--ibm-cyan)   !important; }
-    .group-label.alumno { color: var(--ibm-green)  !important; }
-    .group-label .grp-icon { border-radius: 2px !important; }
-    .group-count.admin  { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; }
-    .group-count.docente{ background: var(--ibm-cyan-10)   !important; color: var(--ibm-cyan)   !important; }
-    .group-count.alumno { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; }
-    .badge-admin   { background: var(--ibm-purple-10) !important; color: var(--ibm-purple) !important; border-radius: 2px !important; }
-    .badge-docente { background: var(--ibm-cyan-10)   !important; color: var(--ibm-cyan)   !important; border-radius: 2px !important; }
-    .badge-alumno  { background: var(--ibm-green-10)  !important; color: var(--ibm-green)  !important; border-radius: 2px !important; }
-
-    /* ── SECTION LABELS ── */
-    .section-title {
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      letter-spacing: 1.5px !important;
-      color: var(--ibm-gray-50) !important;
-      text-transform: uppercase !important;
-    }
-
-    /* ── TOAST ── */
-    .toast { border-radius: 2px !important; }
-
-    /* ── Entrada suave ── */
-    @keyframes ibm-fade {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .panel, .stat-card, .report-card, .chart-panel, .config-section {
-      animation: ibm-fade 0.35s ease both;
-    }
-    </style>
 </head>
 <body>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
 <div class="sidebar" id="sidebar">
-    <img src="../assets/logoTsj.png" alt="Logo TSJ" style="width:150px;height:90px;margin:0 auto;display:block;">
-  <div class="logo">SGIAC-ISC<small>Sistema de Gestión</small></div>
+  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">SGIAC-ISC</div>
+    <div class="sidebar-brand-sub">Sistema de Gestión</div>
+  </div>
   <div class="menu">
-    <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-    <div class="menu-section">Inventario</div>
-    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-    <a href="consumibles.html" class="active"><i class="fas fa-flask"></i> Consumibles</a>
-    <div class="menu-section">Gestión</div>
-    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-    <div class="menu-section">Sistema</div>
-    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+<div class="menu-section">Principal</div>
+<a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
+<div class="menu-section">Inventario</div>
+<a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+<a href="consumibles.html" class="active"><i class="fas fa-flask"></i> Consumibles</a>
+<div class="menu-section">Gestión</div>
+<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
+<a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+<div class="menu-section">Sistema</div>
+<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
   </div>
 </div>
-
 <div class="main">
-  <div class="header">
-    <div class="header-left">
-      <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-      <h2>
-        <i class="fas fa-flask" style="color:#4f46e5;margin-right:8px;"></i>
-        GESTION DE CONSUMIBLES</h2>
-    </div>
-    <!-- foto y nombre inyectados por common.js → applyRoleUI() -->
-    <div class="user">
-      <img src="https://i.pravatar.cc/40" alt="Avatar">
-      <span id="username">Cargando...</span>
-    </div>
-  </div>
 
+<div class="header">
+  <div class="header-left">
+    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    <h2><i class="fas fa-flask"></i> Gestión de Consumibles</h2>
+  </div>
+  <div class="user">
+    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
+    <span id="username">Cargando...</span>
+  </div>
+</div>
   <div class="content">
 
-    <!-- STATS -->
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-icon purple"><i class="fas fa-boxes"></i></div>
-        <div class="stat-info"><p>Total consumibles</p><strong id="statTotal">—</strong></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
-        <div class="stat-info"><p>Stock bajo</p><strong id="statLow">—</strong></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon orange"><i class="fas fa-calendar-times"></i></div>
-        <div class="stat-info"><p>Por caducar (30 días)</p><strong id="statExpiry">—</strong></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-        <div class="stat-info"><p>En buen estado</p><strong id="statOk">—</strong></div>
-      </div>
+      <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-boxes"></i></div><div><div class="stat-label">Total consumibles</div><div class="stat-value" id="statTotal">—</div></div></div>
+      <div class="stat-card"><div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div><div><div class="stat-label">Stock bajo</div><div class="stat-value" id="statLow">—</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-calendar-times"></i></div><div><div class="stat-label">Por caducar (30 días)</div><div class="stat-value" id="statExpiry">—</div></div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div><div class="stat-label">En buen estado</div><div class="stat-value" id="statOk">—</div></div></div>
     </div>
 
-    <!-- PANEL -->
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">
-          <i class="fas fa-list" style="color:#4f46e5;margin-right:8px;"></i>
-          Vista Principal de Inventario
-        </span>
-        <div class="panel-actions">
-          <button class="btn-outline admin-only" onclick="exportCSV()">
-            <i class="fas fa-file-csv"></i> Exportar CSV
-          </button>
-          <button class="btn admin-only" onclick="openModal()">
-            <i class="fas fa-plus"></i> Nuevo Consumible
-          </button>
+        <div class="panel-title"><span class="dot dot-blue"></span> Inventario de Consumibles</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-export admin-only" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+          <button class="btn admin-only" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Consumible</button>
         </div>
       </div>
 
-      <!-- FILTRO POR ÁREA — type="button" evita submit accidental -->
-      <div class="area-tabs">
-        <button type="button" class="area-tab active all"
-                onclick="selectArea(this,'')">
-          <i class="fas fa-globe-americas" style="margin-right:5px;font-size:11px;"></i> Todos
-        </button>
-        <button type="button" class="area-tab sistemas"
-                onclick="selectArea(this,'sistemas')">
-          <i class="fas fa-desktop" style="margin-right:5px;font-size:11px;"></i> Sistemas
-        </button>
-        <button type="button" class="area-tab lab"
-                onclick="selectArea(this,'lab')">
-          <i class="fas fa-microscope" style="margin-right:5px;font-size:11px;"></i> Lab / Alimentos
-        </button>
+      <div class="filters-bar" style="flex-direction:column;align-items:flex-start;gap:10px;">
+        <div class="area-tabs">
+          <button type="button" class="area-tab active all" onclick="selectArea(this,'')"><i class="fas fa-globe-americas"></i> Todos</button>
+          <button type="button" class="area-tab sistemas"   onclick="selectArea(this,'sistemas')"><i class="fas fa-desktop"></i> Sistemas</button>
+          <button type="button" class="area-tab lab"        onclick="selectArea(this,'lab')"><i class="fas fa-microscope"></i> Lab / Alimentos</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;width:100%;">
+          <input type="text" id="searchInput" placeholder="Buscar por nombre o descripción..." oninput="applyFilters()" style="min-width:220px;">
+          <select id="categoryFilter" onchange="applyFilters()"><option value="">Todas las categorías</option></select>
+          <select id="stockFilter" onchange="applyFilters()">
+            <option value="">Todos los estados</option>
+            <option value="low">Stock bajo</option>
+            <option value="mid">Stock medio</option>
+            <option value="ok">Suficiente</option>
+          </select>
+          <select id="expiryFilter" onchange="applyFilters()">
+            <option value="">Cualquier caducidad</option>
+            <option value="expired">Caducados</option>
+            <option value="soon">Por caducar (30 días)</option>
+            <option value="ok">Sin riesgo</option>
+            <option value="none">Sin fecha registrada</option>
+          </select>
+        </div>
       </div>
 
-      <!-- FILTROS SECUNDARIOS -->
-      <div class="filters-bar">
-        <input type="text" id="searchInput"
-               placeholder="🔍  Buscar por nombre o descripción..."
-               oninput="applyFilters()">
-        <select id="categoryFilter" onchange="applyFilters()">
-          <option value="">Todas las categorías</option>
-        </select>
-        <select id="stockFilter" onchange="applyFilters()">
-          <option value="">Todos los estados</option>
-          <option value="low">⬇ Stock bajo</option>
-          <option value="mid">⚠ Stock medio</option>
-          <option value="ok">✓ Suficiente</option>
-        </select>
-        <select id="expiryFilter" onchange="applyFilters()">
-          <option value="">Cualquier caducidad</option>
-          <option value="expired">Caducados</option>
-          <option value="soon">Por caducar (30 días)</option>
-          <option value="ok">Sin riesgo</option>
-          <option value="none">Sin fecha registrada</option>
-        </select>
-      </div>
-
-      <!-- TABLA -->
       <div class="table-scroll">
         <div id="tableWrapper">
-          <div class="loading">
-            <i class="fas fa-spinner"></i>
-            <p style="margin-top:8px;font-size:13px;color:#9ca3af;">Cargando consumibles...</p>
-          </div>
+          <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando consumibles...</p></div>
         </div>
       </div>
     </div>
@@ -670,26 +103,20 @@ tr:hover td{background:#fafbff;}
 <div class="modal" id="consumibleModal">
   <div class="modal-content">
     <button class="close" onclick="closeModal()">&times;</button>
-    <h3 id="modalTitle">
-      <i class="fas fa-plus-circle" style="color:#4f46e5;margin-right:8px;"></i>
-      Agregar Consumible
-    </h3>
+    <h3 id="modalTitle">Agregar Consumible</h3>
     <input type="hidden" id="consumibleId">
-
-    <div class="form-section-title">Información general</div>
+    <div class="section-sep">Información general</div>
     <div class="form-group">
       <label>Nombre *</label>
-      <input type="text" id="consumibleName"
-             placeholder="Ej: Papel A4, Ácido clorhídrico, Bata de laboratorio">
+      <input type="text" id="consumibleName" placeholder="Ej: Papel A4, Ácido clorhídrico...">
     </div>
     <div class="form-group">
       <label>Descripción</label>
-      <textarea id="consumibleDescription"
-                placeholder="Descripción opcional (marca, concentración, especificaciones...)"></textarea>
+      <textarea id="consumibleDescription" placeholder="Descripción opcional (marca, concentración...)"></textarea>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Área / Departamento *</label>
+        <label>Área *</label>
         <select id="consumibleArea" onchange="updateCategoryOptions()">
           <option value="" disabled selected>Selecciona área</option>
           <option value="sistemas">Sistemas</option>
@@ -698,58 +125,32 @@ tr:hover td{background:#fafbff;}
       </div>
       <div class="form-group">
         <label>Categoría *</label>
-        <select id="consumibleCategory" onchange="onCategoryChange()">
-          <option value="" disabled selected>Seleccione área primero</option>
-        </select>
+        <select id="consumibleCategory" onchange="onCategoryChange()"><option value="" disabled selected>Seleccione área primero</option></select>
       </div>
     </div>
-
-    <hr class="form-divider">
-    <div class="form-section-title">Stock e inventario</div>
-
-    <!-- Unidad: opciones cambian dinámicamente según área/categoría -->
+    <div class="section-sep">Stock e inventario</div>
     <div class="form-group">
       <label>Unidad *</label>
-      <select id="consumibleUnit" onchange="onUnitChange()">
-        <option value="" disabled selected>Seleccione categoría primero</option>
-      </select>
+      <select id="consumibleUnit" onchange="onUnitChange()"><option value="" disabled selected>Seleccione categoría primero</option></select>
     </div>
-
     <div class="form-group">
       <label>Cantidad existente *</label>
-      <!-- Este div es reemplazado dinámicamente por onUnitChange() / openEdit() -->
-      <div id="quantityWrapper">
-        <input type="number" id="consumibleQuantity" placeholder="0"
-               min="0" step="1" value="0"
-               style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
-                      font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;
-                      outline:none;transition:0.2s;"
-               onfocus="this.style.borderColor='#4f46e5';this.style.boxShadow='0 0 0 3px rgba(79,70,229,0.08)'"
-               onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
-      </div>
+      <div id="quantityWrapper"><input type="number" id="consumibleQuantity" placeholder="0" min="0" step="1" value="0"></div>
     </div>
-
-    <hr class="form-divider">
-    <div class="form-section-title">Caducidad y ubicación</div>
+    <div class="section-sep">Caducidad y ubicación</div>
     <div class="form-row">
       <div class="form-group" id="expiryRow">
-        <label>Fecha de caducidad
-          <span style="color:#9ca3af;font-size:11px;">(opcional)</span>
-        </label>
+        <label>Fecha de caducidad <span>(opcional)</span></label>
         <input type="date" id="consumibleExpiry">
       </div>
       <div class="form-group">
         <label>Ubicación</label>
-        <input type="text" id="consumibleLocation"
-               placeholder="Ubicación" value="Lab. Ciencias Básicas">
+        <input type="text" id="consumibleLocation" placeholder="Ubicación" value="Lab. Ciencias Básicas">
       </div>
     </div>
-
     <div class="modal-actions">
       <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button type="button" class="btn" onclick="saveConsumible()">
-        <i class="fas fa-save"></i> Guardar
-      </button>
+      <button type="button" class="btn" style="flex:1;justify-content:center;" onclick="saveConsumible()"><i class="fas fa-save"></i> Guardar</button>
     </div>
   </div>
 </div>
@@ -766,8 +167,6 @@ function closeSidebar(){
   document.getElementById("sidebarOverlay").classList.remove("show");
 }
 </script>
-
-<!-- common.js primero (maneja auth + foto + rol) -->
 <script src="../scripts/pages/common.js"></script>
 <script src="../scripts/pages/consumibles.js"></script>
 <script src="../scripts/pages/realtime.js"></script>
