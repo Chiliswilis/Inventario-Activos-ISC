@@ -5,23 +5,64 @@
 
 const API = (() => {
 
+  // ── Obtener usuario desde sessionStorage (aislado por pestaña) ──
+  function _getStoredUser() {
+    try { return JSON.parse(sessionStorage.getItem("user")) || null; }
+    catch { return null; }
+  }
+
+  // ── Helper de request con cabecera x-user-id automática ────
   async function request(url, options = {}) {
+    const user = _getStoredUser();
+
+    const baseHeaders = { "Content-Type": "application/json" };
+    if (user?.id) baseHeaders["x-user-id"] = user.id;
+
+    // Spread options primero, luego sobreescribir headers con los combinados
+    const { headers: _h, ...restOptions } = options;
     const res = await fetch(url, {
-      headers: { "Content-Type": "application/json" },
-      ...options
+      ...restOptions,
+      headers: { ...baseHeaders, ...(_h || {}) },
     });
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw { status: res.status, message: err.message || "Error del servidor" };
+      throw { status: res.status, message: err.error || err.message || "Error del servidor" };
     }
     return res.json();
   }
 
   // ── AUTH ──────────────────────────────────────────────────
   const auth = {
-    login:    (email, password)           => request("/api/auth/login",    { method: "POST", body: JSON.stringify({ email, password }) }),
-    register: (data)                      => request("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
-    recover:  (email)                     => request("/api/auth/recover",  { method: "POST", body: JSON.stringify({ email }) }),
+    login:    (email, password) => request("/api/auth/login",    { method: "POST", body: JSON.stringify({ email, password }) }),
+    register: (data)            => request("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
+    recover:  (email)           => request("/api/auth/recover",  { method: "POST", body: JSON.stringify({ email }) }),
+
+    // Guarda la sesión en sessionStorage (una pestaña = una sesión)
+    saveSession(user) {
+      sessionStorage.setItem("user", JSON.stringify(user));
+    },
+
+    // Limpia solo esta pestaña
+    clearSession() {
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("session");
+    },
+
+    // Verifica que el usuario almacenado siga siendo válido en el backend
+    async revalidate() {
+      const user = _getStoredUser();
+      if (!user?.id) return null;
+      try {
+        // El middleware requireAuth leerá x-user-id y devolverá el usuario
+        const result = await request("/api/auth/me");
+        return result.user || null;
+      } catch {
+        // Si 401 → sesión inválida, limpiar
+        auth.clearSession();
+        return null;
+      }
+    }
   };
 
   // ── ASSETS ───────────────────────────────────────────────

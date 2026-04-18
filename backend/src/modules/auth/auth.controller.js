@@ -51,4 +51,14 @@ async function recover(req, res) {
   }
 }
 
-module.exports = { login, register, recover };
+/* ── ME — revalidar sesión activa ── */
+// requireAuth ya verificó x-user-id y adjuntó req.user
+async function me(req, res) {
+  try {
+    res.json({ user: req.user });
+  } catch (err) {
+    res.status(500).json({ error: "Error del servidor" });
+  }
+}
+
+module.exports = { login, register, recover, me };

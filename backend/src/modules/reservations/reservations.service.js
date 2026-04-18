@@ -133,6 +133,27 @@ const approve = async (id, body) => {
 };
 
 const occupy = async (id) => {
+  // Verificar que la reserva exista y que el horario sea el correcto
+  const { data: resv } = await supabase
+    .from("reservations").select("id, fecha_uso, hora_inicio, hora_fin, status").eq("id", id).single();
+
+  if (!resv) throw { status: 404, message: "Reserva no encontrada" };
+  if (resv.status !== "approved") throw { status: 400, message: "La reserva no está en estado aprobado" };
+
+  const nowMx   = new Date();
+  const todayStr = nowMx.toISOString().split("T")[0];
+  if (resv.fecha_uso !== todayStr)
+    throw { status: 400, message: `Solo se puede marcar en uso el día de la reserva (${resv.fecha_uso})` };
+
+  const nowMin = nowMx.getHours() * 60 + nowMx.getMinutes();
+  const [hI, mI] = (resv.hora_inicio || "00:00").split(":").map(Number);
+  const [hF, mF] = (resv.hora_fin    || "23:59").split(":").map(Number);
+  const inicioMin = hI * 60 + mI;
+  const finMin    = hF * 60 + mF;
+
+  if (nowMin < inicioMin - 10 || nowMin > finMin)
+    throw { status: 400, message: `Solo se puede marcar en uso entre ${resv.hora_inicio} y ${resv.hora_fin}` };
+
   const { data, error } = await supabase
     .from("reservations")
     .update({ status: "occupied", entrada_fecha: new Date().toISOString() })
@@ -153,8 +174,10 @@ const release = async (id, body) => {
   if (error) throw error;
 
   for (const li of leftover_items) {
+    const updatePayload = { leftover_qty: li.leftover_qty ?? 0 };
+    if (li.damaged_qty !== undefined) updatePayload.damaged_qty = li.damaged_qty;
     await supabase.from("reservation_consumables")
-      .update({ leftover_qty: li.leftover_qty })
+      .update(updatePayload)
       .eq("id", li.reservation_consumable_id);
   }
 

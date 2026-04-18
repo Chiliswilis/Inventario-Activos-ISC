@@ -1,6 +1,14 @@
+// ── GESTIÓN DE SESIÓN ──────────────────────────────────────
+// Se usa sessionStorage (aislado por pestaña) en lugar de localStorage
+// para evitar que dos pestañas con distintos roles se mezclen.
+// La migración es transparente: si hay datos viejos en localStorage
+// (sesión anterior al fix) se ignoran y se fuerza nuevo login.
 function getUser() {
-  try { return JSON.parse(localStorage.getItem("user")) || null; }
-  catch { return null; }
+  try {
+    const raw = sessionStorage.getItem("user");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
 }
 function getUserRole()  { return getUser()?.role     || "alumno"; }
 function getUsername()  { return getUser()?.username || "Usuario"; }
@@ -130,6 +138,9 @@ function showLogoutModal() {
 }
 
 function doLogout() {
+  sessionStorage.removeItem("user");
+  sessionStorage.removeItem("session");
+  // Limpiar también localStorage por si quedaron datos de versiones anteriores
   localStorage.removeItem("user");
   localStorage.removeItem("session");
   window.location.href = "/login.html";

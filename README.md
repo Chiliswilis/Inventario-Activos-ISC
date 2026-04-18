@@ -133,7 +133,83 @@ El sistema incluye usuarios de demostración para probar cada rol:
 | Docente | docente.example@gmail.com | Docente123 |
 | Alumno | alumno.example@gmail.com | Alumno123 |
 
+<<<<<<< HEAD
 # Para clonar el repositorio, las instrucciones serán:
 cp .env.example backend/.env
 # Editar backend/.env con sus propias llaves de Supabase
 docker-compose up --build
+=======
+> Estas credenciales funcionan sobre la base de datos de Supabase configurada en tu `.env`. Si usas tu propia instancia de Supabase, necesitas crear estos usuarios desde el panel o ejecutar `backend/db/schema.sql`.
+
+---
+
+## Estructura del proyecto
+
+```
+Inventario-Activos-ISC-Victor/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── supabase.js
+│   │   ├── middlewares/
+│   │   │   └── auth.middleware.js
+│   │   └── modules/
+│   │       ├── auth/
+│   │       ├── assets/
+│   │       ├── categories/
+│   │       ├── consumibles/
+│   │       ├── events/
+│   │       ├── requests/
+│   │       ├── reservations/
+│   │       ├── stats/
+│   │       └── users/
+│   ├── server.js
+│   ├── package.json
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── assets/
+│   │   │   └── imagenes
+│   │   ├── pages/         ← HTMLs
+│   │   ├── scripts/
+│   │   │   ├── pages/     ← Scripts
+│   │   │   └── services/  ← API
+│   │   ├── styles/        ← responsives
+│   │   └── login.html
+│   ├── nginx.conf
+│   └── Dockerfile
+├── .env.example           ← Plantilla de variables de entorno
+├── .gitignore
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## Solución de problemas comunes
+
+**El contenedor del backend no levanta**  
+Verifica que `backend/.env` existe y tiene las variables correctas. Puedes ver el error exacto con:
+```bash
+docker-compose logs backend
+```
+
+**La página no carga en localhost:8080**  
+Asegúrate de que Docker Desktop esté corriendo y que el puerto 8080 no esté ocupado por otra aplicación.
+
+**Error de conexión con Supabase**  
+Confirma que `SUPABASE_URL` y `SUPABASE_KEY` son correctas. La `SUPABASE_KEY` debe ser la `service_role`, no la `anon`.
+
+---
+
+## Alcance del sistema
+
+> **Fuera del alcance:** gestión financiera, procesos de compra institucional e integración con sistemas externos ajenos al control académico del área.
+
+---
+
+## Institución
+
+Tecnológico Superior de Jalisco — Unidad Académica La Huerta  
+Área de Ingeniería en Sistemas Computacionales
+>>>>>>> 3a164ce (fix: Correciones de Erores importantes en el sprint 17 de abril)
