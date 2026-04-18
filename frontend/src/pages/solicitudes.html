@@ -1,289 +1,568 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Solicitudes</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-
-</head>
-<body>
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-    <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-    <div class="menu-section">Inventario</div>
-    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-    <div class="menu-section">Gestión</div>
-    <a href="solicitudes.html" class="active"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-    <div class="menu-section">Sistema</div>
-    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-clipboard-list"></i> Gestión de Solicitudes</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-  <div class="content">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title"><span class="dot dot-blue"></span> Solicitudes de Préstamo</div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-export admin-only" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar</button>
-          <button class="btn" onclick="openModal()"><i class="fas fa-plus"></i> Nueva Solicitud</button>
-        </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Solicitudes</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
       </div>
-
-      <div class="filters-bar toolbar">
-        <select id="filterStatus" onchange="applyFilters()">
-          <option value="">Todos los estados</option>
-          <option value="pending">Pendiente (docente)</option>
-          <option value="pending_admin">Pendiente (admin)</option>
-          <option value="approved">Aprobada</option>
-          <option value="rejected">Rechazada</option>
-          <option value="returned">Devuelta</option>
-        </select>
-        <select id="filterType" onchange="applyFilters()">
-          <option value="">Todos los tipos</option>
-          <option value="asset">Activo</option>
-          <option value="consumable">Consumible</option>
-          <option value="laboratorio">Laboratorio</option>
-        </select>
-        <div class="search-box" id="searchBox">
-          <i class="fas fa-search"></i>
-          <input type="text" id="searchAlumno" placeholder="Buscar usuario..." oninput="applyFilters()">
-        </div>
-      </div>
-
-      <div id="tableWrapper" class="panel-scroll">
-        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html" class="active"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+        <a href="configuracion.html"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
       </div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL NUEVA SOLICITUD -->
-<div class="modal" id="requestModal">
-  <div class="modal-box" style="max-width:580px;">
-    <button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Nueva Solicitud</h3>
-
-    <div style="background:var(--ibm-blue-10);border:1px solid var(--ibm-blue-20);padding:14px;margin-bottom:14px;">
-      <p style="font-size:11.5px;font-weight:700;color:var(--ibm-blue);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;"><i class="fas fa-calendar-clock"></i> Fecha y hora de solicitud *</p>
-      <div class="form-row">
-        <div class="form-group" style="margin-bottom:0;">
-          <label>Fecha *</label>
-          <input type="date" id="reqFechaSol" onchange="onFechaSolChange(this)">
-          <div class="hint">Lun–Vie · Sáb hasta 1:00 PM</div>
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label>Hora *</label>
-          <input type="time" id="reqHoraSol" step="3600" min="07:30" max="15:00">
-          <div class="hint">7:30 AM – 3:00 PM</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label id="lblReqUser">Solicitante *</label>
-      <select id="reqUser"></select>
-    </div>
-    <div class="form-group" id="docenteGroup" style="display:none;">
-      <label>Docente encargado *</label>
-      <select id="reqDocente"></select>
-    </div>
-    <div class="form-group">
-      <label>Tipo de ítem</label>
-      <select id="reqType" onchange="onTypeChange()">
-        <option value="asset">Activo</option>
-        <option value="consumable">Consumible</option>
-        <option value="laboratorio">Laboratorio</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Propósito / descripción de uso *</label>
-      <textarea id="reqPurpose" placeholder="¿Para qué se necesita este material o laboratorio?"></textarea>
-    </div>
-
-    <div id="itemsSection">
-      <div class="section-sep">Ítems solicitados</div>
-      <div style="border:1px solid var(--ibm-gray-20);padding:10px;margin-bottom:8px;max-height:240px;overflow-y:auto;" id="itemsContainer"></div>
-      <button class="btn-secondary" style="width:100%;justify-content:center;" onclick="addItemRow()"><i class="fas fa-plus"></i> Agregar ítem</button>
-    </div>
-
-    <div id="labSection" style="display:none;">
-      <div class="section-sep">Laboratorio</div>
-      <div style="background:var(--ibm-gray-10);padding:14px;margin-bottom:12px;">
-        <div class="form-group" style="margin-bottom:10px;">
-          <label>Laboratorio *</label>
-          <select id="reqLab"></select>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Fecha de uso *</label>
-            <input type="date" id="reqFecha" onchange="validateWeekend(this)">
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
           </div>
-          <div class="form-group">
-            <label>Hora inicio *</label>
-            <input type="time" id="reqHoraInicio" min="07:30" max="15:00" step="3600">
+          <h2><i class="fas fa-clipboard-list"></i> Gestión de Solicitudes</h2>
+        </div>
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="dot dot-blue"></span> Solicitudes de Préstamo
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button class="btn-export admin-only" onclick="exportCSV()">
+                <i class="fas fa-file-csv"></i> Exportar
+              </button>
+              <button class="btn" onclick="openModal()">
+                <i class="fas fa-plus"></i> Nueva Solicitud
+              </button>
+            </div>
           </div>
+
+          <div class="filters-bar toolbar">
+            <select id="filterStatus" onchange="applyFilters()">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pendiente (docente)</option>
+              <option value="pending_admin">Pendiente (admin)</option>
+              <option value="approved">Aprobada</option>
+              <option value="rejected">Rechazada</option>
+              <option value="returned">Devuelta</option>
+            </select>
+            <select id="filterType" onchange="applyFilters()">
+              <option value="">Todos los tipos</option>
+              <option value="asset">Activo</option>
+              <option value="consumable">Consumible</option>
+              <option value="laboratorio">Laboratorio</option>
+            </select>
+            <div class="search-box" id="searchBox">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                id="searchAlumno"
+                placeholder="Buscar usuario..."
+                oninput="applyFilters()"
+              />
+            </div>
+          </div>
+
+          <div id="tableWrapper" class="panel-scroll">
+            <div class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Cargando...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NUEVA SOLICITUD -->
+    <div class="modal" id="requestModal">
+      <div class="modal-box" style="max-width: 580px">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3>Nueva Solicitud</h3>
+
+        <div
+          style="
+            background: var(--ibm-blue-10);
+            border: 1px solid var(--ibm-blue-20);
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <p
+            style="
+              font-size: 11.5px;
+              font-weight: 700;
+              color: var(--ibm-blue);
+              margin-bottom: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            "
+          >
+            <i class="fas fa-calendar-clock"></i> Fecha y hora de solicitud *
+          </p>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Fecha *</label>
+              <input
+                type="date"
+                id="reqFechaSol"
+                onchange="onFechaSolChange(this)"
+              />
+              <div class="hint">Lun–Vie · Sáb hasta 1:00 PM</div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Hora *</label>
+              <input
+                type="time"
+                id="reqHoraSol"
+                step="3600"
+                min="07:30"
+                max="15:00"
+              />
+              <div class="hint">7:30 AM – 3:00 PM</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="lblReqUser">Solicitante *</label>
+          <select id="reqUser"></select>
+        </div>
+        <div class="form-group" id="docenteGroup" style="display: none">
+          <label>Docente encargado *</label>
+          <select id="reqDocente"></select>
         </div>
         <div class="form-group">
-          <label>Hora fin *</label>
-          <input type="time" id="reqHoraFin" min="07:30" max="15:00" step="3600"
-            onchange="(function(){const i=document.getElementById('reqHoraInicio').value,f=this.value;if(i&&f&&f<=i){showToastInline('La hora de fin debe ser mayor que la de inicio');this.value='';}})()">
+          <label>Tipo de ítem</label>
+          <select id="reqType" onchange="onTypeChange()">
+            <option value="asset">Activo</option>
+            <option value="consumable">Consumible</option>
+            <option value="laboratorio">Laboratorio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Propósito / descripción de uso *</label>
+          <textarea
+            id="reqPurpose"
+            placeholder="¿Para qué se necesita este material o laboratorio?"
+          ></textarea>
+        </div>
+
+        <div id="itemsSection">
+          <div class="section-sep">Ítems solicitados</div>
+          <div
+            style="
+              border: 1px solid var(--ibm-gray-20);
+              padding: 10px;
+              margin-bottom: 8px;
+              max-height: 240px;
+              overflow-y: auto;
+            "
+            id="itemsContainer"
+          ></div>
+          <button
+            class="btn-secondary"
+            style="width: 100%; justify-content: center"
+            onclick="addItemRow()"
+          >
+            <i class="fas fa-plus"></i> Agregar ítem
+          </button>
+        </div>
+
+        <div id="labSection" style="display: none">
+          <div class="section-sep">Laboratorio</div>
+          <div
+            style="
+              background: var(--ibm-gray-10);
+              padding: 14px;
+              margin-bottom: 12px;
+            "
+          >
+            <div class="form-group" style="margin-bottom: 10px">
+              <label>Laboratorio *</label>
+              <select id="reqLab"></select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha de uso *</label>
+                <input
+                  type="date"
+                  id="reqFecha"
+                  onchange="validateWeekend(this)"
+                />
+              </div>
+              <div class="form-group">
+                <label>Hora inicio *</label>
+                <input
+                  type="time"
+                  id="reqHoraInicio"
+                  min="07:30"
+                  max="15:00"
+                  step="3600"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Hora fin *</label>
+              <input
+                type="time"
+                id="reqHoraFin"
+                min="07:30"
+                max="15:00"
+                step="3600"
+                onchange="
+                  (function () {
+                    const i = document.getElementById('reqHoraInicio').value,
+                      f = this.value;
+                    if (i && f && f <= i) {
+                      showToastInline(
+                        'La hora de fin debe ser mayor que la de inicio',
+                      );
+                      this.value = '';
+                    }
+                  })()
+                "
+              />
+            </div>
+          </div>
+          <div class="section-sep">
+            Material para la práctica
+            <span
+              style="
+                font-weight: 400;
+                font-size: 11px;
+                color: var(--ibm-gray-50);
+              "
+              >(opcional)</span
+            >
+          </div>
+          <div
+            style="
+              border: 1px solid var(--ibm-gray-20);
+              padding: 10px;
+              margin-bottom: 8px;
+              max-height: 200px;
+              overflow-y: auto;
+            "
+            id="labItemsContainer"
+          ></div>
+          <div style="display: flex; gap: 8px">
+            <button
+              class="btn-secondary"
+              style="flex: 1; justify-content: center"
+              onclick="addLabItemRow('asset')"
+            >
+              <i class="fas fa-plus"></i> Activo
+            </button>
+            <button
+              class="btn-secondary"
+              style="flex: 1; justify-content: center"
+              onclick="addLabItemRow('consumable')"
+            >
+              <i class="fas fa-plus"></i> Consumible
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px">
+          <label>Notas adicionales</label>
+          <textarea
+            id="reqNotes"
+            placeholder="Observaciones opcionales..."
+          ></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+          <button
+            class="btn"
+            style="flex: 1; justify-content: center"
+            onclick="saveRequest()"
+          >
+            <i class="fas fa-save"></i> Guardar
+          </button>
         </div>
       </div>
-      <div class="section-sep">Material para la práctica <span style="font-weight:400;font-size:11px;color:var(--ibm-gray-50);">(opcional)</span></div>
-      <div style="border:1px solid var(--ibm-gray-20);padding:10px;margin-bottom:8px;max-height:200px;overflow-y:auto;" id="labItemsContainer"></div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-secondary" style="flex:1;justify-content:center;" onclick="addLabItemRow('asset')"><i class="fas fa-plus"></i> Activo</button>
-        <button class="btn-secondary" style="flex:1;justify-content:center;" onclick="addLabItemRow('consumable')"><i class="fas fa-plus"></i> Consumible</button>
-      </div>
     </div>
 
-    <div class="form-group" style="margin-top:12px;">
-      <label>Notas adicionales</label>
-      <textarea id="reqNotes" placeholder="Observaciones opcionales..."></textarea>
-    </div>
+    <div class="toast" id="toast"></div>
 
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" style="flex:1;justify-content:center;" onclick="saveRequest()"><i class="fas fa-save"></i> Guardar</button>
-    </div>
-  </div>
-</div>
+    <script>
+      function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+    </script>
+    <script>
+      let _allAssets = [],
+        _allConsumables = [],
+        _itemRowCount = 0,
+        _labItemRowCount = 0;
 
-<div class="toast" id="toast"></div>
+      async function loadItemCatalogs() {
+        if (_allAssets.length && _allConsumables.length) return;
+        const [ar, cr] = await Promise.all([
+          fetch("/api/assets").then((r) => r.json()),
+          fetch("/api/consumibles").then((r) => r.json()),
+        ]);
+        _allAssets = Array.isArray(ar)
+          ? ar.filter((a) => a.status === "available")
+          : [];
+        _allConsumables = Array.isArray(cr) ? cr : [];
+      }
 
-<script>
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-</script>
-<script>
-let _allAssets=[], _allConsumables=[], _itemRowCount=0, _labItemRowCount=0;
+      function _getSelectedAssetIds(cid) {
+        const ids = new Set();
+        document
+          .querySelectorAll(`#${cid} .item-row select[data-kind="asset"]`)
+          .forEach((sel) => {
+            if (sel.value) ids.add(parseInt(sel.value));
+          });
+        return ids;
+      }
+      function _getSelectedConsIds(cid) {
+        const ids = new Set();
+        document
+          .querySelectorAll(`#${cid} .item-row select[data-kind="consumable"]`)
+          .forEach((sel) => {
+            if (sel.value) ids.add(parseInt(sel.value));
+          });
+        return ids;
+      }
 
-async function loadItemCatalogs() {
-  if (_allAssets.length && _allConsumables.length) return;
-  const [ar, cr] = await Promise.all([fetch("/api/assets").then(r=>r.json()), fetch("/api/consumibles").then(r=>r.json())]);
-  _allAssets      = Array.isArray(ar) ? ar.filter(a=>a.status==="available") : [];
-  _allConsumables = Array.isArray(cr) ? cr : [];
-}
+      function refreshAssetOptions(cid) {
+        const s = _getSelectedAssetIds(cid);
+        document
+          .querySelectorAll(`#${cid} .item-row select[data-kind="asset"]`)
+          .forEach((sel) => {
+            const cur = sel.value ? parseInt(sel.value) : null;
+            const av = _allAssets.filter((a) => !s.has(a.id) || a.id === cur);
+            sel.innerHTML =
+              `<option value="">-- Activo --</option>` +
+              av
+                .map(
+                  (a) =>
+                    `<option value="${a.id}" ${a.id === cur ? "selected" : ""}>${a.name} — ${a.serial_number}</option>`,
+                )
+                .join("");
+          });
+      }
+      function refreshConsOptions(cid) {
+        const s = _getSelectedConsIds(cid);
+        document
+          .querySelectorAll(`#${cid} .item-row select[data-kind="consumable"]`)
+          .forEach((sel) => {
+            const cur = sel.value ? parseInt(sel.value) : null;
+            const av = _allConsumables.filter(
+              (c) => !s.has(c.id) || c.id === cur,
+            );
+            sel.innerHTML =
+              `<option value="">-- Consumible --</option>` +
+              av
+                .map(
+                  (c) =>
+                    `<option value="${c.id}" ${c.id === cur ? "selected" : ""}>${c.name} (${c.quantity} ${c.unit})</option>`,
+                )
+                .join("");
+          });
+      }
 
-function _getSelectedAssetIds(cid) { const ids=new Set(); document.querySelectorAll(`#${cid} .item-row select[data-kind="asset"]`).forEach(sel=>{ if(sel.value) ids.add(parseInt(sel.value)); }); return ids; }
-function _getSelectedConsIds(cid)  { const ids=new Set(); document.querySelectorAll(`#${cid} .item-row select[data-kind="consumable"]`).forEach(sel=>{ if(sel.value) ids.add(parseInt(sel.value)); }); return ids; }
+      function addItemRow() {
+        const t = document.getElementById("reqType").value;
+        const cid = `item_${++_itemRowCount}`;
+        const row = document.createElement("div");
+        row.id = cid;
+        if (t === "asset") {
+          const av = _allAssets.filter(
+            (a) => !_getSelectedAssetIds("itemsContainer").has(a.id),
+          );
+          row.className = "item-row";
+          row.style.cssText =
+            "display:grid;grid-template-columns:1fr 28px;gap:8px;align-items:center;margin-bottom:6px;";
+          row.innerHTML = `<select data-kind="asset" onchange="refreshAssetOptions('itemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Activo --</option>${av.map((a) => `<option value="${a.id}">${a.name} — ${a.serial_number}</option>`).join("")}</select><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove();refreshAssetOptions('itemsContainer')"><i class="fas fa-times"></i></button>`;
+        } else {
+          const av = _allConsumables.filter(
+            (c) => !_getSelectedConsIds("itemsContainer").has(c.id),
+          );
+          row.className = "item-row";
+          row.style.cssText =
+            "display:grid;grid-template-columns:1fr 70px 28px;gap:8px;align-items:center;margin-bottom:6px;";
+          row.innerHTML = `<select data-kind="consumable" onchange="refreshConsOptions('itemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Consumible --</option>${av.map((c) => `<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}</select><input type="number" value="1" min="1" placeholder="Cant." style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;outline:none;"><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove();refreshConsOptions('itemsContainer')"><i class="fas fa-times"></i></button>`;
+        }
+        document.getElementById("itemsContainer").appendChild(row);
+      }
 
-function refreshAssetOptions(cid) { const s=_getSelectedAssetIds(cid); document.querySelectorAll(`#${cid} .item-row select[data-kind="asset"]`).forEach(sel=>{ const cur=sel.value?parseInt(sel.value):null; const av=_allAssets.filter(a=>!s.has(a.id)||a.id===cur); sel.innerHTML=`<option value="">-- Activo --</option>`+av.map(a=>`<option value="${a.id}" ${a.id===cur?"selected":""}>${a.name} — ${a.serial_number}</option>`).join(""); }); }
-function refreshConsOptions(cid)  { const s=_getSelectedConsIds(cid); document.querySelectorAll(`#${cid} .item-row select[data-kind="consumable"]`).forEach(sel=>{ const cur=sel.value?parseInt(sel.value):null; const av=_allConsumables.filter(c=>!s.has(c.id)||c.id===cur); sel.innerHTML=`<option value="">-- Consumible --</option>`+av.map(c=>`<option value="${c.id}" ${c.id===cur?"selected":""}>${c.name} (${c.quantity} ${c.unit})</option>`).join(""); }); }
+      function addLabItemRow(t) {
+        const cid = `labitem_${++_labItemRowCount}`;
+        const row = document.createElement("div");
+        row.id = cid;
+        if (t === "asset") {
+          const av = _allAssets.filter(
+            (a) => !_getSelectedAssetIds("labItemsContainer").has(a.id),
+          );
+          row.style.cssText =
+            "display:grid;grid-template-columns:1fr 28px;gap:8px;align-items:center;margin-bottom:6px;";
+          row.innerHTML = `<select data-kind="asset" onchange="refreshAssetOptions('labItemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Activo --</option>${av.map((a) => `<option value="${a.id}">${a.name} — ${a.serial_number}</option>`).join("")}</select><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove()"><i class="fas fa-times"></i></button>`;
+        } else {
+          const av = _allConsumables.filter(
+            (c) => !_getSelectedConsIds("labItemsContainer").has(c.id),
+          );
+          row.style.cssText =
+            "display:grid;grid-template-columns:1fr 70px 28px;gap:8px;align-items:center;margin-bottom:6px;";
+          row.innerHTML = `<select data-kind="consumable" onchange="refreshConsOptions('labItemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Consumible --</option>${av.map((c) => `<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}</select><input type="number" value="1" min="1" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;outline:none;"><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove()"><i class="fas fa-times"></i></button>`;
+        }
+        document.getElementById("labItemsContainer").appendChild(row);
+      }
 
-function addItemRow() {
-  const t=document.getElementById("reqType").value; const cid=`item_${++_itemRowCount}`; const row=document.createElement("div"); row.id=cid;
-  if(t==="asset") {
-    const av=_allAssets.filter(a=>!_getSelectedAssetIds("itemsContainer").has(a.id));
-    row.className="item-row"; row.style.cssText="display:grid;grid-template-columns:1fr 28px;gap:8px;align-items:center;margin-bottom:6px;";
-    row.innerHTML=`<select data-kind="asset" onchange="refreshAssetOptions('itemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Activo --</option>${av.map(a=>`<option value="${a.id}">${a.name} — ${a.serial_number}</option>`).join("")}</select><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove();refreshAssetOptions('itemsContainer')"><i class="fas fa-times"></i></button>`;
-  } else {
-    const av=_allConsumables.filter(c=>!_getSelectedConsIds("itemsContainer").has(c.id));
-    row.className="item-row"; row.style.cssText="display:grid;grid-template-columns:1fr 70px 28px;gap:8px;align-items:center;margin-bottom:6px;";
-    row.innerHTML=`<select data-kind="consumable" onchange="refreshConsOptions('itemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Consumible --</option>${av.map(c=>`<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}</select><input type="number" value="1" min="1" placeholder="Cant." style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;outline:none;"><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove();refreshConsOptions('itemsContainer')"><i class="fas fa-times"></i></button>`;
-  }
-  document.getElementById("itemsContainer").appendChild(row);
-}
+      function onTypeChange() {
+        const t = document.getElementById("reqType").value;
+        document.getElementById("itemsSection").style.display =
+          t !== "laboratorio" ? "block" : "none";
+        document.getElementById("labSection").style.display =
+          t === "laboratorio" ? "block" : "none";
+        document.getElementById("itemsContainer").innerHTML = "";
+        document.getElementById("labItemsContainer").innerHTML = "";
+        _itemRowCount = 0;
+        _labItemRowCount = 0;
+      }
 
-function addLabItemRow(t) {
-  const cid=`labitem_${++_labItemRowCount}`; const row=document.createElement("div"); row.id=cid;
-  if(t==="asset") {
-    const av=_allAssets.filter(a=>!_getSelectedAssetIds("labItemsContainer").has(a.id));
-    row.style.cssText="display:grid;grid-template-columns:1fr 28px;gap:8px;align-items:center;margin-bottom:6px;";
-    row.innerHTML=`<select data-kind="asset" onchange="refreshAssetOptions('labItemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Activo --</option>${av.map(a=>`<option value="${a.id}">${a.name} — ${a.serial_number}</option>`).join("")}</select><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove()"><i class="fas fa-times"></i></button>`;
-  } else {
-    const av=_allConsumables.filter(c=>!_getSelectedConsIds("labItemsContainer").has(c.id));
-    row.style.cssText="display:grid;grid-template-columns:1fr 70px 28px;gap:8px;align-items:center;margin-bottom:6px;";
-    row.innerHTML=`<select data-kind="consumable" onchange="refreshConsOptions('labItemsContainer')" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"><option value="">-- Consumible --</option>${av.map(c=>`<option value="${c.id}">${c.name} (${c.quantity} ${c.unit})</option>`).join("")}</select><input type="number" value="1" min="1" style="padding:8px;border:1px solid var(--ibm-gray-20);font-size:13px;outline:none;"><button style="background:none;border:none;cursor:pointer;color:var(--ibm-red);font-size:15px;" onclick="document.getElementById('${cid}').remove()"><i class="fas fa-times"></i></button>`;
-  }
-  document.getElementById("labItemsContainer").appendChild(row);
-}
+      function onFechaSolChange(input) {
+        if (!input.value) return;
+        const d = new Date(input.value + "T12:00:00");
+        if (d.getDay() === 0) {
+          showToastInline("No se permiten solicitudes los domingos");
+          input.value = "";
+          return;
+        }
+        const isSat = d.getDay() === 6,
+          horaEl = document.getElementById("reqHoraSol");
+        if (horaEl) {
+          horaEl.min = "07:30";
+          horaEl.max = isSat ? "13:00" : "15:00";
+          horaEl.step = "3600";
+        }
+      }
 
-function onTypeChange() {
-  const t=document.getElementById("reqType").value;
-  document.getElementById("itemsSection").style.display=(t!=="laboratorio")?"block":"none";
-  document.getElementById("labSection").style.display=(t==="laboratorio")?"block":"none";
-  document.getElementById("itemsContainer").innerHTML="";
-  document.getElementById("labItemsContainer").innerHTML="";
-  _itemRowCount=0; _labItemRowCount=0;
-}
+      function validateWeekend(input) {
+        if (!input.value) return;
+        const d = new Date(input.value + "T12:00:00");
+        if (d.getDay() === 0) {
+          showToastInline("No se permiten reservas los domingos");
+          input.value = "";
+          return;
+        }
+        const isSat = d.getDay() === 6,
+          maxH = isSat ? "13:00" : "15:00";
+        ["reqHoraInicio", "reqHoraFin"].forEach((fid) => {
+          const el = document.getElementById(fid);
+          if (el) {
+            el.min = "07:30";
+            el.max = maxH;
+            el.step = "3600";
+          }
+        });
+      }
 
-function onFechaSolChange(input) {
-  if (!input.value) return;
-  const d=new Date(input.value+"T12:00:00");
-  if (d.getDay()===0) { showToastInline("No se permiten solicitudes los domingos"); input.value=""; return; }
-  const isSat=d.getDay()===6, horaEl=document.getElementById("reqHoraSol");
-  if (horaEl) { horaEl.min="07:30"; horaEl.max=isSat?"13:00":"15:00"; horaEl.step="3600"; }
-}
+      function showToastInline(msg) {
+        const t = document.getElementById("toast");
+        if (t) {
+          t.textContent = msg;
+          t.className = "toast error show";
+          setTimeout(() => t.classList.remove("show"), 3500);
+        }
+      }
 
-function validateWeekend(input) {
-  if (!input.value) return;
-  const d=new Date(input.value+"T12:00:00");
-  if (d.getDay()===0) { showToastInline("No se permiten reservas los domingos"); input.value=""; return; }
-  const isSat=d.getDay()===6, maxH=isSat?"13:00":"15:00";
-  ["reqHoraInicio","reqHoraFin"].forEach(fid=>{ const el=document.getElementById(fid); if(el){el.min="07:30";el.max=maxH;el.step="3600";} });
-}
+      async function openModal() {
+        await loadItemCatalogs();
+        document.getElementById("itemsContainer").innerHTML = "";
+        document.getElementById("labItemsContainer").innerHTML = "";
+        _itemRowCount = 0;
+        _labItemRowCount = 0;
+        const todayStr = new Date().toISOString().split("T")[0];
+        const fechaSolEl = document.getElementById("reqFechaSol"),
+          horaSolEl = document.getElementById("reqHoraSol");
+        if (fechaSolEl) {
+          fechaSolEl.min = todayStr;
+          fechaSolEl.value = "";
+        }
+        if (horaSolEl) {
+          horaSolEl.value = "";
+          horaSolEl.min = "07:30";
+          horaSolEl.max = "15:00";
+          horaSolEl.step = "3600";
+        }
+        const p = document.getElementById("reqPurpose");
+        if (p) p.value = "";
+        const n = document.getElementById("reqNotes");
+        if (n) n.value = "";
+        onTypeChange();
+        document.getElementById("requestModal").classList.add("open");
+      }
 
-function showToastInline(msg) { const t=document.getElementById("toast"); if(t){t.textContent=msg;t.className="toast error show";setTimeout(()=>t.classList.remove("show"),3500);} }
+      function closeModal() {
+        document.getElementById("requestModal").classList.remove("open");
+      }
 
-async function openModal() {
-  await loadItemCatalogs();
-  document.getElementById("itemsContainer").innerHTML="";
-  document.getElementById("labItemsContainer").innerHTML="";
-  _itemRowCount=0; _labItemRowCount=0;
-  const todayStr=new Date().toISOString().split("T")[0];
-  const fechaSolEl=document.getElementById("reqFechaSol"), horaSolEl=document.getElementById("reqHoraSol");
-  if(fechaSolEl){fechaSolEl.min=todayStr;fechaSolEl.value="";}
-  if(horaSolEl){horaSolEl.value="";horaSolEl.min="07:30";horaSolEl.max="15:00";horaSolEl.step="3600";}
-  const p=document.getElementById("reqPurpose"); if(p) p.value="";
-  const n=document.getElementById("reqNotes");   if(n) n.value="";
-  onTypeChange();
-  document.getElementById("requestModal").classList.add("open");
-}
-
-function closeModal() { document.getElementById("requestModal").classList.remove("open"); }
-
-document.addEventListener("DOMContentLoaded", () => {
-  const user=JSON.parse(sessionStorage.getItem("user")||"null")||{};
-  if(user.role==="alumno") { const sb=document.getElementById("searchBox"); if(sb) sb.style.display="none"; }
-});
-</script>
-<script src="../scripts/pages/realtime.js"></script>
-<script src="../scripts/pages/solicitudes.js"></script>
-<script src="../scripts/pages/common.js"></script>
-</body>
+      document.addEventListener("DOMContentLoaded", () => {
+        const user = JSON.parse(sessionStorage.getItem("user") || "null") || {};
+        if (user.role === "alumno") {
+          const sb = document.getElementById("searchBox");
+          if (sb) sb.style.display = "none";
+        }
+      });
+    </script>
+    <script src="../scripts/pages/realtime.js"></script>
+    <script src="../scripts/pages/solicitudes.js"></script>
+    <script src="../scripts/pages/common.js"></script>
+  </body>
 </html>
