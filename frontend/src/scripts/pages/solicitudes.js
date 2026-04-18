@@ -25,7 +25,7 @@ const statusMap = {
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
-  currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  currentUser = JSON.parse(sessionStorage.getItem("user") || "null") || {};
   await Promise.all([loadUsers(), loadAssets(), loadCons(), loadLabs()]);
   await loadRequests();
 });
@@ -124,6 +124,12 @@ function renderTable(data) {
 
     // Acciones
     let acciones = "";
+
+    // Acciones — Admin: editar pendientes + aprobar/rechazar + devolver + eliminar
+    // Admin: editar solicitudes pending
+    if (role === "administrador" && r.status === "pending") {
+      acciones += `<button class="action-btn action-info" title="Editar" onclick="openEditRequest(${r.id})"><i class="fas fa-edit"></i></button>`;
+    }
 
     // Docente: aprobar/rechazar las solicitudes pending directamente
     if (role === "docente" && r.status === "pending") {
@@ -232,13 +238,20 @@ function openModal() {
     selUser.disabled = false;
     grpDocente.style.display = "none";
   } else {
+    // Admin: puede elegir cualquier usuario Y asignar docente encargado
     allUsers.filter(u => ["administrador","docente","alumno"].includes(u.role)).forEach(u => {
       const o = document.createElement("option");
       o.value = u.id; o.textContent = `${u.username} (${u.role})`;
       selUser.appendChild(o);
     });
     selUser.disabled = false;
-    grpDocente.style.display = "none";
+    // Admin sí necesita docente encargado — mostrar el selector
+    grpDocente.style.display = "block";
+    selDocente.innerHTML = `<option value="">-- Sin docente encargado --</option>`;
+    allUsers.filter(u => u.role === "docente").forEach(u => {
+      const o = document.createElement("option"); o.value = u.id; o.textContent = u.username;
+      selDocente.appendChild(o);
+    });
   }
 
   document.getElementById("reqType").value    = "asset";
@@ -565,6 +578,9 @@ async function saveRequest() {
     if (!docente_id) { showToast("Selecciona un docente encargado", "error"); return; }
   } else if (currentUser.role === "docente") {
     docente_id = currentUser.id;
+  } else if (currentUser.role === "administrador") {
+    // Admin puede dejar docente en null (solicitud directa sin docente)
+    docente_id = document.getElementById("reqDocente")?.value || null;
   }
 
   // ── LABORATORIO → crear reserva directa ──
@@ -587,6 +603,7 @@ async function saveRequest() {
     if (tFin - tIni < 60) { showToast("La reserva debe durar al menos 1 hora", "error"); return; }
 
     const dowLab  = new Date(fecha_uso + "T12:00:00").getDay();
+    if (dowLab === 0) { showToast("No se permiten reservas los domingos", "error"); return; }
     const isSatL  = dowLab === 6;
     const minOpen = 7 * 60 + 30;
     const maxClose= isSatL ? 13 * 60 : 15 * 60;
@@ -628,6 +645,7 @@ async function saveRequest() {
     purpose, notes,
     fecha_solicitud: fechaSol,
     hora_solicitud:  horaSol,
+    role:            currentUser.role,   // para validación de horario en backend
     items
   };
 

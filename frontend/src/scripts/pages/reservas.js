@@ -11,7 +11,7 @@ let assetRowCount = 0;
 let consRowCount  = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  currentUser = JSON.parse(sessionStorage.getItem("user") || "null") || {};
   await loadCatalogs();
   renderLabsGrid();
   await loadReservations();
@@ -97,31 +97,35 @@ function renderTable(data) {
     // We don't show assets in the table for simplicity, but they are stored.
 
     let acciones = "";
-    if (role === "docente" && r.status === "pending") {
+
+    // DOCENTE: aprobar/rechazar pendientes (solo si él es el docente responsable)
+    if (role === "docente" && r.status === "pending" && Number(r.docente_id) === Number(currentUser?.id)) {
       acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
       acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
     }
-    // Docente: editar sus propias reservas pending o approved
+    // DOCENTE: editar sus propias reservas pending o approved
     if (role === "docente" && (r.status === "pending" || r.status === "approved") && Number(r.docente_id) === Number(currentUser?.id)) {
       acciones += `<button class="btn-info" onclick="openEditReserva(${r.id})" title="Editar"><i class="fas fa-edit"></i></button>`;
     }
-    // Alumno: editar o eliminar sus propias reservas en estado pending
+    // ALUMNO: editar o eliminar sus propias reservas pending
     if (role === "alumno" && r.status === "pending" && Number(r.alumno_id) === Number(currentUser?.id)) {
       acciones += `<button class="btn-info" onclick="openEditReserva(${r.id})" title="Editar"><i class="fas fa-edit"></i></button>`;
       acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
     }
+    // DOCENTE o ADMIN: marcar en uso (solo approved)
     if ((role === "docente" || role === "administrador") && r.status === "approved") {
       acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
     }
+    // DOCENTE o ADMIN: firma de salida (solo occupied)
     if ((role === "docente" || role === "administrador") && r.status === "occupied") {
       acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
     }
-    if ((role === "docente" && r.status === "approved" && Number(r.docente_id) === Number(currentUser?.id))
-      || role === "administrador") {
-      acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
-    }
+    // ADMIN: cancelar (pending/approved) + eliminar siempre (un solo botón de cada)
     if (role === "administrador") {
-      acciones += `<button style="background:#6b7280;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;" onclick="deleteReservation(${r.id})"><i class="fas fa-trash"></i></button>`;
+      if (r.status === "pending" || r.status === "approved") {
+        acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-ban"></i></button>`;
+      }
+      acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
     }
 
     return `<tr>
@@ -255,8 +259,22 @@ function validateWeekend(input) {
     input.value = "";
     return;
   }
-  // Actualizar límites de hora según rol y si es sábado
   updateHourLimits(input.value);
+  // Resetear horas al cambiar fecha para evitar valores inválidos previos
+  document.getElementById("newHoraInicio").value = "";
+  document.getElementById("newHoraFin").value    = "";
+}
+
+function validateHoraFin() {
+  const ini = document.getElementById("newHoraInicio").value;
+  const fin = document.getElementById("newHoraFin").value;
+  if (!ini || !fin) return;
+  const [hI, mI] = ini.split(":").map(Number);
+  const [hF, mF] = fin.split(":").map(Number);
+  if (hF * 60 + mF <= hI * 60 + mI) {
+    showToast("La hora de fin debe ser mayor que la de inicio", "error");
+    document.getElementById("newHoraFin").value = "";
+  }
 }
 
 function updateHourLimits(fechaVal) {
@@ -649,8 +667,14 @@ async function updateReservation(id) {
 
 // ── APROBAR ──
 function openApprove(id) {
+  const r = allReservations.find(x => x.id === id);
   document.getElementById("approveId").value = id;
-  ["approveGrupo","approveSemestre","approveEncargado","approveMessage"].forEach(f => document.getElementById(f).value = "");
+  // Limpiar campos editables
+  document.getElementById("approveGrupo").value    = r?.grupo    || "";
+  document.getElementById("approveSemestre").value = r?.semestre || "";
+  document.getElementById("approveMessage").value  = "";
+  // Autocompletar encargado con el usuario actual (docente logueado)
+  document.getElementById("approveEncargado").value = currentUser?.username || "";
   document.getElementById("approveModal").classList.add("open");
 }
 async function approveReservation() {
@@ -674,6 +698,24 @@ async function approveReservation() {
 function openOccupyModal(id) {
   const r = allReservations.find(x => x.id === id);
   if (!r) return;
+
+  // Validar que hoy sea la fecha de la reserva y la hora actual esté dentro del rango
+  const nowDate = today();
+  if (r.fecha_uso !== nowDate) {
+    showToast(`Solo puedes marcar en uso el día de la reserva (${formatDate(r.fecha_uso)})`, "error");
+    return;
+  }
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  const [hI, mI] = (r.hora_inicio || "00:00").split(":").map(Number);
+  const [hF, mF] = (r.hora_fin    || "23:59").split(":").map(Number);
+  const inicioMin = hI * 60 + mI;
+  const finMin    = hF * 60 + mF;
+  // Permitir marcar en uso desde 10 min antes de hora_inicio hasta hora_fin
+  if (nowMin < inicioMin - 10 || nowMin > finMin) {
+    showToast(`Solo puedes marcar en uso entre ${r.hora_inicio} y ${r.hora_fin}`, "error");
+    return;
+  }
+
   let modal = document.getElementById("occupyModal");
   if (!modal) {
     modal = document.createElement("div");
@@ -738,10 +780,21 @@ function openRelease(id) {
   if (cons.length > 0) {
     section.style.display = "block";
     cons.forEach(c => {
+      const delivered = c.quantity_delivered ?? c.quantity_requested;
       listEl.innerHTML += `
-        <div class="leftover-row" data-rc-id="${c.id}">
-          <span class="item-name">${c.consumables?.name || "Consumible"} (solicitado: ${c.quantity_requested})</span>
-          <input type="number" min="0" placeholder="Sobrante" value="0">
+        <div class="leftover-row" data-rc-id="${c.id}" data-delivered="${delivered}">
+          <div>
+            <span class="item-name">${c.consumables?.name || "Consumible"}</span>
+            <small style="color:#6b7280;display:block;">Entregado: ${delivered} ${c.consumables?.unit||""}</small>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:#6b7280;">Sobrante</label>
+            <input type="number" min="0" max="${delivered}" value="${delivered}"
+              style="width:80px;padding:5px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;">
+            <label style="font-size:11px;color:#dc2626;">Dañados</label>
+            <input type="number" min="0" max="${delivered}" value="0" class="damaged-input"
+              style="width:80px;padding:5px;border:1px solid #fecaca;border-radius:4px;font-size:13px;">
+          </div>
         </div>`;
     });
   } else {
@@ -749,12 +802,30 @@ function openRelease(id) {
   }
   document.getElementById("releaseModal").classList.add("open");
 }
+
 async function releaseReservation() {
   const id = document.getElementById("releaseId").value;
   const leftover_items = [];
+  let valid = true;
+
   document.querySelectorAll("#leftoverList .leftover-row").forEach(row => {
-    leftover_items.push({ reservation_consumable_id: parseInt(row.dataset.rcId), leftover_qty: parseInt(row.querySelector("input").value) || 0 });
+    const delivered = parseInt(row.dataset.delivered) || 0;
+    const leftover  = parseInt(row.querySelector("input:not(.damaged-input)").value) || 0;
+    const damaged   = parseInt(row.querySelector(".damaged-input").value) || 0;
+
+    if (leftover + damaged > delivered) {
+      showToast("Sobrante + dañados no puede superar la cantidad entregada", "error");
+      valid = false; return;
+    }
+    leftover_items.push({
+      reservation_consumable_id: parseInt(row.dataset.rcId),
+      leftover_qty: leftover,
+      damaged_qty:  damaged
+    });
   });
+
+  if (!valid) return;
+
   const res = await fetch(`${API}/${id}/release`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ leftover_items })

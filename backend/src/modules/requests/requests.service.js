@@ -61,17 +61,18 @@ async function create(body) {
     throw err;
   }
 
-  // Validar rango horario
+  // Validar rango horario (admin tiene ventana ampliada hasta 18:00)
   const normT = t => (t || "").substring(0, 5);
   const hNorm = normT(hora_solicitud);
-  const maxH  = dow === 6 ? "13:00" : "15:00";
+  const isAdmin = body.role === "administrador"; // se puede pasar role en body opcionalmente
+  const maxH  = dow === 6 ? "13:00" : (isAdmin ? "18:00" : "15:00");
   if (hNorm < "07:30") {
     const err = new Error("Hora mínima de solicitud: 07:30 AM");
     err.status = 400;
     throw err;
   }
   if (hNorm > maxH) {
-    const err = new Error(`Hora máxima de solicitud: ${dow === 6 ? "1:00 PM (sábado)" : "3:00 PM"}`);
+    const err = new Error(`Hora máxima de solicitud: ${dow === 6 ? "1:00 PM (sábado)" : (isAdmin ? "6:00 PM" : "3:00 PM")}`);
     err.status = 400;
     throw err;
   }

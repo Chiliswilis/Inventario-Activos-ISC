@@ -30,7 +30,7 @@ const approve = async (req, res) => {
 
 const occupy = async (req, res) => {
   try { res.json(await service.occupy(req.params.id)); }
-  catch (err) { res.status(500).json(err); }
+  catch (err) { res.status(err.status || 500).json({ message: err.message }); }
 };
 
 const release = async (req, res) => {

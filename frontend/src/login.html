@@ -167,8 +167,8 @@ async function doLogin() {
     const data = await res.json();
 
     if (res.ok) {
-      localStorage.setItem("user",    JSON.stringify(data.user));
-      localStorage.setItem("session", JSON.stringify(data.session));
+      sessionStorage.setItem("user",    JSON.stringify(data.user));
+      sessionStorage.setItem("session", JSON.stringify(data.session));
       window.location.href = "/pages/dashboard.html";
     } else {
       showMsg("loginMsg", data.error || "Error al iniciar sesión", "error");

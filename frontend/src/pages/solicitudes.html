@@ -153,7 +153,8 @@
         </div>
         <div class="form-group">
           <label>Hora fin *</label>
-          <input type="time" id="reqHoraFin" min="07:30" max="15:00" step="3600">
+          <input type="time" id="reqHoraFin" min="07:30" max="15:00" step="3600"
+            onchange="(function(){const i=document.getElementById('reqHoraInicio').value,f=this.value;if(i&&f&&f<=i){showToastInline('La hora de fin debe ser mayor que la de inicio');this.value='';}})()">
         </div>
       </div>
       <div class="section-sep">Material para la práctica <span style="font-weight:400;font-size:11px;color:var(--ibm-gray-50);">(opcional)</span></div>
@@ -277,7 +278,7 @@ async function openModal() {
 function closeModal() { document.getElementById("requestModal").classList.remove("open"); }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const user=JSON.parse(localStorage.getItem("user")||"{}");
+  const user=JSON.parse(sessionStorage.getItem("user")||"null")||{};
   if(user.role==="alumno") { const sb=document.getElementById("searchBox"); if(sb) sb.style.display="none"; }
 });
 </script>

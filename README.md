@@ -134,11 +134,17 @@ Inventario-Activos-ISC-Victor/
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── public/         ← HTML y assets estáticos
-│   │   └── js/             ← Scripts por página
+│   │   ├── assets/
+│   │   │   └── imagenes
+│   │   ├── pages/         ← HTMLs
+│   │   ├── scripts/
+│   │   │   ├── pages/     ← Scripts
+│   │   │   └── services/  ← API
+│   │   ├── styles/        ← responsives
+│   │   └── login.html
 │   ├── nginx.conf
 │   └── Dockerfile
-├── .env.example            ← Plantilla de variables de entorno
+├── .env.example           ← Plantilla de variables de entorno
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md
