@@ -14,15 +14,12 @@ const getStats = async () => {
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
 
-  const today    = new Date();
-  const startDay = new Date(today.setHours(0,0,0,0)).toISOString();
-  const endDay   = new Date(today.setHours(23,59,59,999)).toISOString();
+  const todayStr = new Date().toISOString().split("T")[0];
 
   const { count: todayReservations } = await supabase
     .from("reservations")
     .select("*", { count: "exact", head: true })
-    .gte("start_time", startDay)
-    .lte("start_time", endDay);
+    .eq("fecha_uso", todayStr);
 
   // ── Últimos activos modificados ──────────────────────────────────────────
   const { data: rawAssets } = await supabase

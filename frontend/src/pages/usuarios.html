@@ -1,222 +1,318 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Usuarios</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-
-</head>
-<body>
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-<div class="menu-section">Principal</div>
-<a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-<div class="menu-section">Inventario</div>
-<a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-<a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-<div class="menu-section">Gestión</div>
-<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-<a href="usuarios.html" class="active"><i class="fas fa-users"></i> Usuarios</a>
-<div class="menu-section">Sistema</div>
-<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-  <div class="content">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title"><span class="dot dot-blue"></span> Usuarios del Sistema</div>
-        <button class="btn" onclick="openModal()"><i class="fas fa-user-plus"></i> Nuevo Usuario</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Usuarios</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
       </div>
-      <div class="panel-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="usersTableBody"></tbody>
-        </table>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html" class="active"
+          ><i class="fas fa-users"></i> Usuarios</a
+        >
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+        <a href="configuracion.html"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
       </div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL USUARIO -->
-<div class="modal" id="userModal">
-  <div class="modal-box" style="max-width:440px;">
-    <button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3 id="modalTitle">Nuevo Usuario</h3>
-    <input type="hidden" id="userId">
-    <div class="form-group">
-      <label>Nombre de usuario *</label>
-      <input type="text" id="uUsername" placeholder="Ej: Juan Pérez">
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+        </div>
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="dot dot-blue"></span> Usuarios del Sistema
+            </div>
+            <button class="btn" onclick="openModal()">
+              <i class="fas fa-user-plus"></i> Nuevo Usuario
+            </button>
+          </div>
+          <div class="panel-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Correo electrónico *</label>
-      <input type="email" id="uEmail" placeholder="correo@ejemplo.com">
-    </div>
-    <div class="form-group">
-      <label>Contraseña *</label>
-      <input type="password" id="uPassword" placeholder="Mínimo 6 caracteres">
-      <p class="hint" id="passHint" style="display:none;">Dejar vacío para no cambiar la contraseña actual</p>
-    </div>
-    <div class="form-group">
-      <label>Rol *</label>
-      <select id="uRole">
-        <option value="alumno">Alumno</option>
-        <option value="docente">Docente</option>
-        <option value="administrador">Administrador</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" style="flex:1;justify-content:center;" onclick="saveUser()"><i class="fas fa-save"></i> Guardar</button>
-    </div>
-  </div>
-</div>
 
-<div class="toast" id="toast"></div>
+    <!-- MODAL USUARIO -->
+    <div class="modal" id="userModal">
+      <div class="modal-box" style="max-width: 440px">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 id="modalTitle">Nuevo Usuario</h3>
+        <input type="hidden" id="userId" />
+        <div class="form-group">
+          <label>Nombre de usuario *</label>
+          <input type="text" id="uUsername" placeholder="Ej: Juan Pérez" />
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico *</label>
+          <input type="email" id="uEmail" placeholder="correo@ejemplo.com" />
+        </div>
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input
+            type="password"
+            id="uPassword"
+            placeholder="Mínimo 6 caracteres"
+          />
+          <p class="hint" id="passHint" style="display: none">
+            Dejar vacío para no cambiar la contraseña actual
+          </p>
+        </div>
+        <div class="form-group">
+          <label>Rol *</label>
+          <select id="uRole">
+            <option value="alumno">Alumno</option>
+            <option value="docente">Docente</option>
+            <option value="administrador">Administrador</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+          <button
+            class="btn"
+            style="flex: 1; justify-content: center"
+            onclick="saveUser()"
+          >
+            <i class="fas fa-save"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
 
-<script>
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-</script>
-<script>
-const apiUrl = "/api/users";
-const ORDER  = ["administrador","docente","alumno"];
-const roleConfig = {
-  administrador: { label:"Administrador", badge:"badge-admin",   icon:"fa-shield-alt",        cls:"admin"   },
-  docente:       { label:"Docente",       badge:"badge-docente", icon:"fa-chalkboard-teacher", cls:"docente" },
-  alumno:        { label:"Alumno",        badge:"badge-alumno",  icon:"fa-user-graduate",      cls:"alumno"  }
-};
+    <div class="toast" id="toast"></div>
 
-async function loadUsers() {
-  const tbody = document.getElementById("usersTableBody");
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--ibm-gray-50);"><i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</td></tr>`;
-  try {
-    const users = await fetch(apiUrl).then(r => r.json());
-    renderTable(users);
-  } catch {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--ibm-red);padding:20px;"><i class="fas fa-exclamation-circle"></i> Error al conectar</td></tr>`;
-  }
-}
+    <script>
+      function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+    </script>
+    <script>
+      const apiUrl = "/api/users";
+      const ORDER = ["administrador", "docente", "alumno"];
+      const roleConfig = {
+        administrador: {
+          label: "Administrador",
+          badge: "badge-admin",
+          icon: "fa-shield-alt",
+          cls: "admin",
+        },
+        docente: {
+          label: "Docente",
+          badge: "badge-docente",
+          icon: "fa-chalkboard-teacher",
+          cls: "docente",
+        },
+        alumno: {
+          label: "Alumno",
+          badge: "badge-alumno",
+          icon: "fa-user-graduate",
+          cls: "alumno",
+        },
+      };
 
-function renderTable(users) {
-  const tbody = document.getElementById("usersTableBody");
-  tbody.innerHTML = "";
-  const groups = { administrador:[], docente:[], alumno:[] };
-  users.forEach(u => { if (groups[u.role]) groups[u.role].push(u); });
-  ORDER.forEach(role => {
-    const list = groups[role];
-    const cfg  = roleConfig[role];
-    const sep  = document.createElement("tr");
-    sep.className = "group-header";
-    sep.innerHTML = `<td colspan="5" style="padding:10px 16px;background:var(--ibm-gray-10);border-top:2px solid var(--ibm-gray-20);border-bottom:1px solid var(--ibm-gray-20);">
+      async function loadUsers() {
+        const tbody = document.getElementById("usersTableBody");
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--ibm-gray-50);"><i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</td></tr>`;
+        try {
+          const users = await fetch(apiUrl).then((r) => r.json());
+          renderTable(users);
+        } catch {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--ibm-red);padding:20px;"><i class="fas fa-exclamation-circle"></i> Error al conectar</td></tr>`;
+        }
+      }
+
+      function renderTable(users) {
+        const tbody = document.getElementById("usersTableBody");
+        tbody.innerHTML = "";
+        const groups = { administrador: [], docente: [], alumno: [] };
+        users.forEach((u) => {
+          if (groups[u.role]) groups[u.role].push(u);
+        });
+        ORDER.forEach((role) => {
+          const list = groups[role];
+          const cfg = roleConfig[role];
+          const sep = document.createElement("tr");
+          sep.className = "group-header";
+          sep.innerHTML = `<td colspan="5" style="padding:10px 16px;background:var(--ibm-gray-10);border-top:2px solid var(--ibm-gray-20);border-bottom:1px solid var(--ibm-gray-20);">
       <span style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ibm-gray-70);">
         <span style="width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;background:var(--ibm-gray-20);"><i class="fas ${cfg.icon}"></i></span>
         ${cfg.label}s
         <span style="padding:1px 7px;font-size:11px;font-weight:700;" class="badge ${cfg.badge}">${list.length}</span>
       </span>
     </td>`;
-    tbody.appendChild(sep);
-    if (!list.length) {
-      const empty = document.createElement("tr");
-      empty.innerHTML = `<td colspan="5" style="text-align:center;color:var(--ibm-gray-50);padding:14px;font-size:13px;font-style:italic;">Sin ${cfg.label.toLowerCase()}s registrados</td>`;
-      tbody.appendChild(empty);
-      return;
-    }
-    list.forEach(u => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+          tbody.appendChild(sep);
+          if (!list.length) {
+            const empty = document.createElement("tr");
+            empty.innerHTML = `<td colspan="5" style="text-align:center;color:var(--ibm-gray-50);padding:14px;font-size:13px;font-style:italic;">Sin ${cfg.label.toLowerCase()}s registrados</td>`;
+            tbody.appendChild(empty);
+            return;
+          }
+          list.forEach((u) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
         <td><strong style="font-family:'IBM Plex Mono',monospace;font-size:12px;">#${u.id}</strong></td>
         <td>${esc(u.username)}</td>
-        <td style="color:var(--ibm-gray-70);">${esc(u.email||"—")}</td>
+        <td style="color:var(--ibm-gray-70);">${esc(u.email || "—")}</td>
         <td><span class="badge ${cfg.badge}">${cfg.label}</span></td>
         <td>
           <button class="action-btn action-edit" title="Editar" onclick="editUser(${u.id})"><i class="fas fa-edit"></i></button>
           <button class="action-btn action-delete" title="Eliminar" onclick="deleteUser(${u.id})"><i class="fas fa-trash"></i></button>
         </td>`;
-      tbody.appendChild(tr);
-    });
-  });
-}
+            tbody.appendChild(tr);
+          });
+        });
+      }
 
-function openModal(mode="add", user=null) {
-  ["userId","uUsername","uEmail","uPassword"].forEach(id => document.getElementById(id).value="");
-  document.getElementById("uRole").value="alumno";
-  document.getElementById("passHint").style.display="none";
-  document.getElementById("modalTitle").textContent="Nuevo Usuario";
-  if (mode==="edit"&&user) {
-    document.getElementById("modalTitle").textContent="Editar Usuario";
-    document.getElementById("userId").value=user.id;
-    document.getElementById("uUsername").value=user.username;
-    document.getElementById("uEmail").value=user.email||"";
-    document.getElementById("uRole").value=user.role;
-    document.getElementById("passHint").style.display="block";
-  }
-  document.getElementById("userModal").classList.add("open");
-}
+      function openModal(mode = "add", user = null) {
+        ["userId", "uUsername", "uEmail", "uPassword"].forEach(
+          (id) => (document.getElementById(id).value = ""),
+        );
+        document.getElementById("uRole").value = "alumno";
+        document.getElementById("passHint").style.display = "none";
+        document.getElementById("modalTitle").textContent = "Nuevo Usuario";
+        if (mode === "edit" && user) {
+          document.getElementById("modalTitle").textContent = "Editar Usuario";
+          document.getElementById("userId").value = user.id;
+          document.getElementById("uUsername").value = user.username;
+          document.getElementById("uEmail").value = user.email || "";
+          document.getElementById("uRole").value = user.role;
+          document.getElementById("passHint").style.display = "block";
+        }
+        document.getElementById("userModal").classList.add("open");
+      }
 
-function closeModal() { document.getElementById("userModal").classList.remove("open"); }
+      function closeModal() {
+        document.getElementById("userModal").classList.remove("open");
+      }
 
-async function saveUser() {
-  const id=document.getElementById("userId").value, username=document.getElementById("uUsername").value.trim(),
-        email=document.getElementById("uEmail").value.trim(), password=document.getElementById("uPassword").value,
-        role=document.getElementById("uRole").value;
-  if (!username||!email) return showToast("Nombre y correo son obligatorios","error");
-  if (!id&&!password) return showToast("La contraseña es obligatoria para nuevos usuarios","error");
-  if (password&&password.length<6) return showToast("La contraseña debe tener al menos 6 caracteres","error");
-  try {
-    const res=await fetch(id?`${apiUrl}/${id}`:apiUrl,{method:id?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,email,password,role})});
-    if (!res.ok) { const e=await res.json(); return showToast("Error: "+(e.message||"No se pudo guardar"),"error"); }
-    showToast(id?"Usuario actualizado":"Usuario creado","success");
-    closeModal(); loadUsers();
-  } catch { showToast("No se pudo conectar con el servidor","error"); }
-}
+      async function saveUser() {
+        const id = document.getElementById("userId").value,
+          username = document.getElementById("uUsername").value.trim(),
+          email = document.getElementById("uEmail").value.trim(),
+          password = document.getElementById("uPassword").value,
+          role = document.getElementById("uRole").value;
+        if (!username || !email)
+          return showToast("Nombre y correo son obligatorios", "error");
+        if (!id && !password)
+          return showToast(
+            "La contraseña es obligatoria para nuevos usuarios",
+            "error",
+          );
+        if (password && password.length < 6)
+          return showToast(
+            "La contraseña debe tener al menos 6 caracteres",
+            "error",
+          );
+        try {
+          const res = await fetch(id ? `${apiUrl}/${id}` : apiUrl, {
+            method: id ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password, role }),
+          });
+          if (!res.ok) {
+            const e = await res.json();
+            return showToast(
+              "Error: " + (e.message || "No se pudo guardar"),
+              "error",
+            );
+          }
+          showToast(id ? "Usuario actualizado" : "Usuario creado", "success");
+          closeModal();
+          loadUsers();
+        } catch {
+          showToast("No se pudo conectar con el servidor", "error");
+        }
+      }
 
-async function editUser(id) {
-  try { const user=await fetch(`${apiUrl}/${id}`).then(r=>r.json()); openModal("edit",user); }
-  catch { showToast("No se pudo cargar el usuario","error"); }
-}
+      async function editUser(id) {
+        try {
+          const user = await fetch(`${apiUrl}/${id}`).then((r) => r.json());
+          openModal("edit", user);
+        } catch {
+          showToast("No se pudo cargar el usuario", "error");
+        }
+      }
 
-function deleteUser(id) { openDeleteModal(id); }
+      function deleteUser(id) {
+        openDeleteModal(id);
+      }
 
-function openDeleteModal(id) {
-  if (!document.getElementById("deleteUserModal")) {
-    const m=document.createElement("div"); m.id="deleteUserModal"; m.className="modal";
-    m.innerHTML=`<div class="modal-box" style="max-width:400px;text-align:center;">
+      function openDeleteModal(id) {
+        if (!document.getElementById("deleteUserModal")) {
+          const m = document.createElement("div");
+          m.id = "deleteUserModal";
+          m.className = "modal";
+          m.innerHTML = `<div class="modal-box" style="max-width:400px;text-align:center;">
       <div style="font-size:40px;color:var(--ibm-red);margin-bottom:12px;"><i class="fas fa-trash"></i></div>
       <h3>Eliminar Usuario</h3>
       <p style="font-size:13px;color:var(--ibm-gray-70);margin:10px 0;">Esta acción es irreversible.</p>
@@ -226,33 +322,47 @@ function openDeleteModal(id) {
         <button class="btn-danger" onclick="confirmDeleteUser()"><i class="fas fa-trash"></i> Eliminar</button>
       </div>
     </div>`;
-    document.body.appendChild(m);
-    m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("open"); });
-  }
-  document.getElementById("deleteUserId").value=id;
-  document.getElementById("deleteUserModal").classList.add("open");
-}
+          document.body.appendChild(m);
+          m.addEventListener("click", (e) => {
+            if (e.target === m) m.classList.remove("open");
+          });
+        }
+        document.getElementById("deleteUserId").value = id;
+        document.getElementById("deleteUserModal").classList.add("open");
+      }
 
-async function confirmDeleteUser() {
-  const id=document.getElementById("deleteUserId").value;
-  document.getElementById("deleteUserModal").classList.remove("open");
-  try {
-    const res=await fetch(`${apiUrl}/${id}`,{method:"DELETE"});
-    if (!res.ok) throw new Error();
-    showToast("Usuario eliminado","success"); loadUsers();
-  } catch { showToast("No se pudo eliminar el usuario","error"); }
-}
+      async function confirmDeleteUser() {
+        const id = document.getElementById("deleteUserId").value;
+        document.getElementById("deleteUserModal").classList.remove("open");
+        try {
+          const res = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error();
+          showToast("Usuario eliminado", "success");
+          loadUsers();
+        } catch {
+          showToast("No se pudo eliminar el usuario", "error");
+        }
+      }
 
-function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function showToast(msg,type="success") {
-  const t=document.getElementById("toast"); t.textContent=msg; t.className=`toast ${type} show`;
-  setTimeout(()=>t.classList.remove("show"),3000);
-}
+      function esc(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function showToast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove("show"), 3000);
+      }
 
-document.getElementById("userModal").addEventListener("click",e=>{ if(e.target===document.getElementById("userModal")) closeModal(); });
-loadUsers();
-</script>
-<script src="../scripts/pages/realtime.js"></script>
-<script src="../scripts/pages/common.js"></script>
-</body>
+      document.getElementById("userModal").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("userModal")) closeModal();
+      });
+      loadUsers();
+    </script>
+    <script src="../scripts/pages/realtime.js"></script>
+    <script src="../scripts/pages/common.js"></script>
+  </body>
 </html>
