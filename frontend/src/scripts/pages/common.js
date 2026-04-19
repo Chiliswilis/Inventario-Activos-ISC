@@ -5,7 +5,8 @@
 // (sesión anterior al fix) se ignoran y se fuerza nuevo login.
 function getUser() {
   try {
-    const raw = sessionStorage.getItem("user");
+    // Leer de sessionStorage primero (aislado por pestaña)
+    const raw = sessionStorage.getItem("user") || localStorage.getItem("user");
     if (!raw) return null;
     return JSON.parse(raw);
   } catch { return null; }
