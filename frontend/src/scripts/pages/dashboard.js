@@ -77,10 +77,7 @@ function detectRole() {
       }
     }
   }
-
-  // 4 — Leer el badge que ya está pintado en el DOM por common.js
-  //     El header renderiza: <span class="role-badge">Alumno</span>
-  //     o variantes: #userRole, .badge-role, #rolBadge, etc.
+  
   const badgeSelectors = [
     "#rolBadge", "#userRole", "#role-badge", ".role-badge",
     ".badge-role", "[data-role]", "#headerRole"

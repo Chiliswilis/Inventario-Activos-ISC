@@ -351,8 +351,12 @@
           const data = await res.json();
 
           if (res.ok) {
-            sessionStorage.setItem("user", JSON.stringify(data.user));
+            // Guardar en sessionStorage (fix de pestañas) Y localStorage (compatibilidad
+            // mientras todos los archivos del servidor se actualizan)
+            sessionStorage.setItem("user",    JSON.stringify(data.user));
             sessionStorage.setItem("session", JSON.stringify(data.session));
+            localStorage.setItem("user",    JSON.stringify(data.user));
+            localStorage.setItem("session", JSON.stringify(data.session));
             window.location.href = "/pages/dashboard.html";
           } else {
             showMsg(
