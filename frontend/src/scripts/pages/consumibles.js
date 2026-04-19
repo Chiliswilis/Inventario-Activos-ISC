@@ -68,7 +68,15 @@ function updateCategoryOptions() {
     opt.textContent = cat.name;
     sel.appendChild(opt);
   });
-  // Actualizar unidades y caducidad según la primera categoría disponible
+
+  // Autocompletar ubicación según área
+  const locEl = document.getElementById("consumibleLocation");
+  if (locEl && !document.getElementById("consumibleId").value) {
+    // Solo autocompletar en modo "agregar" (no editar)
+    locEl.value = area === "laboratorio" ? "Lab. Ciencias Básicas" : "Lab. de Sistemas";
+  }
+
+  // Actualizar unidades según la primera categoría disponible
   onCategoryChange();
 }
 
@@ -482,7 +490,7 @@ async function saveConsumible() {
   const location    = document.getElementById("consumibleLocation").value.trim();
 
   const qRaw      = document.getElementById("consumibleQuantity").value;
-  const isDecimal = unit === "kg" || unit === "litros" || unit === "metros";
+  const isDecimal = unit === "kg" || unit === "litros" || unit === "metros" || unit === "gramos";
   const quantity  = isDecimal ? parseFloat(qRaw) : parseInt(qRaw);
 
   if (!name || !area || !category_id || !unit || isNaN(quantity)) {
@@ -490,7 +498,16 @@ async function saveConsumible() {
     return;
   }
 
-  // ✅ Incluir área en el body para que se guarde en la BD
+  // Validar fecha de caducidad: no puede ser anterior a hoy
+  if (expiry_date) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const exp   = new Date(expiry_date + "T00:00:00");
+    if (exp < today) {
+      showToast("La fecha de caducidad no puede ser anterior a hoy", "error");
+      return;
+    }
+  }
+
   const body   = { name, description, area, category_id, quantity, min_quantity: 0, unit, expiry_date, location };
   const url    = id ? `${API_URL}/${id}` : API_URL;
   const method = id ? "PUT" : "POST";

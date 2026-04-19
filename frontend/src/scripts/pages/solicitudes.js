@@ -902,51 +902,187 @@ function openReturnModal(id) {
     modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
 
-  const items = r?.request_items || [];
+  const items    = r?.request_items || [];
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // HTML de condición de ítems — solo activos tienen condición
   const itemsHtml = items.map(it => {
-    const name = it.assets?.name || it.consumables?.name || "Ítem";
+    const name    = it.assets?.name || it.consumables?.name || "Ítem";
     const isAsset = !!it.assets;
-    return `<div style="background:#f8f9fc;border-radius:6px;padding:8px;margin-bottom:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;" data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
-      <span style="font-size:13px;font-weight:500;color:#374151;">${name}</span>
-      ${isAsset ? `<select style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:'Poppins',sans-serif;">
-        <option value="bueno">Bueno</option><option value="dañado">Dañado</option><option value="perdido">Perdido</option>
-      </select>` : `<span style="font-size:12px;color:#9ca3af;">Consumible</span>`}
-    </div>`;
-  }).join("") || `<p style="font-size:13px;color:#9ca3af;">Sin ítems registrados</p>`;
+    const serial  = it.assets?.serial_number ? `<small style="color:#9ca3af;font-size:11px;">Serie: ${it.assets.serial_number}</small>` : "";
+    return `
+      <div style="background:#f8f9fc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;
+                  margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;"
+           data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#374151;">${name}</div>
+          ${serial}
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">
+            ${isAsset ? '<i class="fas fa-box" style="color:#4f46e5;"></i> Activo' : '<i class="fas fa-flask" style="color:#0891b2;"></i> Consumible'}
+          </div>
+        </div>
+        ${isAsset ? `
+          <select style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;
+                         font-family:'IBM Plex Sans',sans-serif;color:#374151;min-width:120px;">
+            <option value="bueno">✅ Bueno</option>
+            <option value="dañado">⚠️ Dañado</option>
+            <option value="perdido">❌ Perdido</option>
+          </select>` : `
+          <span style="font-size:12px;color:#9ca3af;font-style:italic;">Sin devolución</span>`}
+      </div>`;
+  }).join("") || `<p style="font-size:13px;color:#9ca3af;text-align:center;padding:12px;">Sin ítems registrados en esta solicitud</p>`;
 
   modal.innerHTML = `
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:540px;">
       <button class="modal-close" onclick="document.getElementById('returnModal').classList.remove('open')">&times;</button>
-      <h3>Registrar Devolución</h3>
+
+      <h3 style="display:flex;align-items:center;gap:10px;">
+        <span style="background:#dcfce7;border-radius:50%;width:36px;height:36px;
+                     display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-undo" style="color:#16a34a;font-size:15px;"></i>
+        </span>
+        Registrar Devolución
+      </h3>
+
       <input type="hidden" id="returnId" value="${id}">
-      ${items.length ? `<div style="margin-bottom:12px;"><p style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Condición de ítems</p>${itemsHtml}</div>` : ""}
-      <div class="form-group">
-        <label><input type="checkbox" id="returnIncident" onchange="document.getElementById('incidentFields').style.display=this.checked?'block':'none'"> Reportar incidente</label>
-      </div>
-      <div id="incidentFields" style="display:none;">
-        <div class="form-group">
-          <label>Causa</label>
-          <textarea id="incidentCause" placeholder="Describe lo ocurrido..." style="width:100%;height:60px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+
+      <!-- Info de la solicitud -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin:14px 0;">
+        <div style="font-size:12px;font-weight:600;color:#15803d;margin-bottom:4px;">
+          <i class="fas fa-clipboard-check"></i> Solicitud #${r?.id} — ${r?.users?.username || "—"}
         </div>
-        <div class="form-group">
-          <label>Solución</label>
-          <textarea id="incidentSolution" placeholder="Cómo se resolvió..." style="width:100%;height:60px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+        <div style="font-size:12px;color:#374151;">${r?.purpose || "Sin propósito registrado"}</div>
+      </div>
+
+      <!-- Fecha de devolución -->
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">
+          <i class="fas fa-calendar-check" style="color:#4f46e5;margin-right:4px;"></i>
+          Fecha de devolución *
+        </label>
+        <input type="date" id="returnFecha" min="${todayStr}"
+          style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                 font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;">
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+          Lunes–Sábado · No domingos · Horario: 8:00 AM – 2:00 PM
         </div>
       </div>
+
+      <!-- Hora de devolución -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">
+          <i class="fas fa-clock" style="color:#4f46e5;margin-right:4px;"></i>
+          Hora de devolución *
+        </label>
+        <input type="time" id="returnHora" min="08:00" max="14:00" step="3600"
+          style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                 font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;">
+      </div>
+
+      <!-- Condición de ítems -->
+      ${items.length ? `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:#374151;text-transform:uppercase;
+                    letter-spacing:0.5px;margin-bottom:8px;">
+          <i class="fas fa-boxes" style="color:#4f46e5;margin-right:4px;"></i>
+          Condición de los ítems
+        </div>
+        ${itemsHtml}
+      </div>` : ""}
+
+      <!-- Incidente -->
+      <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+        <button type="button" id="incidentToggleBtn"
+          onclick="toggleIncidentSection()"
+          style="width:100%;padding:12px 16px;background:#fef9c3;border:none;cursor:pointer;
+                 display:flex;align-items:center;justify-content:space-between;
+                 font-size:13px;font-weight:600;color:#92400e;font-family:'IBM Plex Sans',sans-serif;">
+          <span><i class="fas fa-exclamation-triangle" style="margin-right:8px;color:#d97706;"></i>
+            ¿Hubo algún incidente?</span>
+          <i class="fas fa-chevron-down" id="incidentChevron" style="transition:transform 0.2s;"></i>
+        </button>
+        <div id="incidentSection" style="display:none;padding:14px;background:#fffbeb;">
+          <input type="hidden" id="returnIncident" value="false">
+          <div style="margin-bottom:10px;">
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+              Descripción del incidente *
+            </label>
+            <textarea id="incidentCause"
+              placeholder="Describe detalladamente lo ocurrido (daño, pérdida, accidente...)"
+              style="width:100%;height:70px;resize:none;padding:10px;border:1px solid #d1d5db;
+                     border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"></textarea>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+              Solución / acción tomada *
+            </label>
+            <textarea id="incidentSolution"
+              placeholder="¿Cómo se resolvió o qué medida se tomó?"
+              style="width:100%;height:70px;resize:none;padding:10px;border:1px solid #d1d5db;
+                     border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"></textarea>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-actions">
-        <button class="btn-cancel" onclick="document.getElementById('returnModal').classList.remove('open')">Cancelar</button>
-        <button class="btn" style="flex:1;" onclick="submitReturn()"><i class="fas fa-undo"></i> Confirmar devolución</button>
+        <button class="btn-cancel" onclick="document.getElementById('returnModal').classList.remove('open')">
+          Cancelar
+        </button>
+        <button class="btn" style="flex:1;background:#16a34a;" onclick="submitReturn()">
+          <i class="fas fa-check"></i> Confirmar devolución
+        </button>
       </div>
     </div>`;
+
+  // Validación de fecha: no domingos
+  document.getElementById("returnFecha").addEventListener("change", function() {
+    if (!this.value) return;
+    const d = new Date(this.value + "T12:00:00");
+    if (d.getDay() === 0) {
+      showToast("No se permiten devoluciones los domingos", "error");
+      this.value = "";
+    }
+  });
+
   modal.classList.add("open");
 }
 
+function toggleIncidentSection() {
+  const sec = document.getElementById("incidentSection");
+  const chev = document.getElementById("incidentChevron");
+  const inp  = document.getElementById("returnIncident");
+  const open = sec.style.display === "none";
+  sec.style.display  = open ? "block" : "none";
+  chev.style.transform = open ? "rotate(180deg)" : "rotate(0)";
+  if (inp) inp.value = open ? "true" : "false";
+}
+
 async function submitReturn() {
-  const id        = document.getElementById("returnId").value;
-  const incident  = document.getElementById("returnIncident").checked;
-  const cause     = document.getElementById("incidentCause")?.value.trim();
-  const solution  = document.getElementById("incidentSolution")?.value.trim();
-  if (incident && (!cause || !solution)) { showToast("Describe causa y solución del incidente", "error"); return; }
+  const id      = document.getElementById("returnId").value;
+  const fecha   = document.getElementById("returnFecha").value;
+  const hora    = document.getElementById("returnHora").value;
+  const incident = document.getElementById("returnIncident")?.value === "true";
+  const cause    = document.getElementById("incidentCause")?.value.trim();
+  const solution = document.getElementById("incidentSolution")?.value.trim();
+
+  // Validar fecha obligatoria
+  if (!fecha) { showToast("La fecha de devolución es obligatoria", "error"); return; }
+  if (!hora)  { showToast("La hora de devolución es obligatoria", "error"); return; }
+
+  // Validar que no sea domingo
+  const dow = new Date(fecha + "T12:00:00").getDay();
+  if (dow === 0) { showToast("No se permiten devoluciones los domingos", "error"); return; }
+
+  // Validar horario 8:00 AM – 2:00 PM
+  const [h, m] = hora.split(":").map(Number);
+  const mins = h * 60 + m;
+  if (mins < 8 * 60)   { showToast("Hora mínima de devolución: 8:00 AM", "error"); return; }
+  if (mins > 14 * 60)  { showToast("Hora máxima de devolución: 2:00 PM", "error"); return; }
+
+  // Validar incidente si está activado
+  if (incident && (!cause || !solution)) {
+    showToast("Completa la descripción y solución del incidente", "error"); return;
+  }
 
   const items_condition = [];
   document.querySelectorAll("#returnModal [data-item-id]").forEach(row => {
@@ -954,21 +1090,27 @@ async function submitReturn() {
     if (!sel) return;
     items_condition.push({
       item_id:          parseInt(row.dataset.itemId),
-      asset_id:         parseInt(row.dataset.assetId)||null,
+      asset_id:         parseInt(row.dataset.assetId) || null,
       return_condition: sel.value
     });
   });
 
   try {
     const res = await fetch(`${API}/${id}/return`, {
-      method: "PUT", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution, items_condition })
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        incident,
+        incident_cause:    incident ? cause    : null,
+        incident_solution: incident ? solution : null,
+        return_date:       `${fecha}T${hora}:00`,
+        items_condition
+      })
     });
     if (!res.ok) throw new Error();
-    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅", "success");
+    showToast(incident ? "Devolución registrada con incidente ⚠️" : "Devolución registrada ✅", "success");
     document.getElementById("returnModal").classList.remove("open");
     await loadRequests();
-  } catch { showToast("Error al registrar devolución", "error"); }
+  } catch { showToast("Error al registrar la devolución", "error"); }
 }
 
 // ── VER DETALLE / RESPUESTA ADMIN ────────────────────────────

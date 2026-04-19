@@ -229,7 +229,24 @@ async function reject(id, body) {
 
 /* ── DEVOLUCIÓN ── */
 async function returnRequest(id, body) {
-  const { incident, incident_cause, incident_solution, items_condition = [] } = body;
+  const { incident, incident_cause, incident_solution, items_condition = [], return_date } = body;
+
+  // Validar fecha de devolución si viene en el body
+  if (return_date) {
+    const fecha = return_date.substring(0, 10);
+    const hora  = return_date.substring(11, 16);
+    const dow   = new Date(fecha + "T12:00:00").getDay();
+    if (dow === 0) {
+      const err = new Error("No se permiten devoluciones los domingos");
+      err.status = 400; throw err;
+    }
+    const [h, m] = hora.split(":").map(Number);
+    const mins = h * 60 + m;
+    if (mins < 8 * 60 || mins > 14 * 60) {
+      const err = new Error("Horario de devolución: 8:00 AM – 2:00 PM");
+      err.status = 400; throw err;
+    }
+  }
 
   // Obtener solicitud con ítems
   const { data: req_data } = await supabase
@@ -241,13 +258,13 @@ async function returnRequest(id, body) {
     .from("requests")
     .update({
       status: "returned",
-      return_date: new Date().toISOString(),
+      return_date: return_date ? new Date(return_date).toISOString() : new Date().toISOString(),
       incident: incident || false,
       incident_cause:    incident ? (incident_cause    || null) : null,
       incident_solution: incident ? (incident_solution || null) : null
     })
     .eq("id", id)
-    .select("id, status, incident");
+    .select("id, status, incident, return_date");
 
   if (error) throw error;
 
