@@ -42,7 +42,7 @@ const create = async (body) => {
   const {
     alumno_id, docente_id, lab_id,
     fecha_uso, hora_inicio, hora_fin,
-    proposito,
+    proposito, num_alumnos,
     consumables = [],
     assets = []
   } = body;
@@ -83,7 +83,9 @@ const create = async (body) => {
     .insert([{
       alumno_id: parseInt(alumno_id), docente_id: parseInt(docente_id),
       lab_id: parseInt(lab_id), edificio: lab.edificio, laboratorio: lab.nombre,
-      fecha_uso, hora_inicio, hora_fin, proposito, status: "pending"
+      fecha_uso, hora_inicio, hora_fin, proposito,
+      num_alumnos: parseInt(num_alumnos) || 0,
+      status: "pending"
     }])
     .select("id, status, fecha_uso, hora_inicio, hora_fin").single();
 
@@ -122,10 +124,17 @@ const create = async (body) => {
 };
 
 const approve = async (id, body) => {
-  const { grupo, semestre, encargado_grupo, docente_message } = body;
+  const { grupo, semestre, encargado_grupo, docente_message, approval_date } = body;
   const { data, error } = await supabase
     .from("reservations")
-    .update({ status: "approved", grupo, semestre, encargado_grupo: encargado_grupo || null, docente_message: docente_message || null })
+    .update({
+      status: "approved",
+      grupo,
+      semestre,
+      encargado_grupo:  encargado_grupo  || null,
+      docente_message:  docente_message  || null,
+      approval_date:    approval_date    || new Date().toISOString().split("T")[0]
+    })
     .eq("id", id).select("id, status, grupo, semestre");
   if (error) throw error;
   broadcast("reservations", "UPDATE", data[0]);

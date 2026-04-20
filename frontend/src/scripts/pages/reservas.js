@@ -120,7 +120,7 @@ function renderTable(data) {
     if ((role === "docente" || role === "administrador") && r.status === "occupied") {
       acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
     }
-    // ADMIN: cancelar (pending/approved) + eliminar siempre (un solo botón de cada)
+    // ADMIN: cancelar (pending/approved) + eliminar siempre
     if (role === "administrador") {
       if (r.status === "pending" || r.status === "approved") {
         acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-ban"></i></button>`;
@@ -570,10 +570,18 @@ async function saveReservation() {
   });
   if (consLimitError) { showToast(consLimitError, "error"); return; }
 
+  // Número de alumnos
+  const numAlumnosEl = document.getElementById("newNumAlumnos");
+  const num_alumnos  = numAlumnosEl ? parseInt(numAlumnosEl.value) : 0;
+  if (isNaN(num_alumnos) || num_alumnos < 0 || num_alumnos > 30) {
+    showToast("El número de alumnos debe ser entre 0 y 30", "error"); return;
+  }
+
   const body = {
     alumno_id, docente_id,
     lab_id: parseInt(lab_id),
     fecha_uso, hora_inicio, hora_fin, proposito,
+    num_alumnos,
     assets: assetsArr,
     consumables: consumablesArr
   };
@@ -667,26 +675,50 @@ async function updateReservation(id) {
 
 // ── APROBAR ──
 function openApprove(id) {
-  const r = allReservations.find(x => x.id === id);
+  const r       = allReservations.find(x => x.id === id);
+  const todayStr = today();
+
+  // Determinar si el solicitante es alumno (para mostrar u ocultar mensaje)
+  const solicitanteEsAlumno = r?.alumno_id !== r?.docente_id;
+
   document.getElementById("approveId").value = id;
-  // Limpiar campos editables
   document.getElementById("approveGrupo").value    = r?.grupo    || "";
   document.getElementById("approveSemestre").value = r?.semestre || "";
-  document.getElementById("approveMessage").value  = "";
-  // Autocompletar encargado con el usuario actual (docente logueado)
-  document.getElementById("approveEncargado").value = currentUser?.username || "";
+  // Encargado = docente logueado, solo lectura
+  document.getElementById("approveEncargado").value    = currentUser?.username || "";
+  document.getElementById("approveEncargado").readOnly = true;
+  document.getElementById("approveEncargado").style.background = "#f3f4f6";
+  // Fecha de aprobación: mínimo hoy
+  document.getElementById("approveFecha").value = todayStr;
+  document.getElementById("approveFecha").min   = todayStr;
+  // Mensaje: solo si el alumno hizo la reserva (no el docente para sí mismo)
+  const msgGroup = document.getElementById("approveMsgGroup");
+  if (msgGroup) msgGroup.style.display = solicitanteEsAlumno ? "block" : "none";
+  document.getElementById("approveMessage").value = "";
+
   document.getElementById("approveModal").classList.add("open");
 }
+
 async function approveReservation() {
   const id       = document.getElementById("approveId").value;
-  const grupo    = document.getElementById("approveGrupo").value.trim();
-  const semestre = document.getElementById("approveSemestre").value.trim();
+  const grupo    = document.getElementById("approveGrupo").value;
+  const semestre = document.getElementById("approveSemestre").value;
   const encarg   = document.getElementById("approveEncargado").value.trim();
+  const fecha    = document.getElementById("approveFecha").value;
   const msg      = document.getElementById("approveMessage").value.trim();
-  if (!grupo || !semestre) { showToast("Grupo y semestre son obligatorios", "error"); return; }
+
+  if (!grupo)    { showToast("Selecciona el grupo", "error"); return; }
+  if (!semestre) { showToast("Selecciona el semestre", "error"); return; }
+  if (!fecha)    { showToast("La fecha de aprobación es obligatoria", "error"); return; }
+
+  // Validar fecha: no domingo, mínimo hoy
+  const dow = new Date(fecha + "T12:00:00").getDay();
+  if (dow === 0) { showToast("La fecha de aprobación no puede ser domingo", "error"); return; }
+  if (fecha < today()) { showToast("La fecha de aprobación no puede ser anterior a hoy", "error"); return; }
+
   const res = await fetch(`${API}/${id}/approve`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ grupo, semestre, encargado_grupo: encarg, docente_message: msg })
+    body: JSON.stringify({ grupo, semestre, encargado_grupo: encarg, docente_message: msg || null, approval_date: fecha })
   });
   if (!res.ok) { showToast("Error al aprobar", "error"); return; }
   showToast("Reserva aprobada ✅", "success");

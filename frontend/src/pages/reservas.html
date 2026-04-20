@@ -361,6 +361,16 @@
           ></textarea>
         </div>
 
+        <!-- Número de alumnos -->
+        <div class="form-group">
+          <label>¿Para cuántos alumnos? <span style="font-size:11px;color:#9ca3af;">(0 – 30)</span></label>
+          <input type="number" id="newNumAlumnos" value="0" min="0" max="30"
+            placeholder="0"
+            style="width:100%;"
+            oninput="if(parseInt(this.value)>30)this.value=30;if(parseInt(this.value)<0)this.value=0;">
+          <div class="hint">Máximo 30 alumnos por reserva</div>
+        </div>
+
         <!-- Sección de material: tabs para elegir tipo -->
         <div class="section-sep">
           Material para la práctica
@@ -430,45 +440,57 @@
     <!-- ══ MODAL APROBAR ══ -->
     <div class="modal" id="approveModal">
       <div class="modal-box">
-        <button class="modal-close" onclick="closeModal('approveModal')">
-          &times;
-        </button>
+        <button class="modal-close" onclick="closeModal('approveModal')">&times;</button>
         <h3>Aprobar Reserva</h3>
         <input type="hidden" id="approveId" />
+
         <div class="form-row">
           <div class="form-group">
             <label>Grupo *</label>
-            <input type="text" id="approveGrupo" placeholder="Ej. ISC-3A" />
+            <select id="approveGrupo" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;">
+              <option value="">-- Selecciona --</option>
+              <option value="A">Grupo A</option>
+              <option value="B">Grupo B</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Semestre *</label>
-            <input type="text" id="approveSemestre" placeholder="Ej. 2025-A" />
+            <select id="approveSemestre" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;">
+              <option value="">-- Selecciona --</option>
+              <option value="1ro">1er semestre</option>
+              <option value="2do">2do semestre</option>
+              <option value="3ro">3er semestre</option>
+              <option value="4to">4to semestre</option>
+              <option value="5to">5to semestre</option>
+              <option value="6to">6to semestre</option>
+              <option value="7mo">7mo semestre</option>
+              <option value="8vo">8vo semestre</option>
+              <option value="9no">9no semestre</option>
+            </select>
           </div>
         </div>
+
         <div class="form-group">
-          <label>Encargado del grupo</label>
-          <input
-            type="text"
-            id="approveEncargado"
-            placeholder="Nombre del encargado"
-          />
+          <label>Encargado del grupo <span style="font-size:11px;color:#9ca3af;">(autocompletado)</span></label>
+          <input type="text" id="approveEncargado" readonly
+            style="background:#f3f4f6;cursor:not-allowed;" />
         </div>
+
         <div class="form-group">
-          <label>Mensaje al alumno</label>
-          <textarea
-            id="approveMessage"
-            placeholder="Indicaciones adicionales..."
-          ></textarea>
+          <label>Fecha de aprobación *</label>
+          <input type="date" id="approveFecha"
+            style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;" />
+          <div class="hint">No puede ser domingo ni fecha pasada</div>
         </div>
+
+        <div class="form-group" id="approveMsgGroup">
+          <label>Mensaje al alumno <span style="font-size:11px;color:#9ca3af;">(opcional)</span></label>
+          <textarea id="approveMessage" placeholder="Indicaciones adicionales para el alumno..."></textarea>
+        </div>
+
         <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal('approveModal')">
-            Cancelar
-          </button>
-          <button
-            class="btn"
-            style="flex: 1; background: #16a34a"
-            onclick="approveReservation()"
-          >
+          <button class="btn-cancel" onclick="closeModal('approveModal')">Cancelar</button>
+          <button class="btn" style="flex:1;background:#16a34a;" onclick="approveReservation()">
             <i class="fas fa-check"></i> Aprobar
           </button>
         </div>
@@ -1054,6 +1076,7 @@
           hora_inicio,
           hora_fin,
           proposito,
+          num_alumnos: parseInt(document.getElementById("newNumAlumnos")?.value) || 0,
           consumables: consumablesArr,
           assets: assetsArr,
         };
@@ -1075,41 +1098,46 @@
 
       // ── APROBAR ──
       function openApprove(id) {
-        document.getElementById("approveId").value = id;
-        [
-          "approveGrupo",
-          "approveSemestre",
-          "approveEncargado",
-          "approveMessage",
-        ].forEach((f) => (document.getElementById(f).value = ""));
+        const r        = allReservations.find(x => x.id === id);
+        const todayStr = new Date().toISOString().split("T")[0];
+        const solicitanteEsAlumno = r?.alumno_id !== r?.docente_id;
+
+        document.getElementById("approveId").value       = id;
+        document.getElementById("approveGrupo").value    = r?.grupo    || "";
+        document.getElementById("approveSemestre").value = r?.semestre || "";
+        document.getElementById("approveEncargado").value    = currentUser?.username || "";
+        document.getElementById("approveEncargado").readOnly = true;
+        document.getElementById("approveEncargado").style.background = "#f3f4f6";
+        document.getElementById("approveFecha").value = todayStr;
+        document.getElementById("approveFecha").min   = todayStr;
+        document.getElementById("approveMessage").value = "";
+        const msgGroup = document.getElementById("approveMsgGroup");
+        if (msgGroup) msgGroup.style.display = solicitanteEsAlumno ? "block" : "none";
         document.getElementById("approveModal").classList.add("open");
       }
+
       async function approveReservation() {
-        const id = document.getElementById("approveId").value;
-        const grupo = document.getElementById("approveGrupo").value.trim();
-        const semestre = document
-          .getElementById("approveSemestre")
-          .value.trim();
-        const encarg = document.getElementById("approveEncargado").value.trim();
-        const msg = document.getElementById("approveMessage").value.trim();
-        if (!grupo || !semestre) {
-          showToast("Grupo y semestre son obligatorios", "error");
-          return;
-        }
+        const id       = document.getElementById("approveId").value;
+        const grupo    = document.getElementById("approveGrupo").value;
+        const semestre = document.getElementById("approveSemestre").value;
+        const encarg   = document.getElementById("approveEncargado").value.trim();
+        const fecha    = document.getElementById("approveFecha").value;
+        const msg      = document.getElementById("approveMessage").value.trim();
+
+        if (!grupo)    { showToast("Selecciona el grupo", "error"); return; }
+        if (!semestre) { showToast("Selecciona el semestre", "error"); return; }
+        if (!fecha)    { showToast("La fecha de aprobación es obligatoria", "error"); return; }
+
+        const dow = new Date(fecha + "T12:00:00").getDay();
+        if (dow === 0) { showToast("La fecha de aprobación no puede ser domingo", "error"); return; }
+        const todayStr = new Date().toISOString().split("T")[0];
+        if (fecha < todayStr) { showToast("La fecha no puede ser anterior a hoy", "error"); return; }
+
         const res = await fetch(`${API}/${id}/approve`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            grupo,
-            semestre,
-            encargado_grupo: encarg,
-            docente_message: msg,
-          }),
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ grupo, semestre, encargado_grupo: encarg, docente_message: msg || null, approval_date: fecha }),
         });
-        if (!res.ok) {
-          showToast("Error al aprobar", "error");
-          return;
-        }
+        if (!res.ok) { showToast("Error al aprobar", "error"); return; }
         showToast("Reserva aprobada ✅", "success");
         closeModal("approveModal");
         loadReservations();

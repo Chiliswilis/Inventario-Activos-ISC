@@ -370,7 +370,6 @@ async function update(id, body) {
   return data[0];
 }
 
-/* ── ELIMINAR ── */
 async function remove(id) {
   const { error } = await supabase.from("requests").delete().eq("id", id);
   if (error) throw error;
