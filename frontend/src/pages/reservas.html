@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -586,13 +586,11 @@
 
       // ── LABS GRID ──
       function renderLabsGrid() {
+        // Solo status "occupied" pinta el lab de rojo.
+        // "approved" NO ocupa físicamente el laboratorio todavía.
         const occupied = new Set(
           allReservations
-            .filter(
-              (r) =>
-                r.status === "occupied" ||
-                (r.status === "approved" && r.fecha_uso === today()),
-            )
+            .filter((r) => r.status === "occupied")
             .map((r) => r.lab_id),
         );
         const grid = document.getElementById("labsGrid");
@@ -664,44 +662,61 @@
                   .join(", ")
               : "—";
 
-            // Nombre de quien hizo la reserva (alumno o docente)
-            const solicitante = r.alumno?.username || "—";
+            // ── Determinar solicitante y si el docente reservó para sí mismo ──
+            // Si alumno_id === docente_id el docente reservó para sí mismo.
+            const docenteParaSiMismo = Number(r.alumno_id) === Number(r.docente_id);
+            const solicitante = docenteParaSiMismo
+              ? (r.docente?.username || "—")
+              : (r.alumno?.username || "—");
             const docente = r.docente?.username || "—";
 
             let acciones = "";
-            if (role === "docente" && r.status === "pending") {
-              acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
-              acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
+
+            // ══ ALUMNO ══
+            // Bug 1 fix: solo Editar (NO eliminar) en reservas pending propias
+            if (role === "alumno" && r.status === "pending" && Number(r.alumno_id) === Number(currentUser?.id)) {
+              acciones += `<button class="btn-info" onclick="openEditReserva(${r.id})" title="Editar reserva"><i class="fas fa-edit"></i></button>`;
             }
-            if (
-              (role === "docente" || role === "administrador") &&
-              r.status === "approved"
-            ) {
-              acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
+
+            // ══ DOCENTE ══
+            if (role === "docente" && Number(r.docente_id) === Number(currentUser?.id)) {
+              if (r.status === "pending") {
+                if (!docenteParaSiMismo) {
+                  // Bug 2 fix: Reserva de ALUMNO → solo Aprobar + Rechazar (un botón cada uno)
+                  acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+                  acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
+                } else {
+                  // Bug 2 fix: Reserva PROPIA del docente → Aprobar + Editar + Cancelar
+                  acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+                  acciones += `<button class="btn-info" onclick="openEditReserva(${r.id})" title="Editar"><i class="fas fa-edit"></i></button>`;
+                  acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
+                }
+              }
+              // Bug 3 fix: approved → solo Marcar en uso; NO botón cancelar extra
+              if (r.status === "approved") {
+                acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
+              }
+              if (r.status === "occupied") {
+                acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
+              }
             }
-            if (
-              (role === "docente" || role === "administrador") &&
-              r.status === "occupied"
-            ) {
-              acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
-            }
-            if (
-              (role === "docente" &&
-                (r.status === "pending" || r.status === "approved") &&
-                Number(r.docente_id) === Number(currentUser?.id)) ||
-              role === "administrador"
-            ) {
-              acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
-            }
-            if (
-              role === "alumno" &&
-              r.status === "pending" &&
-              Number(r.alumno_id) === Number(currentUser?.id)
-            ) {
-              acciones += `<button class="btn-danger" onclick="deleteReservation(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
-            }
+
+            // ══ ADMINISTRADOR ══
             if (role === "administrador") {
-              acciones += `<button style="background:#6b7280;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;" onclick="deleteReservation(${r.id})"><i class="fas fa-trash"></i></button>`;
+              if (r.status === "pending") {
+                acciones += `<button class="btn-success" onclick="openApprove(${r.id})" title="Aprobar"><i class="fas fa-check"></i></button>`;
+                acciones += `<button class="btn-danger" onclick="openRejectReserva(${r.id})" title="Rechazar"><i class="fas fa-times"></i></button>`;
+              }
+              if (r.status === "approved") {
+                acciones += `<button class="btn-info" onclick="openOccupyModal(${r.id})" title="Marcar en uso"><i class="fas fa-play"></i></button>`;
+                acciones += `<button class="btn-danger" onclick="openCancel(${r.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
+              }
+              if (r.status === "occupied") {
+                acciones += `<button class="btn-success" onclick="openRelease(${r.id})" title="Firma de salida"><i class="fas fa-sign-out-alt"></i></button>`;
+              }
+              if (r.status !== "occupied") {
+                acciones += `<button style="background:#6b7280;color:white;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;" onclick="deleteReservation(${r.id})" title="Eliminar"><i class="fas fa-trash"></i></button>`;
+              }
             }
 
             return `<tr>
@@ -1096,6 +1111,74 @@
         loadReservations();
       }
 
+      // ── EDITAR RESERVA ──
+      // Reutiliza el modal de nueva reserva rellenando los campos existentes.
+      function openEditReserva(id) {
+        const r = allReservations.find(x => x.id === id);
+        if (!r) return;
+
+        // Abrir y preconfigurar el modal
+        openNewModal();
+
+        setTimeout(() => {
+          // Lab
+          const selLab = document.getElementById("newLab");
+          if (selLab) { selLab.value = r.lab_id; selLab.dispatchEvent(new Event("change")); }
+          // Fecha
+          const inpFecha = document.getElementById("newFecha");
+          if (inpFecha) {
+            inpFecha.value = r.fecha_uso;
+            updateHourLimits(r.fecha_uso);
+          }
+          // Horas
+          const inpIni = document.getElementById("newHoraInicio");
+          const inpFin = document.getElementById("newHoraFin");
+          if (inpIni) inpIni.value = r.hora_inicio?.substring(0,5) || "";
+          if (inpFin) inpFin.value = r.hora_fin?.substring(0,5) || "";
+          // Propósito
+          const inpProp = document.getElementById("newProposito");
+          if (inpProp) inpProp.value = r.proposito || "";
+
+          // Cambiar título y botón del modal
+          const modalTitle = document.querySelector("#newModal h3");
+          if (modalTitle) modalTitle.innerHTML = `<i class="fas fa-edit" style="color:#4f46e5;margin-right:8px;"></i>Editar Reserva`;
+          const saveBtn = document.querySelector("#newModal .btn[onclick='saveReservation()']");
+          if (saveBtn) {
+            saveBtn.setAttribute("onclick", `updateReservation(${id})`);
+            saveBtn.innerHTML = `<i class="fas fa-save"></i> Guardar cambios`;
+          }
+        }, 50);
+      }
+
+      async function updateReservation(id) {
+        const lab_id      = document.getElementById("newLab").value;
+        const fecha_uso   = document.getElementById("newFecha").value;
+        const hora_inicio = document.getElementById("newHoraInicio").value;
+        const hora_fin    = document.getElementById("newHoraFin").value;
+        const proposito   = document.getElementById("newProposito").value.trim();
+
+        if (!lab_id || !fecha_uso || !hora_inicio || !hora_fin || !proposito) {
+          showToast("Completa todos los campos obligatorios", "error"); return;
+        }
+        const [hIni, mIni] = hora_inicio.split(":").map(Number);
+        const [hFin, mFin] = hora_fin.split(":").map(Number);
+        if (hFin * 60 + mFin <= hIni * 60 + mIni) {
+          showToast("La hora de fin debe ser mayor que la de inicio", "error"); return;
+        }
+        if ((hFin * 60 + mFin) - (hIni * 60 + mIni) < 60) {
+          showToast("La reserva debe durar al menos 1 hora", "error"); return;
+        }
+
+        const res = await fetch(`${API}/${id}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lab_id: parseInt(lab_id), fecha_uso, hora_inicio, hora_fin, proposito }),
+        });
+        if (!res.ok) { const e = await res.json(); showToast(e.message || "Error al actualizar", "error"); return; }
+        showToast("Reserva actualizada ✅", "success");
+        closeModal("newModal");
+        loadReservations();
+      }
+
       // ── APROBAR ──
       function openApprove(id) {
         const r        = allReservations.find(x => x.id === id);
@@ -1196,7 +1279,12 @@
 
       async function confirmOccupy() {
         const id = document.getElementById("occupyId").value;
-        await fetch(`${API}/${id}/occupy`, { method: "PUT" });
+        const res = await fetch(`${API}/${id}/occupy`, { method: "PUT" });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showToast(err.message || "Error al marcar en uso", "error");
+          return;
+        }
         showToast("Laboratorio marcado como en uso", "info");
         document.getElementById("occupyModal").classList.remove("open");
         loadReservations();

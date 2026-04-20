@@ -141,20 +141,37 @@ const approve = async (id, body) => {
   return data[0];
 };
 
+// BUG 4 FIX: El servidor corre en UTC. La zona horaria de México es UTC-6
+// (UTC-5 en horario de verano). Para que la validación de hora funcione
+// correctamente se obtiene la hora local de México a partir de UTC.
+const getMexicoNow = () => {
+  // Intenta usar la zona horaria oficial de México (CDT/CST automático)
+  try {
+    const mxStr = new Date().toLocaleString("en-US", { timeZone: "America/Mexico_City" });
+    return new Date(mxStr);
+  } catch {
+    // Fallback: UTC-6 fijo si la zona no está disponible en el entorno
+    const now = new Date();
+    now.setHours(now.getHours() - 6);
+    return now;
+  }
+};
+
 const occupy = async (id) => {
-  // Verificar que la reserva exista y que el horario sea el correcto
   const { data: resv } = await supabase
     .from("reservations").select("id, fecha_uso, hora_inicio, hora_fin, status").eq("id", id).single();
 
   if (!resv) throw { status: 404, message: "Reserva no encontrada" };
   if (resv.status !== "approved") throw { status: 400, message: "La reserva no está en estado aprobado" };
 
-  const nowMx   = new Date();
-  const todayStr = nowMx.toISOString().split("T")[0];
+  // BUG 4 FIX: Usar hora de México, no UTC del servidor
+  const nowMx    = getMexicoNow();
+  const todayStr = `${nowMx.getFullYear()}-${String(nowMx.getMonth() + 1).padStart(2,"0")}-${String(nowMx.getDate()).padStart(2,"0")}`;
+
   if (resv.fecha_uso !== todayStr)
     throw { status: 400, message: `Solo se puede marcar en uso el día de la reserva (${resv.fecha_uso})` };
 
-  const nowMin = nowMx.getHours() * 60 + nowMx.getMinutes();
+  const nowMin   = nowMx.getHours() * 60 + nowMx.getMinutes();
   const [hI, mI] = (resv.hora_inicio || "00:00").split(":").map(Number);
   const [hF, mF] = (resv.hora_fin    || "23:59").split(":").map(Number);
   const inicioMin = hI * 60 + mI;
