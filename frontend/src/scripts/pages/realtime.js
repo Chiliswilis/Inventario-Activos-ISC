@@ -1,9 +1,3 @@
-// ============================================================
-// SGIAC-ISC | realtime.js
-// Tiempo real: SSE con fallback a polling cada 8s
-// Compatible con Docker (localhost:8080 o IP:8080)
-// ============================================================
-
 const REALTIME = (() => {
 
   // ── CONFIGURACIÓN ──────────────────────────────────────────
@@ -252,10 +246,10 @@ const REALTIME = (() => {
   function _showChangeToast(table, eventType, record) {
     const tLabel = TABLE_LABELS[table] || table;
     let msg;
-    if (eventType === "INSERT") msg = `➕ Nuevo registro en ${tLabel}`;
-    else if (eventType === "UPDATE") msg = `✏️ Actualización en ${tLabel}`;
-    else if (eventType === "DELETE") msg = `🗑️ Eliminado en ${tLabel}`;
-    else if (eventType === "REFRESH") msg = `🔄 ${tLabel} actualizados`;
+    if (eventType === "INSERT") msg = `Nuevo registro en ${tLabel}`;
+    else if (eventType === "UPDATE") msg = `Actualización en ${tLabel}`;
+    else if (eventType === "DELETE") msg = `Eliminado en ${tLabel}`;
+    else if (eventType === "REFRESH") msg = `${tLabel} actualizados`;
     if (msg) _liveToast(msg);
   }
 
@@ -275,37 +269,3 @@ const REALTIME = (() => {
 
 // Auto-init
 REALTIME.init();
-
-
-// ============================================================
-// HELPERS DE INTEGRACIÓN — conectar REALTIME con las páginas
-// ============================================================
-
-/**
- * Uso en cada página (agregar al final del DOMContentLoaded):
- *
- * // consumibles.html
- * REALTIME.on("consumables", (event, data) => {
- *   loadConsumables();   // recargar tabla
- * });
- *
- * // activos.html
- * REALTIME.on("assets", (event, data) => {
- *   loadAssets();
- * });
- *
- * // solicitudes.html
- * REALTIME.on("requests", (event, data) => {
- *   loadRequests();
- * });
- *
- * // reservas.html
- * REALTIME.on("reservations", (event, data) => {
- *   loadReservations();
- * });
- *
- * // dashboard.html (cualquier cambio)
- * REALTIME.on("*", () => {
- *   loadDashboard();
- * });
- */

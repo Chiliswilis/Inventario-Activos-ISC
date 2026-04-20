@@ -630,7 +630,7 @@ async function saveRequest() {
       body: JSON.stringify(body)
     });
     if (!res.ok) { const e = await res.json(); showToast(e.message || "Error", "error"); return; }
-    showToast("Reserva de laboratorio creada ✅", "success");
+    showToast("Reserva de laboratorio creada", "success");
     closeModal(); await loadRequests(); return;
   }
 
@@ -655,7 +655,7 @@ async function saveRequest() {
       body: JSON.stringify(body)
     });
     if (!res.ok) { const e = await res.json(); showToast("Error: "+(e.message||"No se pudo guardar"), "error"); return; }
-    showToast("Solicitud creada exitosamente ✅", "success");
+    showToast("Solicitud creada exitosamente", "success");
     closeModal(); await loadRequests();
   } catch { showToast("No se pudo conectar con el servidor", "error"); }
 }
@@ -748,7 +748,7 @@ async function sendToAdmin(id) {
       body: JSON.stringify({ status: "pending_admin" })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud enviada al administrador ✅", "success");
+    showToast("Solicitud enviada al administrador", "success");
     await loadRequests();
   } catch { showToast("Error al enviar la solicitud", "error"); }
 }
@@ -885,7 +885,7 @@ async function submitApprove() {
       body: JSON.stringify({ pickup_date, pickup_location: pl, admin_message: msg })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud aprobada con éxito ✅", "success");
+    showToast("Solicitud aprobada con éxito", "success");
     document.getElementById("approveModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al aprobar", "error"); }
@@ -924,9 +924,9 @@ function openReturnModal(id) {
         ${isAsset ? `
           <select style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;
                          font-family:'IBM Plex Sans',sans-serif;color:#374151;min-width:120px;">
-            <option value="bueno">✅ Bueno</option>
+            <option value="bueno">Bueno</option>
             <option value="dañado">⚠️ Dañado</option>
-            <option value="perdido">❌ Perdido</option>
+            <option value="perdido">Perdido</option>
           </select>` : `
           <span style="font-size:12px;color:#9ca3af;font-style:italic;">Sin devolución</span>`}
       </div>`;
@@ -1107,7 +1107,7 @@ async function submitReturn() {
       })
     });
     if (!res.ok) throw new Error();
-    showToast(incident ? "Devolución registrada con incidente ⚠️" : "Devolución registrada ✅", "success");
+    showToast(incident ? "Devolución registrada con incidente ⚠️" : "Devolución registrada", "success");
     document.getElementById("returnModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al registrar la devolución", "error"); }
@@ -1218,7 +1218,7 @@ async function updateRequest(id) {
       body: JSON.stringify({ purpose, notes, fecha_solicitud: fechaSol, hora_solicitud: horaSol, items })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud actualizada ✅", "success");
+    showToast("Solicitud actualizada", "success");
     closeModal(); await loadRequests();
   } catch { showToast("Error al actualizar la solicitud", "error"); }
 }
@@ -1282,7 +1282,7 @@ function exportCSV() {
   });
   const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "solicitudes.csv"; a.click();
-  showToast("Exportado ✅", "success");
+  showToast("Exportado", "success");
 }
 
 // ── UTILS ─────────────────────────────────────────────────────

@@ -617,7 +617,7 @@ async function saveReservation() {
     body: JSON.stringify(body)
   });
   if (!res.ok) { const e = await res.json(); showToast(e.message || "Error", "error"); return; }
-  showToast("Reserva creada exitosamente ✅", "success");
+  showToast("Reserva creada exitosamente", "success");
   closeModal("newModal");
   loadReservations();
 }
@@ -687,7 +687,7 @@ async function updateReservation(id) {
     body: JSON.stringify({ lab_id: parseInt(lab_id), fecha_uso, hora_inicio, hora_fin, proposito })
   });
   if (!res.ok) { const e = await res.json(); showToast(e.message || "Error al actualizar", "error"); return; }
-  showToast("Reserva actualizada ✅", "success");
+  showToast("Reserva actualizada", "success");
   closeModal("newModal");
   loadReservations();
 }
@@ -735,7 +735,7 @@ async function approveReservation() {
     body: JSON.stringify({ grupo, semestre, encargado_grupo: encarg, docente_message: msg || null, approval_date: fecha })
   });
   if (!res.ok) { showToast("Error al aprobar", "error"); return; }
-  showToast("Reserva aprobada ✅", "success");
+  showToast("Reserva aprobada", "success");
   closeModal("approveModal");
   loadReservations();
 }
@@ -882,7 +882,7 @@ async function releaseReservation() {
     body: JSON.stringify({ leftover_items })
   });
   if (!res.ok) { showToast("Error al liberar", "error"); return; }
-  showToast("Laboratorio liberado ✅", "success");
+  showToast("Laboratorio liberado", "success");
   closeModal("releaseModal");
   loadReservations();
 }

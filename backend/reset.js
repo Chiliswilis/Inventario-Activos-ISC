@@ -21,8 +21,8 @@ async function resetPasswords() {
       .eq("email", u.email)
       .select("id, username, email, role");
 
-    if (error) console.error(`❌ Error con ${u.email}:`, error);
-    else console.log(`✅ ${u.email} actualizado:`, data);
+    if (error) console.error(`Error con ${u.email}:`, error);
+    else console.log(`${u.email} actualizado:`, data);
   }
 }
 
