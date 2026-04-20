@@ -1,8 +1,4 @@
-// ── GESTIÓN DE SESIÓN ──────────────────────────────────────
-// Se usa sessionStorage (aislado por pestaña) en lugar de localStorage
-// para evitar que dos pestañas con distintos roles se mezclen.
-// La migración es transparente: si hay datos viejos en localStorage
-// (sesión anterior al fix) se ignoran y se fuerza nuevo login.
+
 function getUser() {
   try {
     // Leer de sessionStorage primero (aislado por pestaña)

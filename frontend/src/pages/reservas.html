@@ -974,7 +974,6 @@
         const d = fechaVal ? new Date(fechaVal + "T12:00:00") : null;
         const isSat = d ? d.getDay() === 6 : false;
 
-        // Horario uniforme para todos los roles: 7:30 AM – 15:00 (Lun–Vie) / 13:00 (Sáb)
         const openTime = "07:30";
         const closeTime = isSat ? "13:00" : "15:00";
 
@@ -1106,7 +1105,7 @@
           showToast(e.message || "Error", "error");
           return;
         }
-        showToast("Reserva creada exitosamente ✅", "success");
+        showToast("Reserva creada exitosamente", "success");
         closeModal("newModal");
         loadReservations();
       }
@@ -1174,7 +1173,7 @@
           body: JSON.stringify({ lab_id: parseInt(lab_id), fecha_uso, hora_inicio, hora_fin, proposito }),
         });
         if (!res.ok) { const e = await res.json(); showToast(e.message || "Error al actualizar", "error"); return; }
-        showToast("Reserva actualizada ✅", "success");
+        showToast("Reserva actualizada", "success");
         closeModal("newModal");
         loadReservations();
       }
@@ -1221,7 +1220,7 @@
           body: JSON.stringify({ grupo, semestre, encargado_grupo: encarg, docente_message: msg || null, approval_date: fecha }),
         });
         if (!res.ok) { showToast("Error al aprobar", "error"); return; }
-        showToast("Reserva aprobada ✅", "success");
+        showToast("Reserva aprobada", "success");
         closeModal("approveModal");
         loadReservations();
       }
@@ -1394,7 +1393,7 @@
           showToast("Error al liberar", "error");
           return;
         }
-        showToast("Laboratorio liberado ✅", "success");
+        showToast("Laboratorio liberado", "success");
         closeModal("releaseModal");
         loadReservations();
       }

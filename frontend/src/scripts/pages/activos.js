@@ -40,7 +40,6 @@ function populateCategoryFilter(area = "") {
   const prev = sel.value;
   sel.innerHTML = '<option value="">Todas las categorías</option>';
 
-  // ✅ FIX: filtrado estricto por área — sin mezclar categorías de otra área
   const filtered = area
     ? allCategories.filter(c => c.area === area)
     : allCategories;
@@ -60,7 +59,6 @@ function onAreaChangeModal() {
   const sel  = document.getElementById("assetCategory");
   sel.innerHTML = '<option value="" disabled selected>Selecciona categoría</option>';
 
-  // ✅ FIX: filtrado estricto — sin || !c.area para no mezclar áreas
   const filtered = area
     ? allCategories.filter(c => c.area === area)
     : allCategories;
@@ -76,7 +74,6 @@ function onAreaChangeModal() {
     });
   }
 
-  // ✅ NUEVO: Adaptar etiquetas y placeholders de ubicación según área
   const lblEdificio    = document.getElementById("lblEdificio");
   const lblLaboratorio = document.getElementById("lblLaboratorio");
   const inpEdificio    = document.getElementById("assetEdificio");
@@ -380,7 +377,7 @@ if (sameNameTotal > 0 || quantity > 1) {
       return;
     }
     closeModal();
-    showToast(id ? "Activo actualizado ✅" : "Activo agregado ✅", "success");
+    showToast(id ? "Activo actualizado" : "Activo agregado", "success");
     loadAssets();
   } catch {
     showToast("No se pudo conectar con el servidor", "error");
@@ -490,7 +487,7 @@ function exportCSV() {
   const link = document.createElement("a");
   link.href = url; link.download = "activos.csv"; link.click();
   URL.revokeObjectURL(url);
-  showToast("CSV exportado ✅", "success");
+  showToast("CSV exportado", "success");
 }
 
   // ── Tiempo real ──

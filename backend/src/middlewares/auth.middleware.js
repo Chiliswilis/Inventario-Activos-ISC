@@ -1,10 +1,5 @@
 const supabase = require("../config/supabase");
 
-/**
- * Middleware de autenticación por sesión.
- * Espera el header:  x-user-id: <uuid>
- * Adjunta el usuario completo en req.user para que los controllers lo usen.
- */
 async function requireAuth(req, res, next) {
   try {
     const userId = req.headers["x-user-id"];

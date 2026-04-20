@@ -589,7 +589,7 @@
           a.download = `SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.csv`;
           a.click();
           URL.revokeObjectURL(url);
-          showToast("Reporte exportado ✅", "success");
+          showToast("Reporte exportado", "success");
         } catch (e) {
           console.error(e);
           showToast("Error al generar el reporte", "error");

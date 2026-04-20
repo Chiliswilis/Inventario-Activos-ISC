@@ -264,13 +264,6 @@ function applyFilters() {
   updateStats(filtered);
   renderTable(filtered);
 }
-
-/** Se ejecuta cuando el usuario cambia la categoría en el modal.
- *  Actualiza las opciones de Unidad según área + categoría:
- *  - Sistemas > Cómputo  → Pieza, Metros
- *  - Laboratorio/Alimentos → Pieza, Litros, Kilogramos
- *  - Otros                → Pieza, Litros, Kilogramos
- */
 function onCategoryChange() {
   const area    = document.getElementById("consumibleArea").value;
   const catSel  = document.getElementById("consumibleCategory");
@@ -310,14 +303,6 @@ function onCategoryChange() {
 }
 
 
-/* ─────────────────── STOCK HELPERS ─────────────────── */
-/**
- * Devuelve el nivel de stock:
- *  "low" → cantidad ≤ 2  (piezas/metros)
- *  "mid" → cantidad 3–7  (zona de alerta)
- *  "ok"  → cantidad > 7
- * Para kg/litros usa min_quantity de la BD.
- */
 function getStockLevel(c) {
   const unit = (c.unit || "").toLowerCase();
   if (unit === "kg" || unit === "litros") {
@@ -523,7 +508,7 @@ async function saveConsumible() {
       showToast("Error: " + (err.message || "No se pudo guardar"), "error");
       return;
     }
-    showToast(id ? "Consumible actualizado ✅" : "Consumible agregado ✅", "success");
+    showToast(id ? "Consumible actualizado" : "Consumible agregado", "success");
     closeModal();
     await loadConsumables();
   } catch {
@@ -548,7 +533,7 @@ function exportCSV() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement("a"); a.href = url; a.download = "consumibles.csv"; a.click();
   URL.revokeObjectURL(url);
-  showToast("Exportado correctamente ✅", "success");
+  showToast("Exportado correctamente", "success");
 }
 
 /* ─────────────────── UTILS ─────────────────── */
