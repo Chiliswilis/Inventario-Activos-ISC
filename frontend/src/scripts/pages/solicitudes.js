@@ -227,12 +227,14 @@ function openModal() {
       selDocente.appendChild(o);
     });
   } else if (currentUser.role === "docente") {
+    // Bug 1 fix: El docente solo puede solicitar para sí mismo u otros docentes,
+    // NO para alumnos. El campo docente encargado no aplica (él ES el docente).
     const self = document.createElement("option");
     self.value = currentUser.id;
     self.textContent = `${currentUser.username} (yo)`;
     selUser.appendChild(self);
-    allUsers.filter(u => u.role === "alumno").forEach(u => {
-      const o = document.createElement("option"); o.value = u.id; o.textContent = `${u.username} (alumno)`;
+    allUsers.filter(u => u.role === "docente" && Number(u.id) !== Number(currentUser.id)).forEach(u => {
+      const o = document.createElement("option"); o.value = u.id; o.textContent = `${u.username} (docente)`;
       selUser.appendChild(o);
     });
     selUser.disabled = false;
@@ -327,13 +329,23 @@ function onTypeChange() {
 
 function onSolAreaChange(sel) {
   _solArea = sel.value;
-  // Refrescar todos los selects de ítems existentes
   const type = document.getElementById("reqType").value;
-  document.querySelectorAll("#itemsContainer .item-row select").forEach(s => {
-    const cur = s.value;
+  // Refrescar todos los selects de ítems existentes
+  document.querySelectorAll("#itemsContainer .item-row").forEach(row => {
+    const s       = row.querySelector("select");
+    const qtyInp  = row.querySelector("input[type=number]");
+    const infoDiv = row.querySelector("[id^='info_']");
+    if (!s) return;
+    const cur  = s.value;
     const list = type === "asset" ? buildAssetOptions() : buildConsOptions();
     s.innerHTML = `<option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>${list}`;
-    if ([...s.options].some(o => o.value === cur)) s.value = cur;
+    if ([...s.options].some(o => o.value === cur)) {
+      s.value = cur;
+    } else {
+      s.value = "";
+      if (qtyInp) { qtyInp.value = "1"; qtyInp.step = type === "asset" ? "1" : "any"; qtyInp.max = type === "asset" ? "1" : "9999"; qtyInp.placeholder = ""; }
+      if (infoDiv) { infoDiv.style.display = "none"; infoDiv.innerHTML = ""; }
+    }
   });
 }
 
@@ -418,7 +430,7 @@ function addItemRow() {
         <option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>
         ${list}
       </select>
-      <input type="number" id="qty_${id}" value="1" min="1" max="1"
+      <input type="number" id="qty_${id}" value="1" min="0.001" step="${type === "asset" ? "1" : "any"}" max="${type === "asset" ? "1" : "9999"}"
         style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;"
         ${type === "asset" ? 'readonly title="Cada activo es único por serie"' : ''}>
       <button onclick="removeItemRow('${id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
@@ -433,23 +445,55 @@ function addItemRow() {
 let _solArea = "";
 
 function buildAssetOptions(excludeIds = []) {
+  const areaFiltro = _solArea ? _solArea.toLowerCase().trim() : "";
   return allAssets
-    .filter(a => a.status === "available" && !excludeIds.includes(a.id) && (!_solArea || a.area === _solArea))
+    .filter(a => {
+      if (a.status !== "available") return false;
+      if (excludeIds.includes(a.id)) return false;
+      if (!areaFiltro) return true;
+      return (a.area || "").toLowerCase().trim() === areaFiltro;
+    })
     .map(a => {
-      const areaIcon = a.area === "sistemas" ? "\uD83D\uDDA5" : a.area === "laboratorio" ? "\uD83D\uDD2C" : "";
+      const areaIcon = (a.area || "").toLowerCase().includes("sistem") ? "\uD83D\uDDA5"
+                     : (a.area || "").toLowerCase().includes("lab")    ? "\uD83D\uDD2C" : "";
       const catName  = a.categories?.name || "";
       return `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}">${areaIcon} ${a.name}${catName ? " \u00B7 "+catName : ""} — Serie: ${a.serial_number||"S/N"}</option>`;
     })
     .join("");
 }
 
+// ── Helper: infiere el área de un consumible desde todos los campos disponibles ──
+function inferConsArea(c) {
+  // Prioridad 1: campo area de la BD (si existe y no está vacío)
+  const areaDB = (c.area || "").toLowerCase().trim();
+  if (areaDB) return areaDB;
+  // Prioridad 2: inferir por nombre de categoría
+  const cat = (c.categories?.name || "").toLowerCase();
+  if (cat.includes("aliment") || cat.includes("lab") || cat.includes("quím") || cat.includes("quim") || cat.includes("biolog") || cat.includes("vestim") || cat.includes("bata")) return "laboratorio";
+  if (cat.includes("cómputo") || cat.includes("computo") || cat.includes("cable") || cat.includes("red") || cat.includes("electr") || cat.includes("hardware") || cat.includes("periféric") || cat.includes("periferic") || cat.includes("sistema")) return "sistemas";
+  // Prioridad 3: inferir por nombre del consumible
+  const name = (c.name || "").toLowerCase();
+  if (name.includes("azúcar") || name.includes("azucar") || name.includes("sal") || name.includes("bata") || name.includes("harina") || name.includes("aceite") || name.includes("vinagre") || name.includes("ácido") || name.includes("acido")) return "laboratorio";
+  if (name.includes("cable") || name.includes("mouse") || name.includes("teclado") || name.includes("router") || name.includes("switch") || name.includes("adaptador") || name.includes("disco") || name.includes("memoria") || name.includes("usb") || name.includes("hdmi") || name.includes("vga") || name.includes("red ")) return "sistemas";
+  return areaDB; // sin área conocida
+}
+
 function buildConsOptions() {
+  const areaFiltro = _solArea ? _solArea.toLowerCase().trim() : "";
+
   return allCons
-    .filter(c => c.quantity > 0 && (!_solArea || c.area === _solArea))
+    .filter(c => {
+      if (c.quantity <= 0) return false;
+      if (!areaFiltro) return true;
+      const areaInferida = inferConsArea(c);
+      return areaInferida.includes(areaFiltro);
+    })
     .map(c => {
-      const areaIcon = c.area === "sistemas" ? "\uD83D\uDDA5" : c.area === "laboratorio" ? "\uD83D\uDD2C" : "";
+      const areaInf  = inferConsArea(c);
+      const areaIcon = areaInf.includes("sistem") ? "\uD83D\uDDA5"
+                     : areaInf.includes("lab")    ? "\uD83D\uDD2C" : "";
       const catName  = (c.categories?.name || "").toLowerCase();
-      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${c.area||""}" data-cat="${catName}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
+      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${areaInf}" data-cat="${catName}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
     })
     .join("");
 }
@@ -477,34 +521,62 @@ function onItemSelect(rowId, type) {
       }
     });
   } else {
-    // Consumible: cantidad máxima = stock disponible
-    const maxQty   = parseInt(opt.dataset.qty) || 1;
-    const unit     = (opt.dataset.unit || "").toLowerCase();
+    // Consumible: configurar input según unidad de medida
+    const maxQty   = parseFloat(opt.dataset.qty) || 1;
+    const unit     = (opt.dataset.unit || "").toLowerCase().trim();
     const area     = (opt.dataset.area || "").toLowerCase();
     const cat      = (opt.dataset.cat  || "").toLowerCase();
-    const isComputo = area === "sistemas" && (cat.includes("cómputo") || cat.includes("computo"));
+    // Comparación flexible: el área en BD puede ser "Sistemas", "sistemas", "Sistemas / IT", etc.
+    const isComputo = area.includes("sistem") && (cat.includes("cómputo") || cat.includes("computo") || cat.includes("cable") || cat.includes("red") || cat.includes("electr"));
 
-    // Límite especial Sistemas > Cómputo: máx 5 metros o 5 piezas
+    // Bug 3 fix: Determinar step y max según la unidad
+    // Unidades continuas (decimales permitidos): kg, g, litro, litros, l, ml, metros, metro, m
+    // Unidades discretas (enteros): pieza, piezas, u, unidad, unidades, bata, batas, etc.
+    let step      = 1;      // default: entero
     let efectiveMax = maxQty;
     let limitNote   = "";
-    if (isComputo) {
-      if (unit === "metros") {
+    let placeholder = "";
+
+    if (["kg", "kilogramo", "kilogramos"].includes(unit)) {
+      step = 0.001;         // permite hasta gramos (0.001 kg = 1 g)
+      placeholder = "ej: 0.500 = 500g, 1.5 = 1.5 kg";
+    } else if (["g", "gr", "gramo", "gramos"].includes(unit)) {
+      step = 1;
+      placeholder = "ej: 250 gramos";
+    } else if (["l", "litro", "litros"].includes(unit)) {
+      step = 0.001;         // permite hasta ml
+      placeholder = "ej: 0.500 = 500 ml, 1.5 = 1.5 L";
+    } else if (["ml", "mililitro", "mililitros"].includes(unit)) {
+      step = 1;
+      placeholder = "ej: 250 ml";
+    } else if (["metro", "metros", "m"].includes(unit)) {
+      step = 0.5;           // medio metro mínimo
+      placeholder = "ej: 0.5 = medio metro, 1.5 metros";
+      if (isComputo) {
         efectiveMax = Math.min(maxQty, 5);
         limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 m por solicitud</span>`;
-      } else if (unit === "pieza") {
-        efectiveMax = Math.min(maxQty, 5);
-        limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 piezas por solicitud</span>`;
       }
+    } else if (["pieza", "piezas"].includes(unit) && isComputo) {
+      step = 1;
+      efectiveMax = Math.min(maxQty, 5);
+      limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 piezas por solicitud</span>`;
+    } else {
+      step = 1; // entero para batas, unidades, etc.
     }
 
-    qtyInp.max      = efectiveMax;
-    qtyInp.readOnly = false;
+    qtyInp.step      = step;
+    qtyInp.max       = efectiveMax;
+    qtyInp.min       = step;          // mínimo = 1 paso
+    qtyInp.readOnly  = false;
+    if (placeholder) qtyInp.placeholder = placeholder;
+
     infoDiv.style.display = "block";
     infoDiv.innerHTML = `<i class="fas fa-boxes" style="color:#10b981;"></i> Disponible: <strong>${maxQty} ${opt.dataset.unit||"u"}</strong>${limitNote}`;
+
     qtyInp.oninput = () => {
       const v = parseFloat(qtyInp.value);
       if (v > efectiveMax) qtyInp.value = efectiveMax;
-      if (v < 1) qtyInp.value = 1;
+      if (v < step || isNaN(v)) qtyInp.value = step;
     };
   }
 }
@@ -670,7 +742,8 @@ function collectItems(type) {
 
   for (const row of rows) {
     const sel = row.querySelector("select");
-    const qty = parseInt(row.querySelector("input[type=number]").value) || 1;
+    const qtyRaw = row.querySelector("input[type=number]").value;
+    const qty = parseFloat(qtyRaw) || 1;   // parseFloat para admitir decimales (kg, metros, litros)
     if (!sel.value) { showToast("Selecciona un ítem en todas las filas", "error"); return null; }
 
     if (type === "asset") {
@@ -682,16 +755,16 @@ function collectItems(type) {
     } else {
       // Validación límite Sistemas > Cómputo
       const opt2     = sel.selectedOptions[0];
-      const unit2    = (opt2?.dataset.unit || "").toLowerCase();
+      const unit2    = (opt2?.dataset.unit || "").toLowerCase().trim();
       const area2    = (opt2?.dataset.area  || "").toLowerCase();
       const cat2     = (opt2?.dataset.cat   || "").toLowerCase();
       const isComp   = area2 === "sistemas" && (cat2.includes("cómputo") || cat2.includes("computo"));
       if (isComp) {
-        if (unit2 === "metros" && qty > 5) {
+        if (["metro","metros","m"].includes(unit2) && qty > 5) {
           showToast(`Límite: máximo 5 metros por consumible de Sistemas/Cómputo`, "error");
           return null;
         }
-        if (unit2 === "pieza" && qty > 5) {
+        if (["pieza","piezas"].includes(unit2) && qty > 5) {
           showToast(`Límite: máximo 5 piezas por consumible de Sistemas/Cómputo`, "error");
           return null;
         }

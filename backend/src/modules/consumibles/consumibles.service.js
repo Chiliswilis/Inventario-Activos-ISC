@@ -1,7 +1,7 @@
 const supabase      = require("../../config/supabase");
 const { broadcast } = require("../events/events.service");
 
-const SELECT_FIELDS = "id, name, description, category_id, quantity, min_quantity, unit, expiry_date, location, categories(id, name)";
+const SELECT_FIELDS = "id, name, description, category_id, quantity, min_quantity, unit, expiry_date, location, area, categories(id, name)";
 
 /* ── LISTAR ── */
 async function getAll() {
@@ -33,7 +33,7 @@ async function getById(id) {
 
 /* ── CREAR ── */
 async function create(fields) {
-  const { name, description, category_id, quantity, min_quantity, unit, expiry_date, location } = fields;
+  const { name, description, category_id, quantity, min_quantity, unit, expiry_date, location, area } = fields;
 
   // Validar fecha de caducidad: no puede ser anterior a hoy
   if (expiry_date) {
@@ -56,6 +56,7 @@ async function create(fields) {
       unit,
       expiry_date:  expiry_date  || null,
       location:     location     || null,
+      area:         area         || null,
     }])
     .select(SELECT_FIELDS);
 
@@ -66,7 +67,7 @@ async function create(fields) {
 
 /* ── ACTUALIZAR ── */
 async function update(id, fields) {
-  const { name, description, category_id, quantity, min_quantity, unit, expiry_date, location } = fields;
+  const { name, description, category_id, quantity, min_quantity, unit, expiry_date, location, area } = fields;
 
   // Validar fecha de caducidad
   if (expiry_date) {
@@ -89,6 +90,7 @@ async function update(id, fields) {
       unit,
       expiry_date:  expiry_date  || null,
       location:     location     || null,
+      area:         area         || null,
     })
     .eq("id", id)
     .select(SELECT_FIELDS);
