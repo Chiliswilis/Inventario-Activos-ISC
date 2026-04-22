@@ -17,6 +17,7 @@ const requestsRoutes = require("./src/modules/requests/requests.routes");
 const reservationsRoutes = require("./src/modules/reservations/reservations.routes");
 const assetsRoutes = require("./src/modules/assets/assets.routes");
 const statsRoutes = require("./src/modules/stats/stats.routes");
+const labsRoutes  = require("./src/modules/labs/labs.routes");
 
 
 const app = express();
@@ -33,18 +34,7 @@ app.use("/api/stats",        statsRoutes);
 app.use("/api/requests",     requestsRoutes);
 app.use("/api/reservations", reservationsRoutes);
 app.use("/api/events",       eventsRouter);
-
-// ── LABS (catálogo dinámico de laboratorios) ──
-app.get("/api/labs", async (req, res) => {
-  const { data, error } = await supabase
-    .from("labs")
-    .select("id, edificio, nombre, capacidad, open_time, close_time")
-    .eq("activo", true)
-    .order("edificio")
-    .order("nombre");
-  if (error) return res.status(500).json(error);
-  res.json(data);
-});
+app.use("/api/labs",         labsRoutes);
 
 // ── FRONTEND ESTÁTICO ──
 app.use(express.static(path.join(__dirname, "../frontend/src")));
