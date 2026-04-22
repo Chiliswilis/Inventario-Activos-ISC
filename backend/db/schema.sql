@@ -37,6 +37,7 @@ CREATE TABLE public.consumables (
   quantity integer DEFAULT 0 CHECK (quantity >= 0),
   expiry_date date,
   location character varying DEFAULT 'Lab. Ciencias Básicas'::character varying,
+  area text,
   CONSTRAINT consumables_pkey PRIMARY KEY (id),
   CONSTRAINT consumables_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
@@ -101,6 +102,8 @@ CREATE TABLE public.requests (
   rejected_by integer,
   rejected_reason text,
   rejected_at timestamp without time zone,
+  fecha_solicitud date,
+  hora_solicitud time without time zone,
   CONSTRAINT requests_pkey PRIMARY KEY (id),
   CONSTRAINT requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT requests_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.assets(id),
@@ -154,6 +157,8 @@ CREATE TABLE public.reservations (
   consumable_entrega time without time zone,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   lab_id integer,
+  num_alumnos integer DEFAULT 0,
+  approval_date date,
   CONSTRAINT reservations_pkey PRIMARY KEY (id),
   CONSTRAINT reservations_alumno_id_fkey FOREIGN KEY (alumno_id) REFERENCES public.users(id),
   CONSTRAINT reservations_docente_id_fkey FOREIGN KEY (docente_id) REFERENCES public.users(id),

@@ -59,7 +59,7 @@ async function remove(req, res) {
     res.json(result);
   } catch (err) {
     console.error("Error eliminar consumible:", err);
-    res.status(err.status || 500).json(err);
+    res.status(err.status || 500).json({ message: err.message || "Error al eliminar" });
   }
 }
 

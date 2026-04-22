@@ -33,10 +33,17 @@ const getById = async (id) => {
 };
 
 const create = async (body) => {
-  const { name, description, category_id, serial_number, location, status, quantity } = body;
+  const { name, description, category_id, location, status, quantity, area } = body;
+  // Para laboratorio el serial es opcional — generamos uno interno si no viene
+  let serial_number = body.serial_number || null;
+  if (!serial_number && area === "laboratorio") {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const block  = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
+    serial_number = `LAB-${block()}-${block()}`;
+  }
   const { data, error } = await supabase
     .from("assets")
-    .insert([{ name, description, category_id, serial_number, location, status: status || "available", quantity: parseInt(quantity) || 1 }])
+    .insert([{ name, description, category_id, serial_number, location, area: area || null, status: status || "available", quantity: parseInt(quantity) || 1 }])
     .select("*, categories(name)");
   if (error) throw error;
 

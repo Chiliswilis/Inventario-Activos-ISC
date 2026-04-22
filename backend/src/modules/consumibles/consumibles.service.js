@@ -105,6 +105,25 @@ async function update(id, fields) {
 
 /* ── ELIMINAR ── */
 async function remove(id) {
+  // Verificar si hay solicitudes ACTIVAS (no terminadas) que referencian este consumible
+  const { data: activeRequests, error: checkError } = await supabase
+    .from("request_items")
+    .select("request_id, requests!inner(id, status)")
+    .eq("consumable_id", id)
+    .not("requests.status", "in", '("returned","rejected")');
+
+  if (checkError) throw checkError;
+
+  if (activeRequests && activeRequests.length > 0) {
+    const statuses = [...new Set(activeRequests.map(r => r.requests?.status).filter(Boolean))].join(", ");
+    const err = new Error(`No se puede eliminar: este consumible tiene solicitudes activas (${statuses}). Solo se puede eliminar cuando todas sus solicitudes estén devueltas o rechazadas.`);
+    err.status = 409;
+    throw err;
+  }
+
+  // Sin solicitudes activas — borrar primero los request_items históricos para liberar la FK
+  await supabase.from("request_items").delete().eq("consumable_id", id);
+
   const { error } = await supabase
     .from("consumables")
     .delete()

@@ -384,11 +384,21 @@ function confirmDelete(id, name) {
 async function deleteConsumable(id) {
   try {
     const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error();
+    if (!res.ok) {
+      let msg = "No se pudo eliminar";
+      try {
+        const err = await res.json();
+        if (err.message) msg = err.message;
+        else if (err.details) msg = err.details;
+        else if (err.hint)    msg = err.hint;
+      } catch {}
+      showToast(msg, "error");
+      return;
+    }
     showToast("Consumible eliminado", "success");
     await loadConsumables();
-  } catch {
-    showToast("No se pudo eliminar", "error");
+  } catch (e) {
+    showToast("No se pudo conectar con el servidor", "error");
   }
 }
 
