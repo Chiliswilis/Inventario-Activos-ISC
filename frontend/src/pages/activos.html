@@ -202,9 +202,16 @@
               <option value="" disabled selected>Selecciona categoría</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Número de serie *</label>
-            <input type="text" id="assetSerial" placeholder="Ej. ABC-123456" />
+          <div class="form-group" id="serialRow">
+            <label>Número de serie *
+              <button type="button" onclick="document.getElementById('assetSerial').value=generateSerial()"
+                style="margin-left:8px;font-size:11px;padding:2px 8px;background:#f0f4ff;border:1px solid #c7d2fe;
+                       border-radius:4px;color:#4f46e5;cursor:pointer;font-family:inherit;"
+                title="Generar nuevo serial">
+                <i class="fas fa-sync-alt"></i> Regenerar
+              </button>
+            </label>
+            <input type="text" id="assetSerial" placeholder="Se genera automáticamente al elegir Sistemas" />
           </div>
         </div>
         <div class="section-sep">Ubicación</div>

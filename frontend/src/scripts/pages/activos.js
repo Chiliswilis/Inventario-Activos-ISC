@@ -53,6 +53,16 @@ function populateCategoryFilter(area = "") {
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
 }
 
+/* ──────────────────────────────────────────
+   GENERAR NÚMERO DE SERIE (Sistemas)
+   Formato: XXXX-XXXX-XXXX-XXXX  (4 bloques de 4 chars alfanuméricos)
+────────────────────────────────────────── */
+function generateSerial() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin 0,O,1,I para evitar confusión
+  const block  = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
+  return `${block()}-${block()}-${block()}-${block()}`;
+}
+
 /** Rellena el select de categoría dentro del modal y adapta etiquetas según área */
 function onAreaChangeModal() {
   const area = document.getElementById("assetArea").value;
@@ -78,18 +88,27 @@ function onAreaChangeModal() {
   const lblLaboratorio = document.getElementById("lblLaboratorio");
   const inpEdificio    = document.getElementById("assetEdificio");
   const inpLab         = document.getElementById("assetLaboratorio");
+  const serialRow      = document.getElementById("serialRow");
+  const inpSerial      = document.getElementById("assetSerial");
 
   if (area === "laboratorio") {
+    // Laboratorio: ocultar número de serie (no aplica)
+    if (serialRow)      serialRow.style.display    = "none";
+    if (inpSerial)      inpSerial.value            = "";
     if (lblEdificio)    lblEdificio.textContent    = "Edificio / Área";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio / Sala";
     if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Ciencias";
     if (inpLab)         inpLab.placeholder         = "Ej. Lab. Química 1";
   } else if (area === "sistemas") {
+    // Sistemas: mostrar y autogenerar serial si está vacío
+    if (serialRow)      serialRow.style.display    = "";
+    if (inpSerial && !inpSerial.value) inpSerial.value = generateSerial();
     if (lblEdificio)    lblEdificio.textContent    = "Edificio";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
     if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Principal";
     if (inpLab)         inpLab.placeholder         = "Ej. Laboratorio de Sistemas";
   } else {
+    if (serialRow)      serialRow.style.display    = "";
     if (lblEdificio)    lblEdificio.textContent    = "Edificio";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
     if (inpEdificio)    inpEdificio.placeholder    = "";
@@ -294,6 +313,8 @@ function openModal() {
   document.getElementById("assetArea").value           = "";
   document.getElementById("assetCategory").innerHTML   = '<option value="" disabled selected>Selecciona categoría</option>';
   document.getElementById("assetSerial").value         = "";
+  const _sr = document.getElementById("serialRow");
+  if (_sr) _sr.style.display = "";   // mostrar por defecto hasta que se elija área
   document.getElementById("assetEdificio").value       = "";
   document.getElementById("assetLaboratorio").value    = "";
   document.getElementById("assetStatus").value         = "available";
@@ -327,8 +348,13 @@ async function saveAsset() {
   const status        = document.getElementById("assetStatus").value;
   const quantity      = parseInt(document.getElementById("assetQuantity").value, 10) || 1;
 
-  if (!name || !area || !category_id || !serial_number || !edificio || !laboratorio) {
-    showToast("Nombre, área, categoría, serie, edificio y laboratorio son obligatorios", "error");
+  const needsSerial = area !== "laboratorio";
+  if (!name || !area || !category_id || !edificio || !laboratorio) {
+    showToast("Nombre, área, categoría, edificio y laboratorio son obligatorios", "error");
+    return;
+  }
+  if (needsSerial && !serial_number) {
+    showToast("El número de serie es obligatorio para activos de Sistemas", "error");
     return;
   }
 
@@ -345,21 +371,7 @@ async function saveAsset() {
     return;
   }
 
-  // ── VALIDACIÓN: solo 1 unidad por modelo ────────
-const sameNameTotal = allAssets
-  .filter(a => 
-    a.name.trim().toLowerCase() === name.trim().toLowerCase() && 
-    String(a.id) !== String(id)
-  )
-  .reduce((sum, a) => sum + (a.quantity || 1), 0);
-
-if (sameNameTotal > 0 || quantity > 1) {
-  showToast(
-    `No se permite más de **1 unidad** del mismo modelo ("${name}").`,
-    "error"
-  );
-  return;
-}
+  // Permitir múltiples unidades del mismo modelo (cables, periféricos, etc.)
   const location = `${edificio}, ${laboratorio}`;
   const body     = { name, description, area, category_id, serial_number, location, status, quantity };
   const url      = id ? `${apiUrl}/${id}` : apiUrl;

@@ -454,10 +454,13 @@ function buildAssetOptions(excludeIds = []) {
       return (a.area || "").toLowerCase().trim() === areaFiltro;
     })
     .map(a => {
-      const areaIcon = (a.area || "").toLowerCase().includes("sistem") ? "\uD83D\uDDA5"
-                     : (a.area || "").toLowerCase().includes("lab")    ? "\uD83D\uDD2C" : "";
-      const catName  = a.categories?.name || "";
-      return `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}">${areaIcon} ${a.name}${catName ? " \u00B7 "+catName : ""} — Serie: ${a.serial_number||"S/N"}</option>`;
+      const areaIcon  = (a.area || "").toLowerCase().includes("sistem") ? "\uD83D\uDDA5"
+                      : (a.area || "").toLowerCase().includes("lab")    ? "\uD83D\uDD2C" : "";
+      const catName   = a.categories?.name || "";
+      const isLab     = (a.area || "").toLowerCase().includes("lab");
+      const serieText = isLab ? "" : ` — Serie: ${a.serial_number||"S/N"}`;
+      const qty       = a.quantity || 1;
+      return `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}" data-area="${a.area||""}" data-qty="${qty}">${areaIcon} ${a.name}${catName ? " \u00B7 "+catName : ""}${serieText} (Disp: ${qty})</option>`;
     })
     .join("");
 }
@@ -506,20 +509,39 @@ function onItemSelect(rowId, type) {
   if (!opt?.value) { infoDiv.style.display = "none"; return; }
 
   if (type === "asset") {
-    qtyInp.value = "1"; qtyInp.max = "1";
-    infoDiv.style.display = "block";
-    infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong> · Para pedir más unidades del mismo modelo, agrega otra fila.`;
+    const isLab  = (opt.dataset.area || "").toLowerCase().includes("lab");
+    const maxQty = parseInt(opt.dataset.qty) || 1;
 
-    // Remove this asset from other dropdowns to avoid duplicate selection
-    const selectedId = parseInt(opt.value);
-    document.querySelectorAll("#itemsContainer .item-row select").forEach(otherSel => {
-      if (otherSel.id !== sel.id) {
-        const otherOptions = otherSel.querySelectorAll("option");
-        otherOptions.forEach(opt => {
-          if (parseInt(opt.value) === selectedId) opt.remove();
-        });
-      }
-    });
+    qtyInp.value    = "1";
+    qtyInp.min      = "1";
+    qtyInp.max      = maxQty;   // máximo = stock disponible del activo
+    qtyInp.step     = "1";
+    qtyInp.readOnly = false;
+    qtyInp.oninput  = () => {
+      const v = parseInt(qtyInp.value);
+      if (v > maxQty) qtyInp.value = maxQty;
+      if (v < 1 || isNaN(v)) qtyInp.value = 1;
+    };
+
+    infoDiv.style.display = "block";
+    if (isLab) {
+      // Lab: no mostrar serie (es interna), sí mostrar stock
+      infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#10b981;"></i> Disponible: <strong>${maxQty} unidad${maxQty !== 1 ? "es" : ""}</strong>`;
+    } else {
+      // Sistemas: mostrar serie
+      infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong> · Disponible: ${maxQty} · Para otra unidad agrega otra fila.`;
+      // Para sistemas, cada fila = 1 activo único por serie → limitar a 1
+      qtyInp.value = "1"; qtyInp.max = "1"; qtyInp.readOnly = true;
+      // Quitar de otros dropdowns para evitar duplicado
+      const selectedId = parseInt(opt.value);
+      document.querySelectorAll("#itemsContainer .item-row select").forEach(otherSel => {
+        if (otherSel.id !== sel.id) {
+          otherSel.querySelectorAll("option").forEach(o => {
+            if (parseInt(o.value) === selectedId) o.remove();
+          });
+        }
+      });
+    }
   } else {
     // Consumible: configurar input según unidad de medida
     const maxQty   = parseFloat(opt.dataset.qty) || 1;
@@ -982,26 +1004,61 @@ function openReturnModal(id) {
   const itemsHtml = items.map(it => {
     const name    = it.assets?.name || it.consumables?.name || "Ítem";
     const isAsset = !!it.assets;
-    const serial  = it.assets?.serial_number ? `<small style="color:#9ca3af;font-size:11px;">Serie: ${it.assets.serial_number}</small>` : "";
+    const qty     = it.quantity || 1;
+    const assetArea = (it.assets?.area || "").toLowerCase();
+    const isLabAsset = isAsset && assetArea.includes("lab");
+
+    // Serial: solo para activos de Sistemas (no lab)
+    const serialHtml = (isAsset && !isLabAsset && it.assets?.serial_number)
+      ? `<small style="color:#9ca3af;font-size:11px;"><i class="fas fa-barcode"></i> Serie: ${it.assets.serial_number}</small><br>`
+      : "";
+
+    // Unidad para consumibles
+    const unit = it.consumables?.unit || "u";
+
+    // Input de cantidad real devuelta
+    const qtyInputId = `retQty_${it.id}`;
+    const qtyInput = `
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+        <label style="font-size:11px;color:#374151;font-weight:600;white-space:nowrap;">
+          ${isAsset ? "Unidades devueltas:" : `Cantidad devuelta (${unit}):`}
+        </label>
+        <input type="number" id="${qtyInputId}"
+          value="${qty}" min="0" max="${qty}" step="${isAsset ? 1 : 0.001}"
+          style="width:70px;padding:4px 6px;border:1px solid #d1d5db;border-radius:5px;
+                 font-size:13px;text-align:center;font-family:'IBM Plex Sans',sans-serif;outline:none;"
+          oninput="(function(el){
+            const v=parseFloat(el.value), mx=${qty};
+            if(v>mx){el.value=mx;el.style.borderColor='#ef4444';}
+            else if(v<0||isNaN(v)){el.value=0;}
+            else el.style.borderColor='#d1d5db';
+          })(this)">
+        <span style="font-size:11px;color:#9ca3af;">/ ${qty}${isAsset ? " solicitada"+(qty!==1?"s":"") : " "+unit}</span>
+      </div>`;
+
     return `
       <div style="background:#f8f9fc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;
-                  margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;"
-           data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#374151;">${name}</div>
-          ${serial}
-          <div style="font-size:11px;color:#6b7280;margin-top:2px;">
-            ${isAsset ? '<i class="fas fa-box" style="color:#4f46e5;"></i> Activo' : '<i class="fas fa-flask" style="color:#0891b2;"></i> Consumible'}
+                  margin-bottom:8px;" data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;color:#374151;">${name}</div>
+            ${serialHtml}
+            <div style="font-size:11px;color:#6b7280;margin-top:2px;">
+              ${isAsset ? '<i class="fas fa-box" style="color:#4f46e5;"></i> Activo' : '<i class="fas fa-flask" style="color:#0891b2;"></i> Consumible'}
+            </div>
+            ${qtyInput}
           </div>
-        </div>
-        ${isAsset ? `
+          ${isAsset ? `
           <select style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;
-                         font-family:'IBM Plex Sans',sans-serif;color:#374151;min-width:120px;">
-            <option value="bueno">Bueno</option>
+                         font-family:'IBM Plex Sans',sans-serif;color:#374151;min-width:110px;flex-shrink:0;">
+            <option value="bueno">✅ Bueno</option>
             <option value="dañado">⚠️ Dañado</option>
-            <option value="perdido">Perdido</option>
+            <option value="perdido">❌ Perdido</option>
           </select>` : `
-          <span style="font-size:12px;color:#9ca3af;font-style:italic;">Sin devolución</span>`}
+          <span style="font-size:12px;color:#10b981;font-weight:600;flex-shrink:0;">
+            <i class="fas fa-check-circle"></i> Consumible
+          </span>`}
+        </div>
       </div>`;
   }).join("") || `<p style="font-size:13px;color:#9ca3af;text-align:center;padding:12px;">Sin ítems registrados en esta solicitud</p>`;
 
@@ -1158,15 +1215,27 @@ async function submitReturn() {
   }
 
   const items_condition = [];
+  let qtyWarning = false;
   document.querySelectorAll("#returnModal [data-item-id]").forEach(row => {
-    const sel = row.querySelector("select");
-    if (!sel) return;
+    const sel    = row.querySelector("select");
+    const itemId = parseInt(row.dataset.itemId);
+    // Leer cantidad real devuelta del input
+    const qtyInp = document.getElementById(`retQty_${itemId}`);
+    const qtyRet = qtyInp ? parseFloat(qtyInp.value) || 0 : null;
+    const qtyMax = qtyInp ? parseFloat(qtyInp.max)   || 0 : null;
+    if (qtyMax !== null && qtyRet < qtyMax) qtyWarning = true;
     items_condition.push({
-      item_id:          parseInt(row.dataset.itemId),
-      asset_id:         parseInt(row.dataset.assetId) || null,
-      return_condition: sel.value
+      item_id:            itemId,
+      asset_id:           parseInt(row.dataset.assetId) || null,
+      return_condition:   sel ? sel.value : null,
+      quantity_returned:  qtyRet
     });
   });
+  // Advertir si algún ítem se devuelve incompleto (no bloquea, solo avisa)
+  if (qtyWarning && !incident) {
+    const ok = confirm("⚠️ Algunos ítems se están devolviendo con menos unidades de las solicitadas. ¿Continuar?");
+    if (!ok) return;
+  }
 
   try {
     const res = await fetch(`${API}/${id}/return`, {
