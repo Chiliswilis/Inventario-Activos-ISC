@@ -560,75 +560,96 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
                   <p>Espacios disponibles para reserva</p>
                 </div>
               </div>
+
+              <!-- Botón agregar (solo admin) -->
+              <div id="labsAdminActions" style="display:none;margin-bottom:14px;">
+                <button class="btn" onclick="openLabModal()">
+                  <i class="fas fa-plus"></i> Agregar Laboratorio
+                </button>
+              </div>
+
+              <!-- Tabla dinámica -->
               <table class="labs-table">
                 <thead>
                   <tr>
                     <th>Edificio</th>
                     <th>Laboratorio</th>
+                    <th>Horario</th>
                     <th>Estado</th>
+                    <th id="labsActionsHeader" style="display:none;">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>Edificio A</strong></td>
-                    <td>Laboratorio de Ciencias Básicas</td>
-                    <td>
-                      <span class="status-badge status-ok"
-                        ><i class="fas fa-check-circle"></i> Activo</span
-                      >
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Edificio A</strong></td>
-                    <td>Laboratorio de Computo A</td>
-                    <td>
-                      <span class="status-badge status-ok"
-                        ><i class="fas fa-check-circle"></i> Activo</span
-                      >
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Edificio A</strong></td>
-                    <td>Laboratorio de Sistemas</td>
-                    <td>
-                      <span class="status-badge status-ok"
-                        ><i class="fas fa-check-circle"></i> Activo</span
-                      >
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Edificio A</strong></td>
-                    <td>Laboratorio de circuitos</td>
-                    <td>
-                      <span class="status-badge status-ok"
-                        ><i class="fas fa-check-circle"></i> Activo</span
-                      >
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Edificio B</strong></td>
-                    <td>Laboratorio de Computo A</td>
-                    <td>
-                      <span class="status-badge status-ok"
-                        ><i class="fas fa-check-circle"></i> Activo</span
-                      >
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Edificio B</strong></td>
-                    <td>Laboratorio de Computo B</td>
-                    <td>
-                      <span class="status-badge status-ok"
-                        ><i class="fas fa-check-circle"></i> Activo</span
-                      >
-                    </td>
-                  </tr>
+                <tbody id="labsTableBody">
+                  <tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando laboratorios...
+                  </td></tr>
                 </tbody>
               </table>
-              <p style="font-size: 12px; color: #9ca3af; margin-top: 12px">
+
+              <!-- Mensaje para docentes (no admins) -->
+              <p id="labsContactMsg" style="font-size: 12px; color: #9ca3af; margin-top: 12px; display:none;">
                 <i class="fas fa-info-circle"></i> Para agregar nuevos
                 laboratorios, contacta al administrador del sistema.
               </p>
+            </div>
+
+            <!-- MODAL LABORATORIO -->
+            <div class="modal" id="labModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+                 z-index:1000;display:none;align-items:center;justify-content:center;">
+              <div style="background:#fff;padding:28px;max-width:460px;width:90%;border-radius:8px;position:relative;">
+                <button onclick="closeLabModal()" style="position:absolute;top:12px;right:14px;background:none;
+                  border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
+                <h3 id="labModalTitle" style="margin-bottom:18px;font-size:15px;">Agregar Laboratorio</h3>
+                <input type="hidden" id="labId" />
+                <div class="form-group">
+                  <label>Edificio *</label>
+                  <select id="labEdificio" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;
+                    border-radius:6px;font-size:13px;font-family:inherit;">
+                    <option value="" disabled selected>Selecciona edificio</option>
+                    <option value="Edificio A">Edificio A</option>
+                    <option value="Edificio B">Edificio B</option>
+                    <option value="Edificio C">Edificio C</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Nombre del Laboratorio *</label>
+                  <input type="text" id="labNombre" placeholder="Ej. Laboratorio de Redes"
+                    style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                    font-size:13px;font-family:inherit;box-sizing:border-box;" />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                  <div class="form-group">
+                    <label>Hora apertura</label>
+                    <input type="time" id="labOpenTime" value="07:30"
+                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                      font-size:13px;font-family:inherit;box-sizing:border-box;" />
+                  </div>
+                  <div class="form-group">
+                    <label>Hora cierre</label>
+                    <input type="time" id="labCloseTime" value="15:00"
+                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                      font-size:13px;font-family:inherit;box-sizing:border-box;" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Estado *</label>
+                  <select id="labActivo" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;
+                    border-radius:6px;font-size:13px;font-family:inherit;">
+                    <option value="true">Activo (disponible para reservas)</option>
+                    <option value="maintenance">En Mantenimiento</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:18px;">
+                  <button onclick="closeLabModal()" style="flex:1;padding:9px;background:#f3f4f6;
+                    border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;">
+                    Cancelar
+                  </button>
+                  <button onclick="saveLab()" class="btn" style="flex:2;justify-content:center;">
+                    <i class="fas fa-save"></i> Guardar
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- ── ROLES Y PERMISOS ── -->
@@ -1105,45 +1126,62 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
         const saved = JSON.parse(sessionStorage.getItem(CFG_KEY) || "{}");
 
         // Valores por defecto o guardados
-        document.getElementById("cfgMaxReservas").value =
-          saved.maxReservas ?? 3;
-        document.getElementById("cfgMinHoras").value = saved.minHoras ?? 1;
+        document.getElementById("cfgMaxReservas").value = saved.maxReservas ?? 3;
+        document.getElementById("cfgMinHoras").value    = saved.minHoras ?? 1;
         if (document.getElementById("cfgDescripcion"))
           document.getElementById("cfgDescripcion").value =
             saved.descripcion ??
             "Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.";
 
-        if (role !== "administrador") {
-          ["cfgMaxReservas", "cfgMinHoras"].forEach((id) => {
+        // Campos SIEMPRE bloqueados (para todos los roles)
+        const LOCKED_ALL = ["cfgNombre", "cfgInstitucion", "cfgDescripcion"];
+        // Campos editables SOLO para admin
+        const EDITABLE_ADMIN = ["cfgMaxReservas", "cfgMinHoras"];
+
+        // Bloquear campos fijos para todos
+        LOCKED_ALL.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.setAttribute("readonly", "");
+          el.setAttribute("disabled", "");
+          el.style.background  = "#e9ecef";
+          el.style.color       = "#6c757d";
+          el.style.cursor      = "not-allowed";
+          el.style.borderColor = "#dee2e6";
+          el.style.userSelect  = "none";
+        });
+
+        if (role === "administrador") {
+          // Admin: solo puede editar maxReservas y minHoras
+          EDITABLE_ADMIN.forEach((id) => {
             const el = document.getElementById(id);
-            if (el) {
-              el.setAttribute("readonly", "");
-              el.setAttribute("disabled", "");
-              el.style.background = "#e9ecef";
-              el.style.color = "#6c757d";
-              el.style.cursor = "not-allowed";
-              el.style.borderColor = "#dee2e6";
-              el.style.userSelect = "none";
-            }
-          });
-          const btn = document.getElementById("btnActionsGeneral");
-          if (btn) btn.style.display = "none";
-        } else {
-          // Admin: campos editables con estilo normal
-          ["cfgMaxReservas", "cfgMinHoras"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) {
-              el.removeAttribute("readonly");
-              el.removeAttribute("disabled");
-              el.style.background = "";
-              el.style.color = "";
-              el.style.cursor = "";
-              el.style.borderColor = "";
-              el.style.userSelect = "";
-            }
+            if (!el) return;
+            el.removeAttribute("readonly");
+            el.removeAttribute("disabled");
+            el.style.background  = "";
+            el.style.color       = "";
+            el.style.cursor      = "";
+            el.style.borderColor = "";
+            el.style.userSelect  = "";
           });
           const btn = document.getElementById("btnActionsGeneral");
           if (btn) btn.style.display = "";
+        } else {
+          // Docente / Alumno: bloquear TODOS los campos
+          EDITABLE_ADMIN.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.setAttribute("readonly", "");
+            el.setAttribute("disabled", "");
+            el.style.background  = "#e9ecef";
+            el.style.color       = "#6c757d";
+            el.style.cursor      = "not-allowed";
+            el.style.borderColor = "#dee2e6";
+            el.style.userSelect  = "none";
+          });
+          // Ocultar botón Guardar cambios
+          const btn = document.getElementById("btnActionsGeneral");
+          if (btn) btn.style.display = "none";
         }
       }
 
@@ -1298,11 +1336,160 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
         showToast("Preferencias de notificaciones guardadas", "success");
       }
 
+      // ──────────────────────────────────────────
+      // LABORATORIOS – funciones dinámicas
+      // ──────────────────────────────────────────
+      const LABS_API = "/api/labs";
+      let allLabs    = [];
+
+      async function loadLabs() {
+        try {
+          const res = await fetch(LABS_API);
+          allLabs = await res.json();
+        } catch {
+          allLabs = [];
+        }
+        renderLabsTable();
+      }
+
+      function renderLabsTable() {
+        const role   = getUserRole();
+        const isAdm  = role === "administrador";
+        const tbody  = document.getElementById("labsTableBody");
+        const header = document.getElementById("labsActionsHeader");
+        const adminBtn = document.getElementById("labsAdminActions");
+        const msg    = document.getElementById("labsContactMsg");
+
+        // Mostrar/ocultar UI según rol
+        if (isAdm) {
+          adminBtn.style.display  = "";
+          header.style.display    = "";
+          if (msg) msg.style.display = "none";
+        } else if (role === "docente") {
+          adminBtn.style.display  = "none";
+          header.style.display    = "none";
+          if (msg) msg.style.display = "";
+        } else {
+          // alumno: no ve el mensaje ni botones
+          adminBtn.style.display  = "none";
+          header.style.display    = "none";
+          if (msg) msg.style.display = "none";
+        }
+
+        if (!allLabs.length) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:16px;">Sin laboratorios registrados</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = allLabs.map(l => {
+          let statusBadge, statusVal;
+          if (l.activo === false || l.activo === "false") {
+            statusBadge = `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Inactivo</span>`;
+            statusVal = "false";
+          } else if (l.activo === "maintenance" || l.status === "maintenance") {
+            statusBadge = `<span class="status-badge status-warning"><i class="fas fa-tools"></i> Mantenimiento</span>`;
+            statusVal = "maintenance";
+          } else {
+            statusBadge = `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span>`;
+            statusVal = "true";
+          }
+
+          const actions = isAdm
+            ? `<td><div style="display:flex;gap:6px;">
+                 <button onclick="editLab(${l.id})" title="Editar"
+                   style="padding:4px 10px;background:#e0e7ff;border:1px solid #c7d2fe;
+                          border-radius:5px;cursor:pointer;font-size:12px;color:#4f46e5;">
+                   <i class="fas fa-edit"></i>
+                 </button>
+               </div></td>`
+            : `<td style="display:none;"></td>`;
+
+          const horario = (l.open_time && l.close_time)
+            ? `${l.open_time}–${l.close_time}`
+            : "—";
+
+          return `<tr>
+            <td><strong>${l.edificio || "—"}</strong></td>
+            <td>${l.nombre || "—"}</td>
+            <td style="font-size:12px;color:#6b7280;">${horario}</td>
+            <td>${statusBadge}</td>
+            ${actions}
+          </tr>`;
+        }).join("");
+      }
+
+      function openLabModal(lab = null) {
+        document.getElementById("labId").value       = lab ? lab.id : "";
+        document.getElementById("labNombre").value   = lab ? lab.nombre : "";
+        document.getElementById("labEdificio").value = lab ? lab.edificio : "";
+        document.getElementById("labOpenTime").value  = lab ? (lab.open_time || "07:30") : "07:30";
+        document.getElementById("labCloseTime").value = lab ? (lab.close_time || "15:00") : "15:00";
+
+        let estadoVal = "true";
+        if (lab) {
+          if (lab.activo === false || lab.activo === "false") estadoVal = "false";
+          else if (lab.activo === "maintenance" || lab.status === "maintenance") estadoVal = "maintenance";
+        }
+        document.getElementById("labActivo").value   = estadoVal;
+        document.getElementById("labModalTitle").textContent = lab ? "Editar Laboratorio" : "Agregar Laboratorio";
+        document.getElementById("labModal").style.display = "flex";
+      }
+
+      function closeLabModal() {
+        document.getElementById("labModal").style.display = "none";
+      }
+
+      function editLab(id) {
+        const lab = allLabs.find(l => l.id === id);
+        if (lab) openLabModal(lab);
+      }
+
+      async function saveLab() {
+        const id        = document.getElementById("labId").value;
+        const edificio  = document.getElementById("labEdificio").value;
+        const nombre    = document.getElementById("labNombre").value.trim();
+        const open_time  = document.getElementById("labOpenTime").value;
+        const close_time = document.getElementById("labCloseTime").value;
+        const activoVal  = document.getElementById("labActivo").value;
+
+        if (!edificio || !nombre) {
+          showToast("Edificio y nombre son obligatorios", "error"); return;
+        }
+
+        // Construir payload: "maintenance" se guarda como activo=true pero con status=maintenance
+        let activo = true;
+        let status = "active";
+        if (activoVal === "false")        { activo = false; status = "inactive"; }
+        else if (activoVal === "maintenance") { activo = true; status = "maintenance"; }
+
+        const body   = { edificio, nombre, open_time, close_time, activo, status };
+        const url    = id ? `${LABS_API}/${id}` : LABS_API;
+        const method = id ? "PUT" : "POST";
+
+        try {
+          const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          if (!res.ok) {
+            const e = await res.json();
+            showToast("Error: " + (e.message || "No se pudo guardar"), "error"); return;
+          }
+          closeLabModal();
+          showToast(id ? "Laboratorio actualizado" : "Laboratorio agregado", "success");
+          await loadLabs();
+        } catch {
+          showToast("No se pudo conectar con el servidor", "error");
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         initNav();
         loadGeneral();
         loadDbStatus();
         loadNotif();
+        loadLabs();
       });
     </script>
     <script src="../scripts/pages/realtime.js"></script>

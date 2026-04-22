@@ -34,6 +34,7 @@ async function loadCatalogs() {
 // BUG 3 FIX: Solo marcar como "ocupado" cuando status === "occupied".
 // Un lab con status "approved" NO debe pintarse rojo; el docente aún
 // no ha llegado físicamente.
+// Mejora: detectar estado "maintenance" del laboratorio desde la BD.
 function renderLabsGrid() {
   const occupied = new Set(
     allReservations
@@ -46,12 +47,28 @@ function renderLabsGrid() {
     return;
   }
   grid.innerHTML = labs.map(l => {
-    const isOcc = occupied.has(l.id);
-    return `<div class="lab-status-card ${isOcc ? "occupied" : "available"}">
+    const isOcc  = occupied.has(l.id);
+    // Detectar mantenimiento: se guarda como activo=true + status="maintenance"
+    const isMaint = (l.status === "maintenance") || (l.activo === "maintenance");
+    // Lab inactivo
+    const isInact = l.activo === false || l.activo === "false";
+
+    let cardClass, pillClass, pillLabel;
+    if (isMaint) {
+      cardClass = "maintenance"; pillClass = "pill-maintenance"; pillLabel = "Mantenimiento";
+    } else if (isInact) {
+      cardClass = "occupied";    pillClass = "pill-occupied";    pillLabel = "Inactivo";
+    } else if (isOcc) {
+      cardClass = "occupied";    pillClass = "pill-occupied";    pillLabel = "Ocupado";
+    } else {
+      cardClass = "available";   pillClass = "pill-available";   pillLabel = "Disponible";
+    }
+
+    return `<div class="lab-status-card ${cardClass}">
       <div class="lab-card-title">${l.nombre}</div>
       <div class="lab-card-edif">${l.edificio}</div>
-      <div class="lab-status-pill ${isOcc ? "pill-occupied" : "pill-available"}">
-        <span class="pill-dot"></span>${isOcc ? "Ocupado" : "Disponible"}
+      <div class="lab-status-pill ${pillClass}">
+        <span class="pill-dot"></span>${pillLabel}
       </div>
       <div style="font-size:11px;color:#9ca3af;margin-top:4px;">${l.open_time}–${l.close_time}</div>
     </div>`;
@@ -200,10 +217,13 @@ function renderTable(data) {
 
 // ── NUEVA RESERVA ──
 function openNewModal() {
-  // Llenar labs
+  // Llenar labs — excluir labs en mantenimiento o inactivos
   const selLab = document.getElementById("newLab");
   selLab.innerHTML = `<option value="">-- Selecciona laboratorio --</option>`;
-  const grouped = labs.reduce((acc, l) => { (acc[l.edificio] = acc[l.edificio] || []).push(l); return acc; }, {});
+  const labsDisponibles = labs.filter(l =>
+    l.status !== "maintenance" && l.activo !== false && l.activo !== "false"
+  );
+  const grouped = labsDisponibles.reduce((acc, l) => { (acc[l.edificio] = acc[l.edificio] || []).push(l); return acc; }, {});
   for (const [edif, ls] of Object.entries(grouped)) {
     const og = document.createElement("optgroup"); og.label = edif;
     ls.forEach(l => {
@@ -991,6 +1011,18 @@ document.querySelectorAll(".modal").forEach(m => {
   m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
 });
 
+// ── Recargar labs (función auxiliar) ──
+async function reloadLabs() {
+  try {
+    const r    = await fetch("/api/labs");
+    const data = await r.json();
+    if (Array.isArray(data)) {
+      labs = data;
+      renderLabsGrid();
+    }
+  } catch {}
+}
+
 // ── Tiempo real ──
 document.addEventListener("DOMContentLoaded", () => {
   REALTIME.on("reservations", () => {
@@ -998,4 +1030,15 @@ document.addEventListener("DOMContentLoaded", () => {
       loadReservations();
     }
   });
+
+  // Intentar escuchar broadcast de labs (si el canal SSE lo soporta)
+  REALTIME.on("labs", reloadLabs);
+
+  // Respaldo 1: recargar labs cuando el usuario vuelve a esta pestaña
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") reloadLabs();
+  });
+
+  // Respaldo 2: polling cada 30 segundos
+  setInterval(reloadLabs, 30000);
 });
