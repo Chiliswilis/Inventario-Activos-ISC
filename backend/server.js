@@ -37,6 +37,17 @@ app.use("/api/events",       eventsRouter);
 const labsRoutes = require("./src/modules/labs/labs.routes");
 app.use("/api/labs", labsRoutes);
 
+const supabase = require("./src/config/supabase");
+ 
+app.get("/health", async (req, res) => {
+  try {
+    const { error } = await supabase.from("users").select("id").limit(1);
+    if (error) throw error;
+    res.status(200).json({ status: "ok", db: "connected" });
+  } catch (err) {
+    res.status(503).json({ status: "error", db: "disconnected", detail: err.message });
+  }
+});
 // ── FRONTEND ESTÁTICO ──
 app.use(express.static(path.join(__dirname, "../frontend/src"), { etag: false, maxAge: 0 }));
 app.use("/public", express.static(path.join(__dirname, "../frontend/public"), { etag: false, maxAge: 0 }));
