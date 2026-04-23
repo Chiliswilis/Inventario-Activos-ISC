@@ -1,5 +1,5 @@
 const service = require("./assets.service");
-
+//verificacion de token se hace en el router, no aquí, para que los endpoints públicos (getAll, getSummary) sigan funcionando sin auth
 const getAll    = async (req, res) => {
   try { res.json(await service.getAll()); }
   catch (err) { res.status(500).json(err); }
