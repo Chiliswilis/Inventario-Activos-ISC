@@ -1,17 +1,17 @@
 const REALTIME = (() => {
 
   // ── CONFIGURACIÓN ──────────────────────────────────────────
-  const POLL_INTERVAL  = 8000;    
+  const POLL_INTERVAL  = 8000;    // ms entre polls cuando SSE no está disponible
   const SSE_ENDPOINT   = "/api/events";
-  const PING_ENDPOINT  = "/api/events/ping";  
+  const PING_ENDPOINT  = "/api/events/ping";  // endpoint ligero de health
 
   // ── ESTADO ─────────────────────────────────────────────────
   let _sseSource      = null;
   let _pollTimer      = null;
-  let _handlers       = {};       
+  let _handlers       = {};       // { "consumables": [fn, fn], "assets": [fn] }
   let _useSSE         = false;
   let _connected      = false;
-  let _lastPoll       = {};       
+  let _lastPoll       = {};       // { table: timestamp } para detectar cambios
 
   // ── REGISTRO DE HANDLERS ───────────────────────────────────
   /**
@@ -23,7 +23,7 @@ const REALTIME = (() => {
   function on(table, fn) {
     if (!_handlers[table]) _handlers[table] = [];
     _handlers[table].push(fn);
-    return () => off(table, fn);  
+    return () => off(table, fn);  // devuelve función para desuscribirse
   }
 
   function off(table, fn) {
@@ -35,7 +35,7 @@ const REALTIME = (() => {
     (_handlers[table] || []).forEach(fn => {
       try { fn(eventType, data); } catch(e) { console.error("[REALTIME]", e); }
     });
-    
+    // Siempre emitir también en el canal "*" para listeners globales
     (_handlers["*"] || []).forEach(fn => {
       try { fn(table, eventType, data); } catch(e) {}
     });
@@ -63,7 +63,7 @@ const REALTIME = (() => {
   }
 
   function _setStatus(status) {
-    
+    // status: "connecting" | "live" | "polling" | "offline"
     const dot   = document.getElementById("rt-dot");
     const label = document.getElementById("rt-label");
     if (!dot || !label) return;
@@ -89,7 +89,7 @@ const REALTIME = (() => {
 
   // ── TOAST PARA CAMBIOS EN VIVO ─────────────────────────────
   function _liveToast(msg) {
-    
+    // Reusar el toast global si existe, si no crear uno propio
     const existing = document.getElementById("toast");
     if (existing) {
       existing.textContent = msg;
@@ -129,14 +129,16 @@ const REALTIME = (() => {
         _useSSE    = true;
         _connected = true;
         _setStatus("live");
-        _stopPolling();  
+        _stopPolling();  // SSE activo, no necesitamos polling general
+        // Labs no tiene updated_at: mantener polling específico para detectar cambios de estado
+        _startLabsPolling();
       };
 
-      
+      // Evento genérico de cambio de BD
       src.addEventListener("db_change", e => {
         try {
           const payload = JSON.parse(e.data);
-          
+          // payload: { table, eventType, record }
           const { table, eventType, record } = payload;
           _emit(table, eventType, record);
           _showChangeToast(table, eventType, record);
@@ -153,7 +155,7 @@ const REALTIME = (() => {
         _connected = false;
         src.close();
         _sseSource = null;
-        
+        // SSE no disponible → caer en polling
         _setStatus("polling");
         _startPolling();
       };
@@ -163,7 +165,7 @@ const REALTIME = (() => {
   }
 
   // ── POLLING (fallback) ─────────────────────────────────────
-  
+  // Compara timestamps de updated_at para detectar cambios sin cargar todo
   const POLL_TABLES = [
     { table: "consumables", endpoint: "/api/consumibles" },
     { table: "assets",      endpoint: "/api/assets"      },
@@ -175,7 +177,7 @@ const REALTIME = (() => {
   function _startPolling() {
     if (_pollTimer) return;
     _setStatus("polling");
-
+    _startLabsPolling();
     // Primer poll inmediato para inicializar timestamps
     _doPoll();
     _pollTimer = setInterval(_doPoll, POLL_INTERVAL);
@@ -185,13 +187,52 @@ const REALTIME = (() => {
     if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
   }
 
+  // ── POLLING DEDICADO PARA LABS (sin updated_at) ────────────
+  let _labsPollTimer = null;
+
+  function _startLabsPolling() {
+    if (_labsPollTimer) return;
+    // Hacer un fetch inmediato para inicializar el hash baseline
+    (async () => {
+      try {
+        const res  = await fetch("/api/labs", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            _lastPoll["labs"] = data.map(l => `${l.id}:${l.status}:${l.activo}`).sort().join("|");
+          }
+        }
+      } catch {}
+    })();
+
+    _labsPollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch("/api/labs", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+        const hash = data.map(l => `${l.id}:${l.status}:${l.activo}`).sort().join("|");
+        if (hash !== _lastPoll["labs"]) {
+          _lastPoll["labs"] = hash;
+          _emit("labs", "REFRESH", data);
+        }
+      } catch {}
+    }, 5000); // cada 5 segundos
+  }
+
+  function _stopLabsPolling() {
+    if (_labsPollTimer) { clearInterval(_labsPollTimer); _labsPollTimer = null; }
+  }
+
   async function _doPoll() {
+    // Solo hacer polling para las tablas que tienen listeners activos
     const activeTables = POLL_TABLES.filter(t => (_handlers[t.table]?.length > 0) || (_handlers["*"]?.length > 0));
     if (!activeTables.length) return;
 
     for (const { table, endpoint } of activeTables) {
       try {
-        
+        // Añadir parámetro para que el servidor devuelva solo los registros
+        // modificados después del último poll (si la API lo soporta)
         const since = _lastPoll[table];
         const url   = since ? `${endpoint}?updated_since=${encodeURIComponent(since)}` : endpoint;
 
@@ -204,11 +245,11 @@ const REALTIME = (() => {
 
         // Si es el primer poll, solo guardamos referencias sin emitir
         if (!_lastPoll[table]) {
-          _lastPoll[table] = _getNewest(items);
+          _lastPoll[table] = _getNewest(items, table);
           continue;
         }
 
-        const newNewest = _getNewest(items);
+        const newNewest = _getNewest(items, table);
         if (newNewest && newNewest !== _lastPoll[table]) {
           _lastPoll[table] = newNewest;
           _emit(table, "REFRESH", items);
@@ -224,14 +265,19 @@ const REALTIME = (() => {
     }
   }
 
-  function _getNewest(items) {
+  function _getNewest(items, table) {
+    // Para "labs": no tiene updated_at, usamos hash del contenido (status + activo)
+    if (table === "labs") {
+      return items.map(l => `${l.id}:${l.status}:${l.activo}`).sort().join("|");
+    }
+    // Para otras tablas: usar updated_at o created_at más reciente
     return items.reduce((max, item) => {
       const ts = item.updated_at || item.created_at || item.timestamp || "";
       return ts > max ? ts : max;
     }, "");
   }
 
-  
+  // ── MENSAJES DE CAMBIO LEGIBLES ────────────────────────────
   const TABLE_LABELS = {
     consumables:  "consumibles",
     assets:       "activos",
@@ -256,13 +302,15 @@ const REALTIME = (() => {
   function init() {
     document.addEventListener("DOMContentLoaded", () => {
       _buildIndicator();
-      
+      // Intentar SSE primero; si falla, cae en polling automáticamente
       _startSSE();
     });
   }
 
+  // ── API PÚBLICA ────────────────────────────────────────────
   return { on, off, init };
 
 })();
 
+// Auto-init
 REALTIME.init();

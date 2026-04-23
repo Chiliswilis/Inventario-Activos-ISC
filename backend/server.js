@@ -17,7 +17,6 @@ const requestsRoutes = require("./src/modules/requests/requests.routes");
 const reservationsRoutes = require("./src/modules/reservations/reservations.routes");
 const assetsRoutes = require("./src/modules/assets/assets.routes");
 const statsRoutes = require("./src/modules/stats/stats.routes");
-const labsRoutes  = require("./src/modules/labs/labs.routes");
 
 
 const app = express();
@@ -34,11 +33,13 @@ app.use("/api/stats",        statsRoutes);
 app.use("/api/requests",     requestsRoutes);
 app.use("/api/reservations", reservationsRoutes);
 app.use("/api/events",       eventsRouter);
-app.use("/api/labs",         labsRoutes);
+
+const labsRoutes = require("./src/modules/labs/labs.routes");
+app.use("/api/labs", labsRoutes);
 
 // ── FRONTEND ESTÁTICO ──
-app.use(express.static(path.join(__dirname, "../frontend/src")));
-app.use("/public", express.static(path.join(__dirname, "../frontend/public")));
+app.use(express.static(path.join(__dirname, "../frontend/src"), { etag: false, maxAge: 0 }));
+app.use("/public", express.static(path.join(__dirname, "../frontend/public"), { etag: false, maxAge: 0 }));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/src/login.html"));
 });

@@ -65,6 +65,27 @@ const getStats = async () => {
     }
   }
 
+  // Para activos NO borrowed, buscar quién fue el último en modificarlos via logs
+  const nonBorrowedIds = (rawAssets || [])
+    .filter(a => a.status !== "borrowed")
+    .map(a => a.id);
+
+  if (nonBorrowedIds.length > 0) {
+    const { data: logRows } = await supabase
+      .from("logs")
+      .select("record_id, user_id, users!logs_user_id_fkey(username)")
+      .eq("table_name", "assets")
+      .in("record_id", nonBorrowedIds)
+      .order("timestamp", { ascending: false });
+
+    // Tomar solo el log más reciente por asset (el primero en el array ordenado desc)
+    (logRows || []).forEach(row => {
+      if (!userByAsset[row.record_id] && row.users?.username) {
+        userByAsset[row.record_id] = row.users.username;
+      }
+    });
+  }
+
   // Combinar: cada activo lleva el username si está prestado
   const lastMovements = (rawAssets || []).map(a => ({
     ...a,

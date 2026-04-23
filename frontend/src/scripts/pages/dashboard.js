@@ -137,10 +137,9 @@ async function renderMovements(movements) {
     return;
   }
 
-  // Verificar si algún movimiento no tiene usuario → enriquecer con mapa de usuarios
+  // Solo enriquecer si hay activos "borrowed" sin username resuelto
   const needsEnrich = movements.some(m =>
-    !(m.user || m.username || m.user_name || m.assigned_to ||
-      m.borrower || m.nombre_usuario || m.nombre)
+    m.status === "borrowed" && !m.username
   );
   const usersMap = needsEnrich ? await fetchUsersMap() : {};
 
@@ -148,40 +147,63 @@ async function renderMovements(movements) {
   movements.forEach(m => {
     const st = statusLabel[m.status] || { text: m.status || "—", cls: "" };
 
-    // Resolver nombre del usuario
-    let usuario =
-      m.user || m.username || m.user_name || m.assigned_to ||
-      m.borrower || m.nombre_usuario || m.nombre || m.alumno || m.student;
+    // El backend ya resuelve username para activos "borrowed"
+    // Para "available" / "maintenance" no hay usuario → mostrar "—"
+    let usuario = m.username || null;
 
-    // Si sigue vacío, buscar en el mapa por user_id / alumno_id
-    if (!usuario) {
-      const uid = m.user_id || m.alumno_id || m.student_id || m.id_usuario || m.borrower_id;
-      if (uid && usersMap[uid]) {
-        usuario = usersMap[uid];
-      }
+    // Fallback: buscar en mapa si hay user_id (solo para borrowed sin username)
+    if (!usuario && m.status === "borrowed") {
+      const uid = m.user_id || m.alumno_id || m.student_id;
+      usuario = (uid && usersMap[uid]) ? usersMap[uid] : "Desconocido";
     }
 
-    // Último recurso: mostrar el id del usuario si existe
-    if (!usuario) {
-      const uid = m.user_id || m.alumno_id || m.student_id || m.id_usuario || m.borrower_id;
-      usuario = uid ? `<span class="mono" style="font-size:11px;color:var(--ibm-gray-50);">ID ${uid}</span>` : "—";
-    }
-
-    const activo = m.name || m.asset_name || m.activo || m.nombre_activo || "—";
+    const activo = m.name || m.asset_name || "—";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="mono">#${m.id}</td>
       <td>${activo}</td>
-      <td>${usuario}</td>
+      <td>${usuario || "—"}</td>
       <td><span class="status-badge ${st.cls}">${st.text}</span></td>`;
     tbody.appendChild(tr);
   });
 }
 
 // ─── Render Actividad ─────────────────────────────────
+// Traduce acciones tipo SNAKE_CASE a texto legible
+const actionLabels = {
+  PRESTAMO_APROBADO:    "Préstamo aprobado",
+  DEVOLUCION_REGISTRADA:"Devolución registrada",
+  SOLICITUD_CREADA:     "Solicitud creada",
+  SOLICITUD_APROBADA:   "Solicitud aprobada",
+  SOLICITUD_RECHAZADA:  "Solicitud rechazada",
+  RESERVA_CREADA:       "Reserva creada",
+  RESERVA_CANCELADA:    "Reserva cancelada",
+  ACTIVO_CREADO:        "Activo registrado",
+  ACTIVO_MODIFICADO:    "Activo modificado",
+  CONSUMIBLE_CREADO:    "Consumible registrado",
+  USUARIO_CREADO:       "Usuario registrado",
+};
+
+function formatAction(raw) {
+  if (!raw) return "Acción registrada";
+  const str = raw.toString().trim();
+  // Si ya viene legible (tiene espacios o no es todo mayúsculas), solo capitalizar
+  if (str.includes(" ") || str !== str.toUpperCase()) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  // Si viene SNAKE_CASE puro → buscar en mapa o convertir
+  const key = str.toUpperCase();
+  if (actionLabels[key]) return actionLabels[key];
+  return key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function renderActivity(activities) {
   const container = document.getElementById("activityContainer");
   if (!container) return;
+
+  // Limpiar SIEMPRE (incluye el placeholder hardcodeado del HTML)
+  container.innerHTML = "";
+
   if (!activities || !activities.length) {
     container.innerHTML = `
       <div class="activity-item">
@@ -191,14 +213,15 @@ function renderActivity(activities) {
       </div>`;
     return;
   }
-  container.innerHTML = "";
+
   activities.forEach(a => {
     const div = document.createElement("div");
     div.className = "activity-item";
+    const label = formatAction(a.action);
     div.innerHTML = `
       <div class="activity-dot"></div>
       <div class="activity-text">
-        ${a.action}${a.table_name ? ` en <strong>${a.table_name}</strong>` : ""}
+        ${label}${a.table_name ? ` en <strong>${a.table_name}</strong>` : ""}
       </div>
       <div class="activity-time">${timeAgo(a.timestamp)}</div>`;
     container.appendChild(div);
