@@ -8,7 +8,7 @@ const SELECT_FULL = `
   alumno_id, docente_id, lab_id,
   alumno:users!reservations_alumno_id_fkey(id, username, email),
   docente:users!reservations_docente_id_fkey(id, username),
-  lab:labs(id, edificio, nombre, capacidad, open_time, close_time),
+  lab:labs(id, edificio, nombre, capacidad, open_time, close_time, activo, status),
   reservation_consumables(
     id, quantity_requested, quantity_delivered, leftover_qty,
     consumables(id, name, unit)
@@ -53,6 +53,7 @@ const create = async (body) => {
   const { data: lab } = await supabase
     .from("labs").select("edificio,nombre,open_time,close_time,activo").eq("id", lab_id).single();
   if (!lab || !lab.activo) throw { status: 400, message: "Laboratorio no disponible" };
+  if (lab.status === "maintenance") throw { status: 400, message: "El laboratorio está en mantenimiento" };
 
   const normTime = t => (t || "").substring(0, 5);
   const horaIniN = normTime(hora_inicio);

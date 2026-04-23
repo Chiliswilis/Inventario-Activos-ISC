@@ -22,13 +22,12 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   const { name, category_id, location, area } = req.body;
-  // serial_number solo obligatorio para sistemas
   const needsSerial = area !== "laboratorio";
   if (!name || !category_id || !location)
     return res.status(400).json({ message: "Campos obligatorios: name, category_id, location" });
   if (needsSerial && !req.body.serial_number)
     return res.status(400).json({ message: "El número de serie es obligatorio para activos de Sistemas" });
-  try { res.json(await service.create(req.body)); }
+  try { res.json(await service.create(req.body, req.user?.id)); }
   catch (err) { res.status(err.status || 500).json({ message: err.message }); }
 };
 
@@ -39,7 +38,7 @@ const update = async (req, res) => {
     return res.status(400).json({ message: "Campos obligatorios: name, category_id, location" });
   if (needsSerial && !req.body.serial_number)
     return res.status(400).json({ message: "El número de serie es obligatorio para activos de Sistemas" });
-  try { res.json(await service.update(req.params.id, req.body)); }
+  try { res.json(await service.update(req.params.id, req.body, req.user?.id)); }
   catch (err) { res.status(err.status || 500).json({ message: err.message }); }
 };
 

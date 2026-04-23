@@ -319,7 +319,7 @@ i.fas, i.far, i.fab, i.fa {
 
 /* Panel body padding */
 .panel-body   { padding: 20px; }
-.panel-scroll { padding: 0; }
+.panel-scroll { padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 /* Toolbar / filters dentro del panel */
 .filters-bar,
@@ -1097,4 +1097,38 @@ tbody tr:hover td { background: var(--ibm-blue-10); }
   .stats-row { grid-template-columns: 1fr; }
   .stat-card { border-right: none !important; border-top: 1px solid var(--ibm-gray-20); }
   .stat-card:first-child { border-top: none; }
+}
+/* ════════════════════════════════════
+   ACTIVITY FEED (dashboard)
+   ════════════════════════════════════ */
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--ibm-gray-10);
+}
+.activity-item:last-child { border-bottom: none; }
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ibm-blue);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.activity-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ibm-gray-80);
+  line-height: 1.5;
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--ibm-gray-50);
+  white-space: nowrap;
+  margin-top: 2px;
 }

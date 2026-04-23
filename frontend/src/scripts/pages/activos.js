@@ -59,10 +59,12 @@ function populateCategoryFilter(area = "") {
 /* ──────────────────────────────────────────
    GENERAR NÚMERO DE SERIE (Sistemas)
 ────────────────────────────────────────── */
-function generateSerial() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const block  = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
-  return `${block()}-${block()}-${block()}-${block()}`;
+// Validar formato serial: bloques alfanuméricos separados por guión
+// Acepta cualquier cantidad de bloques: A1B2-CD34-EF56-GH78
+const SERIAL_REGEX = /^[A-Z0-9]{2,}-[A-Z0-9]{2,}(-[A-Z0-9]{2,})*$/i;
+
+function validateSerial(serial) {
+  return SERIAL_REGEX.test(serial.trim().toUpperCase());
 }
 
 function onAreaChangeModal() {
@@ -101,7 +103,7 @@ function onAreaChangeModal() {
     if (inpLab)         inpLab.placeholder         = "Ej. Lab. Química 1";
   } else if (area === "sistemas") {
     if (serialRow)      serialRow.style.display    = "";
-    if (inpSerial && !inpSerial.value) inpSerial.value = generateSerial();
+    if (inpSerial)      inpSerial.placeholder      = "Ej. DKF1-SK24-49DP-D84N";
     if (lblEdificio)    lblEdificio.textContent    = "Edificio";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
     if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Principal";
@@ -383,6 +385,10 @@ async function saveAsset() {
   }
   if (needsSerial && !serial_number) {
     showToast("El número de serie es obligatorio para activos de Sistemas", "error");
+    return;
+  }
+  if (needsSerial && !validateSerial(serial_number)) {
+    showToast("Formato inválido. Usa bloques separados por guión: DKF1-SK24-49DP-D84N", "error");
     return;
   }
 

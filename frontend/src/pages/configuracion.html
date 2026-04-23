@@ -1070,6 +1070,7 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
 
       function navTo(id, el) {
         // Ocultar todas las secciones
+        sessionStorage.setItem("configTab", id);
         ALL_SECTIONS.forEach((secId) => {
           const sec = document.getElementById(secId);
           if (sec) sec.style.display = "none";
@@ -1090,12 +1091,18 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
       }
 
       function initNav() {
-        // Ocultar todas excepto General al cargar
-        ALL_SECTIONS.forEach((secId) => {
-          const sec = document.getElementById(secId);
-          if (sec && secId !== "secGeneral") sec.style.display = "none";
-        });
-      }
+  const saved = sessionStorage.getItem("configTab") || "secGeneral";
+  ALL_SECTIONS.forEach((secId) => {
+    const sec = document.getElementById(secId);
+    if (sec) sec.style.display = secId === saved ? "block" : "none";
+  });
+  // Marcar nav activo
+  document.querySelectorAll(".config-nav-item").forEach(el => {
+    const onclick = el.getAttribute("onclick") || "";
+    if (onclick.includes(saved)) el.classList.add("active");
+    else el.classList.remove("active");
+  });
+}
 
       function getUserRole() {
         // Fix: usar sessionStorage (migrado desde localStorage en común.js y login.html)
@@ -1396,7 +1403,7 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
 
           const actions = isAdm
             ? `<td><div style="display:flex;gap:6px;">
-                 <button onclick="editLab(${l.id})" title="Editar"
+                 <button data-labid="${l.id}" onclick="editLab(parseInt(this.dataset.labid))" title="Editar"
                    style="padding:4px 10px;background:#e0e7ff;border:1px solid #c7d2fe;
                           border-radius:5px;cursor:pointer;font-size:12px;color:#4f46e5;">
                    <i class="fas fa-edit"></i>
@@ -1419,11 +1426,12 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
       }
 
       function openLabModal(lab = null) {
-        document.getElementById("labId").value       = lab ? lab.id : "";
-        document.getElementById("labNombre").value   = lab ? lab.nombre : "";
-        document.getElementById("labEdificio").value = lab ? lab.edificio : "";
-        document.getElementById("labOpenTime").value  = lab ? (lab.open_time || "07:30") : "07:30";
-        document.getElementById("labCloseTime").value = lab ? (lab.close_time || "15:00") : "15:00";
+        const normTime = t => (t || "").substring(0, 5) || "07:30";
+        document.getElementById("labId").value        = lab ? String(lab.id) : "";
+        document.getElementById("labNombre").value    = lab ? lab.nombre : "";
+        document.getElementById("labEdificio").value  = lab ? lab.edificio : "";
+        document.getElementById("labOpenTime").value  = lab ? normTime(lab.open_time  || "07:30") : "07:30";
+        document.getElementById("labCloseTime").value = lab ? normTime(lab.close_time || "15:00") : "15:00";
 
         let estadoVal = "true";
         if (lab) {
@@ -1445,11 +1453,11 @@ Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecM
       }
 
       async function saveLab() {
-        const id        = document.getElementById("labId").value;
+        const id        = document.getElementById("labId").value.trim();
         const edificio  = document.getElementById("labEdificio").value;
         const nombre    = document.getElementById("labNombre").value.trim();
-        const open_time  = document.getElementById("labOpenTime").value;
-        const close_time = document.getElementById("labCloseTime").value;
+        const open_time  = (document.getElementById("labOpenTime").value  || "07:30").substring(0, 5);
+        const close_time = (document.getElementById("labCloseTime").value || "15:00").substring(0, 5);
         const activoVal  = document.getElementById("labActivo").value;
 
         if (!edificio || !nombre) {

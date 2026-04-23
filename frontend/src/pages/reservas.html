@@ -594,32 +594,33 @@
 
       // ── LABS GRID ──
       function renderLabsGrid() {
-        // Solo status "occupied" pinta el lab de rojo.
-        // "approved" NO ocupa físicamente el laboratorio todavía.
-        const occupied = new Set(
-          allReservations
-            .filter((r) => r.status === "occupied")
-            .map((r) => r.lab_id),
-        );
-        const grid = document.getElementById("labsGrid");
-        if (!labs.length) {
-          grid.innerHTML = `<p style="color:#9ca3af;font-size:13px;">Sin laboratorios registrados</p>`;
-          return;
-        }
-        grid.innerHTML = labs
-          .map((l) => {
-            const isOcc = occupied.has(l.id);
-            return `<div class="lab-status-card ${isOcc ? "occupied" : "available"}">
+  const occupied = new Set(
+    allReservations.filter(r => r.status === "occupied").map(r => r.lab_id)
+  );
+  const grid = document.getElementById("labsGrid");
+  if (!labs.length) {
+    grid.innerHTML = `<p style="color:#9ca3af;font-size:13px;">Sin laboratorios registrados</p>`;
+    return;
+  }
+  grid.innerHTML = labs.map(l => {
+    const isOcc   = occupied.has(l.id);
+    const isMaint = l.status === "maintenance";
+    const isInact = l.activo === false || l.activo === "false";
+
+    let cardClass, pillClass, pillLabel;
+    if (isMaint)      { cardClass = "maintenance"; pillClass = "pill-maintenance"; pillLabel = "Mantenimiento"; }
+    else if (isInact) { cardClass = "occupied";    pillClass = "pill-occupied";    pillLabel = "Inactivo"; }
+    else if (isOcc)   { cardClass = "occupied";    pillClass = "pill-occupied";    pillLabel = "Ocupado"; }
+    else              { cardClass = "available";   pillClass = "pill-available";   pillLabel = "Disponible"; }
+
+    return `<div class="lab-status-card ${cardClass}">
       <div class="lab-card-title">${l.nombre}</div>
       <div class="lab-card-edif">${l.edificio}</div>
-      <div class="lab-status-pill ${isOcc ? "pill-occupied" : "pill-available"}">
-        <span class="pill-dot"></span>${isOcc ? "Ocupado" : "Disponible"}
-      </div>
+      <div class="lab-status-pill ${pillClass}"><span class="pill-dot"></span>${pillLabel}</div>
       <div style="font-size:11px;color:#9ca3af;margin-top:4px;">${l.open_time}–${l.close_time}</div>
     </div>`;
-          })
-          .join("");
-      }
+  }).join("");
+}
 
       function today() {
         return new Date().toISOString().split("T")[0];
