@@ -2,10 +2,10 @@ name: CI — SGIAC-ISC
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, Victor]
   pull_request:
-    branches: [main, develop]
-
+    branches: [main, develop, Victor]
+    
 jobs:
   # ─── Job 1: Build ───────────────────────────────────
   build:
