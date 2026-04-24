@@ -759,7 +759,7 @@
           doc.save(
             `SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.pdf`,
           );
-          showToast("PDF generado ✅", "success");
+          showToast("PDF generado ", "success");
         } catch (e) {
           console.error(e);
           showToast("Error al generar el PDF", "error");

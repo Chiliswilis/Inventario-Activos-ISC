@@ -51,7 +51,7 @@ const create = async (body) => {
   if (dow === 0) throw { status: 400, message: "No se pueden hacer reservas los domingos" };
 
   const { data: lab } = await supabase
-    .from("labs").select("edificio,nombre,open_time,close_time,activo").eq("id", lab_id).single();
+    .from("labs").select("edificio,nombre,open_time,close_time,activo,status").eq("id", lab_id).single();
   if (!lab || !lab.activo) throw { status: 400, message: "Laboratorio no disponible" };
   if (lab.status === "maintenance") throw { status: 400, message: "El laboratorio está en mantenimiento" };
 
