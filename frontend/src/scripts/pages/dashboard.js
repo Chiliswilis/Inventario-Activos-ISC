@@ -42,60 +42,29 @@ function animateCount(el, target) {
  * Devuelve: "admin" | "docente" | "alumno"
  */
 function detectRole() {
-  // 1 — variable global (más confiable, la pone common.js)
-  if (window.USER_ROLE) return window.USER_ROLE.toLowerCase().trim();
-
-  // 2 — storage directo
-  const storageKeys = ["role", "userRole", "user_role", "rol"];
-  for (const store of [localStorage, sessionStorage]) {
-    for (const key of storageKeys) {
-      const val = store.getItem(key);
-      if (val) return val.toLowerCase().trim();
+  // Usar directamente getUser() de common.js (ya cargado antes que este script)
+  if (typeof getUser === "function") {
+    const user = getUser();
+    if (user?.role) {
+      const r = user.role.toLowerCase().trim();
+      // Normalizar "administrador" → "admin"
+      return r === "administrador" ? "admin" : r;
     }
-    // objeto "user" serializado
-    const raw = store.getItem("user") || store.getItem("currentUser") || store.getItem("userData");
+  }
+
+  // Fallback: storage directo
+  for (const store of [localStorage, sessionStorage]) {
+    const raw = store.getItem("user");
     if (raw) {
       try {
         const obj = JSON.parse(raw);
-        const r = obj.role || obj.rol || obj.tipo || obj.type || obj.user_role;
-        if (r) return r.toLowerCase().trim();
+        const r = (obj.role || obj.rol || "").toLowerCase().trim();
+        if (r) return r === "administrador" ? "admin" : r;
       } catch { /* no es JSON */ }
     }
   }
 
-  // 3 — JWT (token → payload → role)
-  const tokenKeys = ["token", "access_token", "jwt", "authToken"];
-  for (const store of [localStorage, sessionStorage]) {
-    for (const key of tokenKeys) {
-      const tok = store.getItem(key);
-      if (tok && tok.includes(".")) {
-        try {
-          const payload = JSON.parse(atob(tok.split(".")[1]));
-          const r = payload.role || payload.rol || payload.tipo || payload.user_role;
-          if (r) return r.toLowerCase().trim();
-        } catch { /* token inválido */ }
-      }
-    }
-  }
-  
-  const badgeSelectors = [
-    "#rolBadge", "#userRole", "#role-badge", ".role-badge",
-    ".badge-role", "[data-role]", "#headerRole"
-  ];
-  for (const sel of badgeSelectors) {
-    const el = document.querySelector(sel);
-    if (el) {
-      const txt = (el.dataset.role || el.textContent || "").toLowerCase().trim();
-      if (txt) return txt;
-    }
-  }
-
-  // 5 — Fallback: si el username contiene "admin"
-  const uname = (document.getElementById("username")?.textContent || "").toLowerCase();
-  if (uname.includes("admin")) return "admin";
-  if (uname.includes("docente") || uname.includes("prof")) return "docente";
-
-  return "admin"; // default seguro para no romper el sistema
+  return "alumno";
 }
 
 // ─── Cache de usuarios (admin) ────────────────────────
@@ -298,7 +267,11 @@ async function loadStats() {
 // ─── Carga stats personales (alumno) ─────────────────
 async function loadStudentStats() {
   try {
-    const res  = await fetch("/api/stats/me");
+    const userId = localStorage.getItem("userId") || localStorage.getItem("user_id") ||
+                   (() => { try { return JSON.parse(localStorage.getItem("user") || "{}").id; } catch { return null; } })();
+    const res = await fetch("/api/stats/me", {
+      headers: userId ? { "x-user-id": userId } : {}
+    });
     if (!res.ok) throw new Error();
     const data = await res.json();
     animateCount(document.getElementById("myRequests"),     data.myRequests     ?? 0);
@@ -371,9 +344,7 @@ function applyRoleView() {
 
 // ─── Init ─────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // common.js se carga DESPUÉS de este script según el HTML original,
-  // así que esperamos un tick para que inicialice window.USER_ROLE
-  setTimeout(applyRoleView, 0);
+  applyRoleView();
 
   // Tiempo real
   if (typeof REALTIME !== "undefined") {

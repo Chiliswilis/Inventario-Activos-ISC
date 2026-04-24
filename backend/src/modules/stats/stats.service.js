@@ -109,4 +109,28 @@ const getStats = async () => {
   };
 };
 
-module.exports = { getStats };
+const getMyStats = async (userId) => {
+  const { count: myRequests } = await supabase
+    .from("requests")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  const { count: myReservations } = await supabase
+    .from("reservations")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  const { count: myPending } = await supabase
+    .from("requests")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "pending");
+
+  return {
+    myRequests:     myRequests     || 0,
+    myReservations: myReservations || 0,
+    myPending:      myPending      || 0,
+  };
+};
+
+module.exports = { getStats, getMyStats };
