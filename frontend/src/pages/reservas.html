@@ -348,7 +348,7 @@
               type="time"
               id="newHoraInicio"
               step="3600"
-              onchange="validateHoraFin()"
+              onchange="autoFillHoraFin(event)"
             />
           </div>
         </div>
@@ -358,7 +358,6 @@
             type="time"
             id="newHoraFin"
             step="3600"
-            onchange="validateHoraFin()"
           />
         </div>
         <div class="form-group">
@@ -1463,7 +1462,21 @@
         });
       });
     </script>
-    <script src="../scripts/pages/realtime.js"></script>
+    
+    <script>
+    function autoFillHoraFin(e) {
+      if (!e || !e.target || !e.target.value) return;
+      var s = e.target.value.split(":");
+      var h = +s[0], m = +s[1];
+      var total = h * 60 + m + 60;
+      var hf = String(Math.floor(total / 60)).padStart(2, "0");
+      var mf = String(total % 60).padStart(2, "0");
+      var finId = e.target.id === "reqHoraInicio" ? "reqHoraFin" : "newHoraFin";
+      var fin = document.getElementById(finId);
+      if (fin && !fin.value) fin.value = hf + ":" + mf;
+    }
+    </script>
+<script src="../scripts/pages/realtime.js"></script>
     <script src="../scripts/pages/common.js"></script>
   </body>
 </html>
