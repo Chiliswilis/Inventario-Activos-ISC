@@ -1041,4 +1041,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Respaldo 2: polling cada 30 segundos
   setInterval(reloadLabs, 30000);
+
+  // AUTO-FILL: al poner hora inicio, sugerir hora fin +1h si está vacía
+  const horaInicioEl = document.getElementById("newHoraInicio");
+  if (horaInicioEl) {
+    horaInicioEl.addEventListener("change", function () {
+      if (!this.value) return;
+      const [h, m] = this.value.split(":").map(Number);
+      const total = h * 60 + m + 60;
+      const hf = String(Math.floor(total / 60)).padStart(2, "0");
+      const mf = String(total % 60).padStart(2, "0");
+      const finEl = document.getElementById("newHoraFin");
+      if (finEl && !finEl.value) finEl.value = `${hf}:${mf}`;
+    });
+  }
 });

@@ -124,6 +124,57 @@ const create = async (body) => {
   return resv;
 };
 
+// FIX: función para editar reserva en estado pending
+const update = async (id, body) => {
+  const { lab_id, fecha_uso, hora_inicio, hora_fin, proposito } = body;
+
+  if (!lab_id || !fecha_uso || !hora_inicio || !hora_fin || !proposito)
+    throw { status: 400, message: "Todos los campos son obligatorios" };
+
+  const { data: lab } = await supabase
+    .from("labs").select("edificio,nombre,activo,status").eq("id", lab_id).single();
+  if (!lab) throw { status: 400, message: "Laboratorio no encontrado" };
+  if (!lab.activo) throw { status: 400, message: "Laboratorio no disponible" };
+  if (lab.status === "maintenance") throw { status: 400, message: "El laboratorio está en mantenimiento" };
+
+  const normTime = t => (t || "").substring(0, 5);
+  const horaIniN = normTime(hora_inicio);
+  const horaFinN = normTime(hora_fin);
+
+  if (horaFinN <= horaIniN) throw { status: 400, message: "La hora de fin debe ser mayor que la de inicio" };
+  const [hI, mI] = horaIniN.split(":").map(Number);
+  const [hF, mF] = horaFinN.split(":").map(Number);
+  if ((hF * 60 + mF) - (hI * 60 + mI) < 60)
+    throw { status: 400, message: "La reserva debe durar al menos 1 hora" };
+
+  // Verificar traslape excluyendo la reserva actual
+  const { data: overlap } = await supabase
+    .from("reservations").select("id")
+    .eq("lab_id", lab_id).eq("fecha_uso", fecha_uso)
+    .in("status", ["approved", "occupied"])
+    .lt("hora_inicio", hora_fin).gt("hora_fin", hora_inicio)
+    .neq("id", id);
+
+  if (overlap && overlap.length > 0)
+    throw { status: 400, message: "El laboratorio ya tiene una reserva aprobada en ese horario" };
+
+  const { data, error } = await supabase
+    .from("reservations")
+    .update({
+      lab_id: parseInt(lab_id),
+      edificio: lab.edificio,
+      laboratorio: lab.nombre,
+      fecha_uso, hora_inicio, hora_fin, proposito
+    })
+    .eq("id", id)
+    .select("id, status, fecha_uso, hora_inicio, hora_fin")
+    .single();
+
+  if (error) throw error;
+  broadcast("reservations", "UPDATE", data);
+  return data;
+};
+
 const approve = async (id, body) => {
   const { grupo, semestre, encargado_grupo, docente_message, approval_date } = body;
   const { data, error } = await supabase
@@ -247,4 +298,4 @@ const remove = async (id) => {
   broadcast("reservations", "DELETE", { id });
 };
 
-module.exports = { getAll, getById, create, approve, occupy, release, cancel, remove };
+module.exports = { getAll, getById, create, update, approve, occupy, release, cancel, remove };
