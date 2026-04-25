@@ -1132,3 +1132,111 @@ tbody tr:hover td { background: var(--ibm-blue-10); }
   white-space: nowrap;
   margin-top: 2px;
 }
+
+/* ── Botón secundario (Categorías) ── */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+ 
+/* ── Items de la lista de categorías ── */
+.cat-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 6px;
+  background: #fff;
+  transition: background 0.12s;
+}
+.cat-item:hover { background: #f9fafb; }
+ 
+.cat-item-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.cat-item-name {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #1f2a3a;
+}
+.cat-item-area {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.cat-item-desc {
+  width: 100%;
+  font-size: 11.5px;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+ 
+.cat-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.cat-btn-edit, .cat-btn-delete {
+  border: none;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.cat-btn-edit   { background: #ede9fe; color: #4f46e5; }
+.cat-btn-edit:hover   { background: #ddd6fe; }
+.cat-btn-delete { background: #fee2e2; color: #dc2626; }
+.cat-btn-delete:hover { background: #fecaca; }
+ 
+/* ── Fila de confirmación de borrado ── */
+.cat-confirm-row {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: #374151;
+}
+.cat-btn-confirm-yes {
+  background: #dc2626; color: #fff;
+  border: none; border-radius: 6px;
+  padding: 4px 12px; font-size: 12px;
+  cursor: pointer;
+}
+.cat-btn-confirm-yes:hover { background: #b91c1c; }
+.cat-btn-confirm-no {
+  background: #f3f4f6; color: #374151;
+  border: 1px solid #d1d5db; border-radius: 6px;
+  padding: 4px 12px; font-size: 12px;
+  cursor: pointer;
+}
+.cat-btn-confirm-no:hover { background: #e5e7eb; }

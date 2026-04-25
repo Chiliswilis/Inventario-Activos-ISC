@@ -245,6 +245,7 @@
                   min="07:30"
                   max="15:00"
                   step="3600"
+                  onchange="autoFillHoraFin(event)"
                 />
               </div>
             </div>
@@ -381,6 +382,20 @@
           if (sb) sb.style.display = "none";
         }
       });
+    </script>
+
+    <script>
+    function autoFillHoraFin(e) {
+      if (!e || !e.target || !e.target.value) return;
+      var s = e.target.value.split(":");
+      var h = +s[0], m = +s[1];
+      var total = h * 60 + m + 60;
+      var hf = String(Math.floor(total / 60)).padStart(2, "0");
+      var mf = String(total % 60).padStart(2, "0");
+      var finId = e.target.id === "reqHoraInicio" ? "reqHoraFin" : "newHoraFin";
+      var fin = document.getElementById(finId);
+      if (fin && !fin.value) fin.value = hf + ":" + mf;
+    }
     </script>
     <script src="../scripts/pages/realtime.js"></script>
     <script src="../scripts/pages/solicitudes.js"></script>
