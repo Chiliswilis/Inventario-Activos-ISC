@@ -1453,4 +1453,18 @@ function showToast(msg, type="success") {
     REALTIME.on("assets", () => {
       loadAssets();   // recarga catálogo de activos disponibles
     });
+
+    // AUTO-FILL: al poner hora inicio en solicitud de laboratorio, sugerir hora fin +1h
+    const reqHoraInicioEl = document.getElementById("reqHoraInicio");
+    if (reqHoraInicioEl) {
+      reqHoraInicioEl.addEventListener("change", function () {
+        if (!this.value) return;
+        const [h, m] = this.value.split(":").map(Number);
+        const total = h * 60 + m + 60;
+        const hf = String(Math.floor(total / 60)).padStart(2, "0");
+        const mf = String(total % 60).padStart(2, "0");
+        const finEl = document.getElementById("reqHoraFin");
+        if (finEl && !finEl.value) finEl.value = `${hf}:${mf}`;
+      });
+    }
   });

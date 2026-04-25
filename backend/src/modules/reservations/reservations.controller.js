@@ -21,6 +21,12 @@ const create = async (req, res) => {
   catch (err) { res.status(err.status || 500).json({ message: err.message }); }
 };
 
+// FIX: handler para editar reserva (PUT /:id)
+const update = async (req, res) => {
+  try { res.json(await service.update(req.params.id, req.body)); }
+  catch (err) { res.status(err.status || 500).json({ message: err.message }); }
+};
+
 const approve = async (req, res) => {
   const { grupo, semestre } = req.body;
   if (!grupo || !semestre) return res.status(400).json({ message: "grupo y semestre son obligatorios" });
@@ -48,4 +54,4 @@ const remove = async (req, res) => {
   catch (err) { res.status(500).json(err); }
 };
 
-module.exports = { getAll, getById, create, approve, occupy, release, cancel, remove };
+module.exports = { getAll, getById, create, update, approve, occupy, release, cancel, remove };
