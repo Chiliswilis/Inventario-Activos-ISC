@@ -213,7 +213,7 @@ function renderTable(data) {
       <td><strong>${esc(c.name)}</strong>${c.description ? `<br><small style="color:#9ca3af;font-size:11px;">${esc(c.description)}</small>` : ""}</td>
       <td>${areaBadge}</td>
       <td><span style="font-size:12.5px;">${esc(catName)}</span></td>
-      <td><strong style="color:${low ? "#dc2626" : "#374151"}">${c.quantity}</strong></td>
+      <td><strong style="color:${low ? "#dc2626" : "#374151"}">${formatQty(c.quantity, c.unit)}</strong></td>
       <td style="color:#6b7280;font-size:12.5px;">${esc(c.unit)}</td>
       <td>${expiryHtml}</td>
       <td style="font-size:12px;color:#6b7280;">${esc(c.location || "—")}</td>
@@ -303,13 +303,25 @@ function onCategoryChange() {
 }
 
 
+function formatQty(qty, unit) {
+  const q = parseFloat(qty);
+  if (isNaN(q)) return "—";
+  if (Number.isInteger(q)) return q;
+  return parseFloat(q.toFixed(3));
+}
+
 function getStockLevel(c) {
   const unit = (c.unit || "").toLowerCase();
-  if (unit === "kg" || unit === "litros") {
-    return c.quantity <= c.min_quantity ? "low" : "ok";
+  const qty  = parseFloat(c.quantity) || 0;
+  const min  = parseFloat(c.min_quantity) || 0;
+  if (["kg", "litros", "gramos", "metros"].includes(unit)) {
+    if (qty <= 0) return "low";
+    if (min > 0) return qty <= min ? "low" : qty <= min * 1.5 ? "mid" : "ok";
+    // sin min_quantity definido: usar umbrales relativos
+    return qty < 0.5 ? "low" : qty < 1 ? "mid" : "ok";
   }
-  if (c.quantity <= 2) return "low";
-  if (c.quantity <= 7) return "mid";
+  if (qty <= 2) return "low";
+  if (qty <= 7) return "mid";
   return "ok";
 }
 

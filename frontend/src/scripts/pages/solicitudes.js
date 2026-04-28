@@ -803,7 +803,7 @@ function collectLabItems() {
   const items = [];
   rows.forEach(row => {
     const sel  = row.querySelector("select");
-    const qty  = parseInt(row.querySelector("input[type=number]").value) || 1;
+    const qty  = parseFloat(row.querySelector("input[type=number]").value) || 1;
     const typ  = row.dataset.type;
     if (!sel?.value) return;
     if (typ === "asset")      items.push({ asset_id:      parseInt(sel.value), quantity: 1 });
@@ -1223,7 +1223,8 @@ async function submitReturn() {
     const qtyInp = document.getElementById(`retQty_${itemId}`);
     const qtyRet = qtyInp ? parseFloat(qtyInp.value) || 0 : null;
     const qtyMax = qtyInp ? parseFloat(qtyInp.max)   || 0 : null;
-    if (qtyMax !== null && qtyRet < qtyMax) qtyWarning = true;
+    const isAsset = !!(parseInt(row.dataset.assetId) || 0);
+    if (isAsset && qtyMax !== null && qtyRet < qtyMax) qtyWarning = true;
     items_condition.push({
       item_id:            itemId,
       asset_id:           parseInt(row.dataset.assetId) || null,
