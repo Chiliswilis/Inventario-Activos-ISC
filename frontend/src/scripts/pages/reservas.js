@@ -981,11 +981,53 @@ async function submitRejectReserva() {
 }
 
 // ── ELIMINAR ──
-async function deleteReservation(id) {
-  if (!confirm("¿Eliminar esta reserva?")) return;
-  await fetch(`${API}/${id}`, { method: "DELETE" });
-  showToast("Reserva eliminada", "info");
-  loadReservations();
+function deleteReservation(id) {
+  const r = allReservations.find(x => x.id === id);
+  let overlay = document.getElementById("deleteReservaOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "deleteReservaOverlay";
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(15,23,42,0.55);backdrop-filter:blur(3px);
+      z-index:2000;display:flex;align-items:center;justify-content:center;`;
+    overlay.innerHTML = `
+      <div style="background:white;border-radius:14px;padding:28px 26px;width:380px;max-width:92vw;
+                  box-shadow:0 16px 48px rgba(0,0,0,0.2);text-align:center;">
+        <div style="width:52px;height:52px;background:#fee2e2;border-radius:50%;
+          display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+          <i class="fas fa-trash-alt" style="color:#dc2626;font-size:20px;"></i>
+        </div>
+        <h3 style="color:#1f2a3a;font-size:17px;margin-bottom:8px;">Eliminar reserva</h3>
+        <p id="deleteReservaMsg" style="color:#6b7280;font-size:13.5px;margin-bottom:22px;line-height:1.5;"></p>
+        <div style="display:flex;gap:10px;">
+          <button onclick="document.getElementById('deleteReservaOverlay').remove()" style="
+            flex:1;padding:10px;background:#f3f4f6;color:#374151;border:none;
+            border-radius:8px;font-size:13.5px;cursor:pointer;">
+            Cancelar
+          </button>
+          <button id="deleteReservaConfirmBtn" style="
+            flex:1;padding:10px;background:#dc2626;color:white;border:none;
+            border-radius:8px;font-size:13.5px;cursor:pointer;">
+            Sí, eliminar
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  }
+
+  const labNombre = r?.lab?.nombre || "esta reserva";
+  const fecha     = r?.fecha_uso   ? formatDate(r.fecha_uso) : "";
+  document.getElementById("deleteReservaMsg").textContent =
+    `¿Seguro que deseas eliminar la reserva de "${labNombre}"${fecha ? " del " + fecha : ""}? Esta acción no se puede deshacer.`;
+  document.getElementById("deleteReservaConfirmBtn").onclick = async () => {
+    overlay.remove();
+    await fetch(`${API}/${id}`, { method: "DELETE" });
+    showToast("Reserva eliminada", "info");
+    loadReservations();
+  };
+  overlay.style.display = "flex";
 }
 
 // ── UTILS ──

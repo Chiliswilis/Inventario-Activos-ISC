@@ -84,7 +84,7 @@ async function create(body) {
       docente_id:         docente_id || null,
       asset_id:           items.length ? null : (asset_id      || null),
       consumable_id:      items.length ? null : (consumable_id || null),
-      quantity_requested: items.length ? 1    : (parseInt(quantity_requested) || 1),
+      quantity_requested: items.length ? 1    : (parseFloat(quantity_requested) || 1),
       notes:              notes        || null,
       purpose:            purpose      || null,
       request_type:       request_type || "asset",
@@ -103,7 +103,7 @@ async function create(body) {
       request_id:    req_data.id,
       asset_id:      it.asset_id      || null,
       consumable_id: it.consumable_id || null,
-      quantity:      parseInt(it.quantity) || 1
+      quantity:      parseFloat(it.quantity) || 1
     }));
     const { error: itemErr } = await supabase.from("request_items").insert(itemRows);
     if (itemErr) throw itemErr;
@@ -161,11 +161,11 @@ async function approve(id, body) {
   // Descontar consumibles
   const consumablesToDiscount = [];
   if (solicitud.consumable_id) {
-    consumablesToDiscount.push({ id: solicitud.consumable_id, qty: parseInt(solicitud.quantity_requested) || 1 });
+    consumablesToDiscount.push({ id: solicitud.consumable_id, qty: parseFloat(solicitud.quantity_requested) || 1 });
   }
   for (const item of (solicitud.request_items || [])) {
     if (item.consumable_id) {
-      consumablesToDiscount.push({ id: item.consumable_id, qty: parseInt(item.quantity) || 1 });
+      consumablesToDiscount.push({ id: item.consumable_id, qty: parseFloat(item.quantity) || 1 });
     }
   }
   for (const c of consumablesToDiscount) {
@@ -344,7 +344,7 @@ async function update(id, body) {
         request_id:    parseInt(id),
         asset_id:      it.asset_id      || null,
         consumable_id: it.consumable_id || null,
-        quantity:      parseInt(it.quantity) || 1
+        quantity:      parseFloat(it.quantity) || 1
       }));
       const { error: itemErr } = await supabase.from("request_items").insert(newItemRows);
       if (itemErr) throw itemErr;
