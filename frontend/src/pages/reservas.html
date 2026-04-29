@@ -201,6 +201,80 @@
       .add-btns button {
         flex: 1;
       }
+
+      /* ── Card clickeable ── */
+      .lab-status-card {
+        cursor: default;
+        position: relative;
+      }
+      .lab-status-card.available {
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+      }
+      .lab-status-card.available:hover {
+        border-color: #16a34a;
+        box-shadow: 0 2px 8px rgba(22,163,74,0.18);
+        transform: translateY(-1px);
+      }
+      .lab-card-hint {
+        font-size: 10px;
+        color: #16a34a;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-weight: 500;
+      }
+      /* ── Modal de horarios ── */
+      .schedule-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 10px 0;
+      }
+      .schedule-block {
+        display: grid;
+        grid-template-columns: 90px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+        border-left: 3px solid;
+      }
+      .schedule-block.occupied-block {
+        border-color: var(--ibm-red);
+        background: var(--ibm-red-10);
+        color: var(--ibm-gray-90);
+      }
+      .schedule-block.available-block {
+        border-color: var(--ibm-green);
+        background: var(--ibm-green-10);
+        color: var(--ibm-green);
+        font-weight: 600;
+      }
+      .schedule-block.pending-block {
+        border-color: #d97706;
+        background: #fffbeb;
+        color: #92400e;
+      }
+      .sched-time {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .sched-info {
+        font-size: 11.5px;
+      }
+      .sched-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 99px;
+        white-space: nowrap;
+      }
+      .badge-occ  { background: #fee2e2; color: #dc2626; }
+      .badge-pend { background: #fef3c7; color: #d97706; }
+      .badge-free { background: #dcfce7; color: #16a34a; }
     </style>
   </head>
   <body>
@@ -612,11 +686,18 @@
     else if (isOcc)   { cardClass = "occupied";    pillClass = "pill-occupied";    pillLabel = "Ocupado"; }
     else              { cardClass = "available";   pillClass = "pill-available";   pillLabel = "Disponible"; }
 
-    return `<div class="lab-status-card ${cardClass}">
+    const isClickable = cardClass === "available";
+    const clickAttr   = isClickable ? `onclick="openLabScheduleModal(${l.id})"` : "";
+    const hint        = isClickable
+      ? `<div class="lab-card-hint"><i class="fas fa-mouse-pointer"></i> Ver horarios del día</div>`
+      : "";
+
+    return `<div class="lab-status-card ${cardClass}" ${clickAttr}>
       <div class="lab-card-title">${l.nombre}</div>
       <div class="lab-card-edif">${l.edificio}</div>
       <div class="lab-status-pill ${pillClass}"><span class="pill-dot"></span>${pillLabel}</div>
       <div style="font-size:11px;color:#9ca3af;margin-top:4px;">${l.open_time}–${l.close_time}</div>
+      ${hint}
     </div>`;
   }).join("");
 }
@@ -1490,6 +1571,125 @@
         t.className = `toast ${type} show`;
         setTimeout(() => t.classList.remove("show"), 3500);
       }
+      // ── MODAL HORARIOS DEL DÍA ──
+      function openLabScheduleModal(labId) {
+        const lab  = labs.find(l => l.id === labId);
+        if (!lab) return;
+        const role = currentUser?.role;
+        const todayStr = today();
+
+        // Reservas de este lab HOY (pending + approved + occupied)
+        const labResv = allReservations.filter(r =>
+          r.lab_id === labId &&
+          r.fecha_uso === todayStr &&
+          ["pending","approved","occupied"].includes(r.status)
+        ).sort((a,b) => (a.hora_inicio > b.hora_inicio ? 1 : -1));
+
+        // Construir timeline con bloques libres entre reservas
+        const openMin  = timeToMin(lab.open_time  || "07:30");
+        const closeMin = timeToMin(lab.close_time || "15:00");
+        const blocks   = buildTimeline(labResv, openMin, closeMin, role);
+
+        let modal = document.getElementById("labScheduleModal");
+        if (!modal) {
+          modal = document.createElement("div");
+          modal.id = "labScheduleModal";
+          modal.className = "modal";
+          modal.innerHTML = `
+            <div class="modal-box" style="max-width:500px;">
+              <button class="modal-close" onclick="document.getElementById('labScheduleModal').classList.remove('open')">&times;</button>
+              <h3 id="schedModalTitle" style="margin-bottom:4px;"></h3>
+              <p id="schedModalSub"  style="font-size:12px;color:#9ca3af;margin-bottom:14px;"></p>
+              <div id="schedTimeline" class="schedule-timeline"></div>
+              <div class="modal-actions" style="margin-top:14px;">
+                <button class="btn-cancel" onclick="document.getElementById('labScheduleModal').classList.remove('open')">Cerrar</button>
+                <button class="btn" onclick="document.getElementById('labScheduleModal').classList.remove('open');openNewModal();">
+                  <i class="fas fa-plus"></i> Nueva Reserva
+                </button>
+              </div>
+            </div>`;
+          document.body.appendChild(modal);
+          modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+        }
+
+        document.getElementById("schedModalTitle").innerHTML =
+          `<i class="fas fa-calendar-day" style="color:#4f46e5;margin-right:8px;"></i>${lab.nombre} — ${lab.edificio}`;
+        document.getElementById("schedModalSub").textContent =
+          `Horarios del día · Hoy ${formatDate(todayStr)} · ${lab.open_time}–${lab.close_time}`;
+        document.getElementById("schedTimeline").innerHTML = blocks;
+        modal.classList.add("open");
+      }
+
+      function timeToMin(t) {
+        const [h,m] = (t||"00:00").split(":").map(Number);
+        return h*60+m;
+      }
+      function minToTime(m) {
+        return `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+      }
+
+      function buildTimeline(reservations, openMin, closeMin, role) {
+        let html = "";
+        let cursor = openMin;
+
+        if (!reservations.length) {
+          html += freeBlock(minToTime(openMin), minToTime(closeMin));
+          return html || `<p style="color:#9ca3af;font-size:13px;text-align:center;">Sin reservas hoy — laboratorio disponible todo el día.</p>`;
+        }
+
+        for (const r of reservations) {
+          const rStart = timeToMin(r.hora_inicio?.substring(0,5) || "00:00");
+          const rEnd   = timeToMin(r.hora_fin?.substring(0,5)   || "00:00");
+
+          // Hueco libre antes de esta reserva
+          if (rStart > cursor) {
+            html += freeBlock(minToTime(cursor), minToTime(rStart));
+          }
+
+          // Bloque ocupado — info según rol
+          const isOccupied = r.status === "occupied";
+          const isPending  = r.status === "pending";
+          const blockClass = isOccupied ? "occupied-block" : "pending-block";
+          const badgeClass = isOccupied ? "badge-occ" : "badge-pend";
+          const badgeLabel = isOccupied ? "En uso" : "Pendiente";
+          const statusLabel = { occupied:"En uso", approved:"Aprobado", pending:"Pendiente" }[r.status] || r.status;
+
+          // Privacidad: admin ve nombre, docente/alumno ve "Reservado"
+          let infoHtml = "";
+          if (role === "administrador") {
+            const quien = r.alumno?.username || r.docente?.username || "—";
+            const doc   = r.docente?.username || "—";
+            const consItems = r.reservation_consumables?.map(c => c.consumables?.name).join(", ") || "";
+            infoHtml = `<div><strong>${quien}</strong> · Doc: ${doc}${consItems ? `<br><small style="color:#9ca3af;">${consItems}</small>` : ""}</div>`;
+          } else {
+            infoHtml = `<div style="color:#6b7280;">Reservado</div>`;
+          }
+
+          html += `<div class="schedule-block ${blockClass}">
+            <span class="sched-time">${r.hora_inicio?.substring(0,5)} – ${r.hora_fin?.substring(0,5)}</span>
+            <span class="sched-info">${infoHtml}</span>
+            <span class="sched-badge ${badgeClass}">${badgeLabel}</span>
+          </div>`;
+
+          cursor = Math.max(cursor, rEnd);
+        }
+
+        // Hueco libre al final
+        if (cursor < closeMin) {
+          html += freeBlock(minToTime(cursor), minToTime(closeMin));
+        }
+
+        return html;
+      }
+
+      function freeBlock(from, to) {
+        return `<div class="schedule-block available-block">
+          <span class="sched-time">${from} – ${to}</span>
+          <span class="sched-info">Disponible</span>
+          <span class="sched-badge badge-free">Libre</span>
+        </div>`;
+      }
+
       document.querySelectorAll(".modal").forEach((m) => {
         m.addEventListener("click", (e) => {
           if (e.target === m) m.classList.remove("open");
