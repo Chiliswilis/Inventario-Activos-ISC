@@ -135,6 +135,93 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* ── Audit Logs ── */
+      .audit-filters {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 14px 18px;
+        background: #fff;
+        border: 1px solid var(--ibm-gray-20);
+        border-bottom: none;
+      }
+      .audit-filters select,
+      .audit-filters input[type="date"] {
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        font-size: 12.5px;
+        font-family: "IBM Plex Sans", sans-serif;
+        background: #f9fafb;
+        color: #111827;
+        cursor: pointer;
+      }
+      .audit-filters select:focus,
+      .audit-filters input:focus { outline: 2px solid var(--ibm-blue); }
+      .audit-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 2px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: "IBM Plex Mono", monospace;
+        white-space: nowrap;
+      }
+      .audit-LOGIN    { background:#defbe6; color:#198038; }
+      .audit-LOGOUT   { background:#fff1f1; color:#da1e28; }
+      .audit-CREATE   { background:#edf5ff; color:#0043ce; }
+      .audit-UPDATE   { background:#fcf4d6; color:#b28600; }
+      .audit-DELETE   { background:#fff1f1; color:#da1e28; }
+      .audit-STATUS_CHANGE { background:#f4e6ff; color:#6929c4; }
+      .audit-module {
+        font-size: 10.5px;
+        font-family: "IBM Plex Mono", monospace;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 2px;
+      }
+      .audit-detail-btn {
+        background: none;
+        border: 1px solid #d1d5db;
+        padding: 2px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        font-family: "IBM Plex Sans", sans-serif;
+        color: #6b7280;
+        transition: all 0.1s;
+      }
+      .audit-detail-btn:hover { background:#f3f4f6; }
+      .audit-diff-row td {
+        background: #f9fafb !important;
+        padding: 0 !important;
+      }
+      .audit-diff-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: #e5e7eb;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+      }
+      .audit-diff-inner pre {
+        margin: 0;
+        padding: 10px 14px;
+        background: #f9fafb;
+        white-space: pre-wrap;
+        word-break: break-all;
+        line-height: 1.5;
+      }
+      .audit-diff-inner .diff-old { border-left: 3px solid #da1e28; }
+      .audit-diff-inner .diff-new { border-left: 3px solid #198038; }
+      .audit-count {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-left: auto;
+      }
     </style>
   </head>
   <body>
@@ -424,14 +511,87 @@
             </div>
           </div>
         </div>
+        <!-- ── AUDIT LOGS (solo admin) ── -->
+        <div id="auditSection" style="display:none;margin-top:0">
+      <div class="section-label" style="margin-top: 24px">
+        Auditoría del Sistema
       </div>
-    </div>
+      <div class="audit-filters">
+        <i class="fas fa-shield-alt" style="color:#6929c4"></i>
+        <span style="font-size:13px;font-weight:600;color:#374151">Filtros:</span>
+        <select id="auditModule" onchange="loadAuditLogs()">
+          <option value="">Todos los módulos</option>
+          <option value="auth">Auth</option>
+          <option value="solicitudes">Solicitudes</option>
+          <option value="reservas">Reservas</option>
+          <option value="activos">Activos</option>
+          <option value="consumibles">Consumibles</option>
+        </select>
+        <select id="auditAction" onchange="loadAuditLogs()">
+          <option value="">Todas las acciones</option>
+          <option value="LOGIN">LOGIN</option>
+          <option value="LOGOUT">LOGOUT</option>
+          <option value="CREATE">CREATE</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+          <option value="STATUS_CHANGE">STATUS_CHANGE</option>
+        </select>
+        <input type="date" id="auditFrom" onchange="loadAuditLogs()"
+          style="padding:6px 10px;border:1px solid #d1d5db;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;" />
+        <span style="font-size:13px;color:#6b7280">—</span>
+        <input type="date" id="auditTo" onchange="loadAuditLogs()"
+          style="padding:6px 10px;border:1px solid #d1d5db;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;" />
+        <select id="auditLimit" onchange="loadAuditLogs()" style="padding:6px 10px;border:1px solid #d1d5db;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;">
+          <option value="100">100 registros</option>
+          <option value="200" selected>200 registros</option>
+          <option value="500">500 registros</option>
+        </select>
+        <button onclick="resetAuditFilters()"
+          style="padding:6px 12px;border:1px solid #d1d5db;background:#f3f4f6;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+          <i class="fas fa-times"></i> Limpiar
+        </button>
+        <span class="audit-count" id="auditCount"></span>
+      </div>
+      <div class="panel" style="margin-top:0;border-top:none;">
+        <div class="panel-header" style="background:#faf5ff;border-bottom:1px solid #e9d5ff;">
+          <div class="panel-title">
+            <span style="width:8px;height:8px;border-radius:50%;background:#6929c4;display:inline-block;margin-right:6px;"></span>
+            Log de Actividad Detallado
+          </div>
+        </div>
+        <div id="auditWrapper" class="panel-scroll">
+          <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando logs...</p>
+          </div>
+        </div>
+        </div><!-- /auditSection -->
+
+      </div><!-- /content -->
+    </div><!-- /main -->
 
     <div class="toast" id="toast"></div>
 
     <script>
       // Fix 1: BASE relativo — funciona en localhost, Docker y producción
       const BASE = "/api";
+
+      function getStoredUser() {
+        try {
+          const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
+          return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+      }
+
+      function authHeaders() {
+        const user = getStoredUser();
+        const userId = user?.id || '';
+        return { 'x-user-id': String(userId) };
+      }
+
+      function authFetch(url) {
+        return fetch(url, { headers: authHeaders() }).then(r => r.ok ? r.json() : []).catch(() => []);
+      }
 
       function toggleMenu() {
         document.getElementById("sidebar").classList.toggle("open");
@@ -467,7 +627,7 @@
         try {
           let data, headers, rows;
           if (type === "assets") {
-            data = await fetch(`${BASE}/assets`).then((r) => r.json());
+            data = await authFetch(`${BASE}/assets`);
             data = filterByDate(data, "updated_at");
             headers = [
               "ID",
@@ -488,7 +648,7 @@
               a.quantity,
             ]);
           } else if (type === "consumables") {
-            data = await fetch(`${BASE}/consumibles`).then((r) => r.json());
+            data = await authFetch(`${BASE}/consumibles`);
             headers = [
               "ID",
               "Nombre",
@@ -508,7 +668,7 @@
               c.quantity <= c.min_quantity ? "Stock bajo" : "OK",
             ]);
           } else if (type === "requests") {
-            data = await fetch(`${BASE}/requests`).then((r) => r.json());
+            data = await authFetch(`${BASE}/requests`);
             data = filterByDate(data, "fecha_solicitud");
             headers = [
               "ID",
@@ -540,9 +700,7 @@
               r.hora_solicitud || "",
             ]);
           } else if (type === "reservations") {
-            data = await fetch(`${BASE}/reservations`)
-              .then((r) => r.json())
-              .catch(() => []);
+            data = await authFetch(`${BASE}/reservations`);
             data = filterByDate(data, "fecha_uso");
             headers = [
               "ID",
@@ -609,7 +767,7 @@
 
           if (type === "assets") {
             title = "REPORTE DE ACTIVOS";
-            data = await fetch(`${BASE}/assets`).then((r) => r.json());
+            data = await authFetch(`${BASE}/assets`);
             data = filterByDate(data, "updated_at");
             headers = [
               "ID",
@@ -631,7 +789,7 @@
             ]);
           } else if (type === "consumables") {
             title = "REPORTE DE CONSUMIBLES";
-            data = await fetch(`${BASE}/consumibles`).then((r) => r.json());
+            data = await authFetch(`${BASE}/consumibles`);
             headers = [
               "ID",
               "Nombre",
@@ -656,7 +814,7 @@
             ]);
           } else if (type === "requests") {
             title = "REPORTE DE SOLICITUDES";
-            data = await fetch(`${BASE}/requests`).then((r) => r.json());
+            data = await authFetch(`${BASE}/requests`);
             data = filterByDate(data, "fecha_solicitud");
             headers = [
               "ID",
@@ -685,9 +843,7 @@
             ]);
           } else if (type === "reservations") {
             title = "REPORTE DE RESERVAS";
-            data = await fetch(`${BASE}/reservations`)
-              .then((r) => r.json())
-              .catch(() => []);
+            data = await authFetch(`${BASE}/reservations`);
             data = filterByDate(data, "fecha_uso");
             headers = [
               "ID",
@@ -938,22 +1094,12 @@
 
       async function loadStats() {
         try {
-          [_assets, _consumables, _requests, _reservations] = await Promise.all(
-            [
-              fetch(`${BASE}/assets`)
-                .then((r) => r.json())
-                .catch(() => []),
-              fetch(`${BASE}/consumibles`)
-                .then((r) => r.json())
-                .catch(() => []),
-              fetch(`${BASE}/requests`)
-                .then((r) => r.json())
-                .catch(() => []),
-              fetch(`${BASE}/reservations`)
-                .then((r) => r.json())
-                .catch(() => []),
-            ],
-          );
+          [_assets, _consumables, _requests, _reservations] = await Promise.all([
+              authFetch(`${BASE}/assets`),
+              authFetch(`${BASE}/consumibles`),
+              authFetch(`${BASE}/requests`),
+              authFetch(`${BASE}/reservations`),
+          ]);
 
           const filteredReq = filterByDate(_requests, "fecha_solicitud");
           const filteredRes = filterByDate(_reservations, "fecha_uso");
@@ -982,7 +1128,138 @@
         setTimeout(() => t.classList.remove("show"), 3000);
       }
 
-      window.onload = loadStats;
+      // ── Audit Logs ────────────────────────────────────────────────
+      const ACTION_ICONS = {
+        LOGIN:        { icon: 'fa-sign-in-alt',  cls: 'audit-LOGIN'  },
+        LOGOUT:       { icon: 'fa-sign-out-alt', cls: 'audit-LOGOUT' },
+        CREATE:       { icon: 'fa-plus',         cls: 'audit-CREATE' },
+        UPDATE:       { icon: 'fa-pen',          cls: 'audit-UPDATE' },
+        DELETE:       { icon: 'fa-trash',        cls: 'audit-DELETE' },
+        STATUS_CHANGE:{ icon: 'fa-exchange-alt', cls: 'audit-STATUS_CHANGE' },
+      };
+
+      async function loadAuditLogs() {
+        const module = document.getElementById('auditModule')?.value || '';
+        const action = document.getElementById('auditAction')?.value || '';
+        const from   = document.getElementById('auditFrom')?.value   || '';
+        const to     = document.getElementById('auditTo')?.value     || '';
+        const limit  = document.getElementById('auditLimit')?.value  || 200;
+        const wrap   = document.getElementById('auditWrapper');
+        if (!wrap) return;
+
+        wrap.innerHTML = `<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>`;
+
+        try {
+          const params = new URLSearchParams();
+          if (module) params.set('module', module);
+          if (action) params.set('action', action);
+          if (from)   params.set('from', from + 'T00:00:00');
+          if (to)     params.set('to',   to   + 'T23:59:59');
+          params.set('limit', limit);
+
+          const logs  = await fetch(`${BASE}/audit-logs?${params}`, {
+            headers: authHeaders()
+          }).then(r => r.json());
+
+          document.getElementById('auditCount').textContent = `${logs.length} registros`;
+
+          if (!logs.length) {
+            wrap.innerHTML = `<div class="empty-state"><i class="fas fa-shield-alt"></i><p>Sin logs en este período</p></div>`;
+            return;
+          }
+
+          const rows = logs.map((l, idx) => {
+            const ai   = ACTION_ICONS[l.action] || { icon: 'fa-circle', cls: '' };
+            const date = new Date(l.created_at);
+            const fecha = date.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+            const hora  = date.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+            const hasDiff = l.old_value || l.new_value;
+
+            return `<tr>
+              <td style="font-size:11px;color:#6b7280;white-space:nowrap;font-family:'IBM Plex Mono',monospace;">
+                ${fecha}<br><strong>${hora}</strong>
+              </td>
+              <td>
+                <strong style="font-size:13px;">${l.users?.username || '—'}</strong>
+                <br><span style="font-size:11px;color:#9ca3af;">${l.users?.email || ''}</span>
+                <br><span class="audit-module">${l.user_role || '—'}</span>
+              </td>
+              <td>
+                <span class="audit-badge ${ai.cls}">
+                  <i class="fas ${ai.icon}"></i> ${l.action}
+                </span>
+              </td>
+              <td><span class="audit-module">${l.module || '—'}</span>${l.record_id ? `<span style="font-size:11px;color:#9ca3af;margin-left:4px;">#${l.record_id}</span>` : ''}</td>
+              <td style="font-size:12.5px;max-width:320px;">${l.description || '—'}</td>
+              <td style="font-size:11px;color:#9ca3af;font-family:'IBM Plex Mono',monospace;">${l.ip_address || '—'}</td>
+              <td>
+                ${hasDiff ? `<button class="audit-detail-btn" onclick="toggleAuditDiff(${idx})">
+                  <i class="fas fa-code"></i> Ver diff
+                </button>` : '—'}
+              </td>
+            </tr>
+            ${hasDiff ? `<tr id="audit-diff-${idx}" class="audit-diff-row" style="display:none;">
+              <td colspan="7">
+                <div class="audit-diff-inner">
+                  <pre class="diff-old"><span style="font-weight:700;color:#da1e28;">— Antes</span>\n${l.old_value ? JSON.stringify(l.old_value, null, 2) : 'null'}</pre>
+                  <pre class="diff-new"><span style="font-weight:700;color:#198038;">+ Después</span>\n${l.new_value ? JSON.stringify(l.new_value, null, 2) : 'null'}</pre>
+                </div>
+              </td>
+            </tr>` : ''}`;
+          }).join('');
+
+          wrap.innerHTML = `<table>
+            <thead><tr>
+              <th>Fecha / Hora</th>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Módulo</th>
+              <th>Descripción</th>
+              <th>IP</th>
+              <th>Detalle</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+        } catch (e) {
+          console.error('Audit logs error:', e);
+          wrap.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar logs</p></div>`;
+        }
+      }
+
+      function toggleAuditDiff(idx) {
+        const row = document.getElementById(`audit-diff-${idx}`);
+        if (!row) return;
+        row.style.display = row.style.display === 'none' ? '' : 'none';
+      }
+
+      function resetAuditFilters() {
+        ['auditModule','auditAction','auditFrom','auditTo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        loadAuditLogs();
+      }
+
+      // Mostrar sección solo si es admin
+      function initAuditSection() {
+        const role = (typeof getUser === 'function' && getUser()?.role) || '';
+        if (role === 'administrador') {
+          const sec = document.getElementById('auditSection');
+          if (sec) sec.style.display = '';
+          loadAuditLogs();
+        }
+      }
+
+      window.onload = () => {
+        loadStats();
+        // Usar getStoredUser (no depende del timing de common.js)
+        const role = getStoredUser()?.role || '';
+        if (role === 'administrador') {
+          const sec = document.getElementById('auditSection');
+          if (sec) sec.style.display = '';
+          loadAuditLogs();
+        }
+      };
     </script>
     <script src="../scripts/pages/common.js"></script>
     <script src="../scripts/pages/realtime.js"></script>
