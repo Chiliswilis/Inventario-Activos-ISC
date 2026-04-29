@@ -274,6 +274,12 @@ function openModal() {
   document.getElementById("reqType").value    = "asset";
   document.getElementById("reqPurpose").value = "";
   document.getElementById("reqNotes").value   = "";
+  // Reset num_alumnos y badge de área
+  const numAl = document.getElementById("reqNumAlumnos");
+  if (numAl) numAl.value = "0";
+  const badge = document.getElementById("labAreaBadge");
+  if (badge) badge.style.display = "none";
+  _solArea = "";
 
   // Limpiar y preparar campos de fecha/hora de solicitud
   const todayStr   = new Date().toISOString().split("T")[0];
@@ -385,11 +391,67 @@ function buildLabSelector() {
   sel.onchange = () => {
     const fechaVal = document.getElementById("reqFecha").value;
     updateSolicitudHourLimits(fechaVal);
+    onLabSelectionChange();
   };
 
   // Fecha mínima = hoy, sin fines de semana
   const todayStr = new Date().toISOString().split("T")[0];
   document.getElementById("reqFecha").min = todayStr;
+}
+
+// ── DETECCIÓN DE ÁREA POR LABORATORIO ──
+// Regla: "Ciencias Básicas" → área laboratorio/alimentos
+// Todo lo demás → área sistemas
+function getAreaFromLab(labId) {
+  if (!labId) return "";
+  const lab = allLabs.find(l => l.id === parseInt(labId));
+  if (!lab) return "";
+  const nombre = (lab.nombre || "").toLowerCase();
+  if (
+    nombre.includes("ciencias básicas") || nombre.includes("ciencias basicas") ||
+    nombre.includes("alimento") || nombre.includes("quím") || nombre.includes("quim") ||
+    nombre.includes("biolog") || nombre.includes("básic")
+  ) return "laboratorio";
+  return "sistemas";
+}
+
+function onLabSelectionChange() {
+  const labId = document.getElementById("reqLab").value;
+  const area  = getAreaFromLab(labId);
+  _solArea = area;
+
+  // Actualizar badge de área visible
+  let badge = document.getElementById("labAreaBadge");
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.id = "labAreaBadge";
+    badge.style.cssText = "margin-bottom:10px;font-size:12px;font-weight:600;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;";
+    const labItemsSection = document.getElementById("labSection");
+    const labItemsContainer = document.getElementById("labItemsContainer");
+    if (labItemsContainer && labItemsSection) {
+      labItemsSection.insertBefore(badge, labItemsContainer);
+    }
+  }
+  if (!labId) {
+    badge.style.display = "none";
+  } else {
+    const label = area === "laboratorio" ? "🔬 Área: Laboratorio / Alimentos" : "🖥️ Área: Sistemas";
+    const color = area === "laboratorio" ? "background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;" : "background:#ede9fe;color:#7c3aed;border:1px solid #ddd6fe;";
+    badge.style.cssText += color;
+    badge.innerHTML = label;
+    badge.style.display = "inline-flex";
+  }
+
+  // Refrescar las filas de ítems ya agregadas con el nuevo área
+  document.querySelectorAll("#labItemsContainer .item-row").forEach(row => {
+    const s   = row.querySelector("select");
+    const typ = row.dataset.type;
+    if (!s) return;
+    const cur  = s.value;
+    const list = typ === "asset" ? buildAssetOptions() : buildConsOptions();
+    s.innerHTML = `<option value="">-- ${typ === "asset" ? "Activo" : "Consumible"} --</option>${list}`;
+    if ([...s.options].some(o => o.value === cur)) s.value = cur;
+  });
 }
 
 function validateWeekend(input) {
@@ -730,6 +792,7 @@ async function saveRequest() {
       proposito:       purpose,
       fecha_solicitud: fechaSol,
       hora_solicitud:  horaSol,
+      num_alumnos: parseInt(document.getElementById("reqNumAlumnos")?.value) || 0,
       consumables: labItems.filter(i => i.consumable_id).map(i => ({ consumable_id: i.consumable_id, quantity_requested: i.quantity })),
       assets:      labItems.filter(i => i.asset_id).map(i => ({ asset_id: i.asset_id }))
     };

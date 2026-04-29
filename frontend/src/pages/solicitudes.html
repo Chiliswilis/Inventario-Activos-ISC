@@ -279,6 +279,13 @@
                 "
               />
             </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>¿Para cuántos alumnos? <span style="font-size:11px;color:var(--ibm-gray-50);">(0 – 30)</span></label>
+              <input type="number" id="reqNumAlumnos" value="0" min="0" max="30"
+                style="width:100%;"
+                oninput="if(parseInt(this.value)>30)this.value=30;if(parseInt(this.value)<0)this.value=0;">
+              <div class="hint">Máximo 30 alumnos por reserva</div>
+            </div>
           </div>
           <div class="section-sep">
             Material para la práctica
