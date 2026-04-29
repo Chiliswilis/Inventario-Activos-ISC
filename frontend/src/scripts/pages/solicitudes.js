@@ -18,6 +18,7 @@ let rowCounter   = 0;
 const statusMap = {
   pending:       { text:"Pendiente (docente)", cls:"badge-pending",  icon:"fa-clock"        },
   pending_admin: { text:"Pendiente (admin)",   cls:"badge-info",     icon:"fa-paper-plane"  },
+  queued:        { text:"En cola de espera",   cls:"badge-queued",   icon:"fa-hourglass-half"},
   approved:      { text:"Aprobada",            cls:"badge-approved", icon:"fa-check-circle" },
   rejected:      { text:"Rechazada",           cls:"badge-rejected", icon:"fa-times-circle" },
   returned:      { text:"Devuelta",            cls:"badge-returned", icon:"fa-undo"         }
@@ -122,6 +123,20 @@ function renderTable(data) {
       if (r.rejected_at) rejInfo += `<br><small style="color:#9ca3af;font-size:10px;">${new Date(r.rejected_at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"})}</small>`;
     }
 
+    // Cola de espera: mostrar posición y mensaje
+    let queueInfo = "";
+    if (r.status === "queued") {
+      const pos = r.queue_position ? `#${r.queue_position}` : "";
+      queueInfo = `<br><small style="color:#d97706;font-size:11px;"><i class="fas fa-hourglass-half"></i> Posición ${pos} en lista de espera</small>`;
+      if (r.admin_message) queueInfo += `<br><small style="color:#9ca3af;font-size:10px;">${r.admin_message}</small>`;
+    }
+
+    // Promovida de cola: admin_message especial
+    let promotedInfo = "";
+    if (r.status === "pending_admin" && r.admin_message?.includes("disponible")) {
+      promotedInfo = `<br><small style="color:#16a34a;font-size:11px;"><i class="fas fa-check-circle"></i> ${r.admin_message}</small>`;
+    }
+
     // Acciones
     let acciones = "";
 
@@ -183,7 +198,7 @@ function renderTable(data) {
       <td>${docente}</td>
       <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;${typeCls}">${typeLabel}</span><br><small style="color:#6b7280;font-size:11px;">${r.purpose||""}</small></td>
       <td>${itemText}${incident}${rejInfo}</td>
-      <td><span class="badge ${st.cls}"><i class="fas ${st.icon}"></i> ${st.text}</span></td>
+      <td><span class="badge ${st.cls}"><i class="fas ${st.icon}"></i> ${st.text}</span>${queueInfo}${promotedInfo}</td>
       <td style="white-space:nowrap;">${acciones || "—"}</td>
     </tr>`;
   }).join("");

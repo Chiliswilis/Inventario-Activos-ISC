@@ -9,6 +9,7 @@ const SELECT_FULL = `
   approval_date, return_date,
   user_id, docente_id,
   fecha_solicitud, hora_solicitud,
+  queue_position,
   users!requests_user_id_fkey(id, username, role),
   docente:users!requests_docente_id_fkey(id, username),
   rejected_user:users!requests_rejected_by_fkey(id, username),
@@ -127,6 +128,64 @@ async function create(body) {
 async function approve(id, body) {
   const { pickup_date, pickup_location, admin_message } = body;
 
+  // Obtener solicitud con ítems
+  const { data: solicitudActual } = await supabase
+    .from("requests")
+    .select(`
+      id, status, request_type, asset_id, consumable_id, quantity_requested,
+      request_items(id, asset_id, consumable_id, quantity)
+    `)
+    .eq("id", id).single();
+
+  // ── COLA DE PRIORIDAD: verificar activos prestados ──
+  const assetsToCheck = [];
+  if (solicitudActual?.asset_id) assetsToCheck.push(solicitudActual.asset_id);
+  for (const item of (solicitudActual?.request_items || [])) {
+    if (item.asset_id) assetsToCheck.push(item.asset_id);
+  }
+
+  const borrowedAssets = [];
+  for (const assetId of assetsToCheck) {
+    const { data: asset } = await supabase
+      .from("assets").select("id, name, status").eq("id", assetId).single();
+    if (asset && asset.status === "borrowed") borrowedAssets.push(asset);
+  }
+
+  // Si hay activos prestados → encolar en lugar de aprobar
+  if (borrowedAssets.length > 0) {
+    // Calcular posición en cola para este activo
+    const { count } = await supabase
+      .from("requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "queued");
+
+    const queuePos = (count || 0) + 1;
+    const assetNames = borrowedAssets.map(a => a.name).join(", ");
+
+    const { data: queued, error: qErr } = await supabase
+      .from("requests")
+      .update({
+        status: "queued",
+        queue_position: queuePos,
+        admin_message: `En lista de espera (posición #${queuePos}). Activo(s) en préstamo: ${assetNames}. Se notificará cuando estén disponibles.`
+      })
+      .eq("id", id)
+      .select("id, status, queue_position, admin_message");
+
+    if (qErr) throw qErr;
+
+    await supabase.from("logs").insert([{
+      action: "Solicitud encolada (activo en préstamo)",
+      table_name: "requests",
+      record_id: parseInt(id),
+      details: `Posición #${queuePos} · Activos en préstamo: ${assetNames}`
+    }]);
+
+    broadcast("requests", "UPDATE", queued[0]);
+    return { ...queued[0], queued: true, borrowedAssets: assetNames };
+  }
+
+  // ── Flujo normal de aprobación ──
   const { data, error } = await supabase
     .from("requests")
     .update({
@@ -303,6 +362,51 @@ async function returnRequest(id, body) {
       ? `Con incidente: ${incident_cause || "Sin descripción"}`
       : "Sin incidentes"
   }]);
+
+  // ── COLA DE PRIORIDAD: promover siguiente solicitud en espera ──
+  // Recolectar los asset_ids que acaban de quedar disponibles
+  const freedAssets = [];
+  for (const ic of items_condition) { if (ic.asset_id && ic.return_condition !== "perdido") freedAssets.push(ic.asset_id); }
+  if (items_condition.length === 0 && req_data?.asset_id) freedAssets.push(req_data.asset_id);
+  for (const a of (req_data?.request_items || [])) { if (a.asset_id) freedAssets.push(a.asset_id); }
+
+  if (freedAssets.length > 0) {
+    // Buscar solicitudes encoladas que pidan estos activos, orden por queue_position
+    for (const assetId of freedAssets) {
+      const { data: queued } = await supabase
+        .from("requests")
+        .select("id, queue_position, request_items(asset_id), asset_id")
+        .eq("status", "queued")
+        .order("queue_position", { ascending: true })
+        .limit(10);
+
+      const match = (queued || []).find(q => {
+        const directMatch = q.asset_id === assetId;
+        const itemMatch   = (q.request_items || []).some(ri => ri.asset_id === assetId);
+        return directMatch || itemMatch;
+      });
+
+      if (match) {
+        // Promover: cambiar a pending_admin para que admin la apruebe formalmente
+        await supabase.from("requests")
+          .update({
+            status: "pending_admin",
+            queue_position: null,
+            admin_message: "✅ El activo solicitado ya está disponible. Por favor aprueba esta solicitud."
+          })
+          .eq("id", match.id);
+
+        broadcast("requests", "UPDATE", { id: match.id, status: "pending_admin" });
+
+        await supabase.from("logs").insert([{
+          action: "Solicitud promovida de la cola",
+          table_name: "requests",
+          record_id: match.id,
+          details: `Activo ID ${assetId} liberado — solicitud promovida a pending_admin`
+        }]);
+      }
+    }
+  }
 
   broadcast("requests", "UPDATE", data[0]);
   return data[0];
