@@ -18,7 +18,6 @@ let rowCounter   = 0;
 const statusMap = {
   pending:       { text:"Pendiente (docente)", cls:"badge-pending",  icon:"fa-clock"        },
   pending_admin: { text:"Pendiente (admin)",   cls:"badge-info",     icon:"fa-paper-plane"  },
-  queued:        { text:"En cola de espera",   cls:"badge-queued",   icon:"fa-hourglass-half"},
   approved:      { text:"Aprobada",            cls:"badge-approved", icon:"fa-check-circle" },
   rejected:      { text:"Rechazada",           cls:"badge-rejected", icon:"fa-times-circle" },
   returned:      { text:"Devuelta",            cls:"badge-returned", icon:"fa-undo"         }
@@ -123,20 +122,6 @@ function renderTable(data) {
       if (r.rejected_at) rejInfo += `<br><small style="color:#9ca3af;font-size:10px;">${new Date(r.rejected_at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"})}</small>`;
     }
 
-    // Cola de espera: mostrar posición y mensaje
-    let queueInfo = "";
-    if (r.status === "queued") {
-      const pos = r.queue_position ? `#${r.queue_position}` : "";
-      queueInfo = `<br><small style="color:#d97706;font-size:11px;"><i class="fas fa-hourglass-half"></i> Posición ${pos} en lista de espera</small>`;
-      if (r.admin_message) queueInfo += `<br><small style="color:#9ca3af;font-size:10px;">${r.admin_message}</small>`;
-    }
-
-    // Promovida de cola: admin_message especial
-    let promotedInfo = "";
-    if (r.status === "pending_admin" && r.admin_message?.includes("disponible")) {
-      promotedInfo = `<br><small style="color:#16a34a;font-size:11px;"><i class="fas fa-check-circle"></i> ${r.admin_message}</small>`;
-    }
-
     // Acciones
     let acciones = "";
 
@@ -198,7 +183,7 @@ function renderTable(data) {
       <td>${docente}</td>
       <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;${typeCls}">${typeLabel}</span><br><small style="color:#6b7280;font-size:11px;">${r.purpose||""}</small></td>
       <td>${itemText}${incident}${rejInfo}</td>
-      <td><span class="badge ${st.cls}"><i class="fas ${st.icon}"></i> ${st.text}</span>${queueInfo}${promotedInfo}</td>
+      <td><span class="badge ${st.cls}"><i class="fas ${st.icon}"></i> ${st.text}</span></td>
       <td style="white-space:nowrap;">${acciones || "—"}</td>
     </tr>`;
   }).join("");
@@ -274,12 +259,6 @@ function openModal() {
   document.getElementById("reqType").value    = "asset";
   document.getElementById("reqPurpose").value = "";
   document.getElementById("reqNotes").value   = "";
-  // Reset num_alumnos y badge de área
-  const numAl = document.getElementById("reqNumAlumnos");
-  if (numAl) numAl.value = "0";
-  const badge = document.getElementById("labAreaBadge");
-  if (badge) badge.style.display = "none";
-  _solArea = "";
 
   // Limpiar y preparar campos de fecha/hora de solicitud
   const todayStr   = new Date().toISOString().split("T")[0];
@@ -391,67 +370,11 @@ function buildLabSelector() {
   sel.onchange = () => {
     const fechaVal = document.getElementById("reqFecha").value;
     updateSolicitudHourLimits(fechaVal);
-    onLabSelectionChange();
   };
 
   // Fecha mínima = hoy, sin fines de semana
   const todayStr = new Date().toISOString().split("T")[0];
   document.getElementById("reqFecha").min = todayStr;
-}
-
-// ── DETECCIÓN DE ÁREA POR LABORATORIO ──
-// Regla: "Ciencias Básicas" → área laboratorio/alimentos
-// Todo lo demás → área sistemas
-function getAreaFromLab(labId) {
-  if (!labId) return "";
-  const lab = allLabs.find(l => l.id === parseInt(labId));
-  if (!lab) return "";
-  const nombre = (lab.nombre || "").toLowerCase();
-  if (
-    nombre.includes("ciencias básicas") || nombre.includes("ciencias basicas") ||
-    nombre.includes("alimento") || nombre.includes("quím") || nombre.includes("quim") ||
-    nombre.includes("biolog") || nombre.includes("básic")
-  ) return "laboratorio";
-  return "sistemas";
-}
-
-function onLabSelectionChange() {
-  const labId = document.getElementById("reqLab").value;
-  const area  = getAreaFromLab(labId);
-  _solArea = area;
-
-  // Actualizar badge de área visible
-  let badge = document.getElementById("labAreaBadge");
-  if (!badge) {
-    badge = document.createElement("div");
-    badge.id = "labAreaBadge";
-    badge.style.cssText = "margin-bottom:10px;font-size:12px;font-weight:600;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;";
-    const labItemsSection = document.getElementById("labSection");
-    const labItemsContainer = document.getElementById("labItemsContainer");
-    if (labItemsContainer && labItemsSection) {
-      labItemsSection.insertBefore(badge, labItemsContainer);
-    }
-  }
-  if (!labId) {
-    badge.style.display = "none";
-  } else {
-    const label = area === "laboratorio" ? "🔬 Área: Laboratorio / Alimentos" : "🖥️ Área: Sistemas";
-    const color = area === "laboratorio" ? "background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;" : "background:#ede9fe;color:#7c3aed;border:1px solid #ddd6fe;";
-    badge.style.cssText += color;
-    badge.innerHTML = label;
-    badge.style.display = "inline-flex";
-  }
-
-  // Refrescar las filas de ítems ya agregadas con el nuevo área
-  document.querySelectorAll("#labItemsContainer .item-row").forEach(row => {
-    const s   = row.querySelector("select");
-    const typ = row.dataset.type;
-    if (!s) return;
-    const cur  = s.value;
-    const list = typ === "asset" ? buildAssetOptions() : buildConsOptions();
-    s.innerHTML = `<option value="">-- ${typ === "asset" ? "Activo" : "Consumible"} --</option>${list}`;
-    if ([...s.options].some(o => o.value === cur)) s.value = cur;
-  });
 }
 
 function validateWeekend(input) {
@@ -792,7 +715,6 @@ async function saveRequest() {
       proposito:       purpose,
       fecha_solicitud: fechaSol,
       hora_solicitud:  horaSol,
-      num_alumnos: parseInt(document.getElementById("reqNumAlumnos")?.value) || 0,
       consumables: labItems.filter(i => i.consumable_id).map(i => ({ consumable_id: i.consumable_id, quantity_requested: i.quantity })),
       assets:      labItems.filter(i => i.asset_id).map(i => ({ asset_id: i.asset_id }))
     };
@@ -1022,13 +944,40 @@ function openApproveModal(id) {
     modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
   document.getElementById("approveId").value              = id;
-  document.getElementById("approvePickupLocation").value  = "";
   document.getElementById("approveMessage").value         = "";
   const todayStr = new Date().toISOString().split("T")[0];
   document.getElementById("approvePickupDate").min   = todayStr;
   document.getElementById("approvePickupDate").value = "";
   if (document.getElementById("approvePickupTime"))
     document.getElementById("approvePickupTime").value = "";
+
+  // ── AUTO-FILL lugar de entrega ──
+  // Buscar la solicitud para inferir el lugar según tipo de activo/área
+  const req = allRequests.find(r => r.id === id);
+  let autoLocation = "";
+  if (req) {
+    const items = req.request_items || [];
+    const hasLabItems = items.some(i => {
+      const area = (i.assets?.area || "").toLowerCase();
+      return area.includes("lab") || area.includes("aliment") || area.includes("quím") || area.includes("quim");
+    });
+    const hasSisItems = items.some(i => {
+      const area = (i.assets?.area || "").toLowerCase();
+      return area.includes("sistem");
+    });
+    // Si es solo activo directo (no multi-ítem)
+    const directAsset = req.assets;
+    const directArea  = (directAsset?.area || "").toLowerCase();
+
+    if (hasLabItems || directArea.includes("lab") || directArea.includes("aliment")) {
+      autoLocation = "Laboratorio de Ciencias Básicas";
+    } else if (hasSisItems || directArea.includes("sistem") || req.request_type === "asset") {
+      autoLocation = "Laboratorio de Sistemas";
+    } else if (req.request_type === "consumable") {
+      autoLocation = "Almacén / Bodega";
+    }
+  }
+  document.getElementById("approvePickupLocation").value = autoLocation;
   modal.classList.add("open");
 }
 
