@@ -275,6 +275,14 @@
       .badge-occ  { background: #fee2e2; color: #dc2626; }
       .badge-pend { background: #fef3c7; color: #d97706; }
       .badge-free { background: #dcfce7; color: #16a34a; }
+      /* Select de lab bloqueado por preselección desde card */
+      select:disabled {
+        background: var(--ibm-blue-10, #eef2ff);
+        color: var(--ibm-gray-90, #1f2937);
+        border-color: var(--ibm-blue-20, #c7d2fe);
+        cursor: not-allowed;
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -409,6 +417,11 @@
         <div class="form-group">
           <label>Laboratorio *</label>
           <select id="newLab" onchange="onLabChange()"></select>
+          <div id="newLabFixed" style="display:none;padding:10px 12px;background:#eef2ff;border:1px solid #c7d2fe;font-size:13px;font-weight:600;color:#3730a3;align-items:center;gap:8px;">
+            <i class="fas fa-lock" style="font-size:11px;color:#6366f1;"></i>
+            <span id="newLabFixedName"></span>
+            <small style="font-weight:400;color:#6366f1;margin-left:auto;">Seleccionado desde disponibilidad</small>
+          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -832,7 +845,7 @@
       }
 
       // ── NUEVA RESERVA ──
-      function openNewModal() {
+      function openNewModal(preselectedLabId) {
         // Labs
         const sel = document.getElementById("newLab");
         sel.innerHTML = `<option value="">-- Selecciona laboratorio --</option>`;
@@ -849,9 +862,27 @@
             op.textContent = l.nombre;
             op.dataset.open = l.open_time;
             op.dataset.close = l.close_time;
+            // FIX: preseleccionar si viene del modal de horarios
+            if (preselectedLabId && l.id === preselectedLabId) op.selected = true;
             og.appendChild(op);
           });
           sel.appendChild(og);
+        }
+
+        // Si viene con lab preseleccionado: ocultar select, mostrar pill de solo lectura
+        const fixedDiv  = document.getElementById("newLabFixed");
+        const fixedName = document.getElementById("newLabFixedName");
+        if (preselectedLabId) {
+          const labObj = labs.find(l => l.id === preselectedLabId);
+          sel.style.display   = "none";
+          fixedDiv.style.display = "flex";
+          fixedName.textContent  = labObj ? `${labObj.nombre} — ${labObj.edificio}` : "";
+          // También disparar onLabChange para actualizar horas disponibles
+          sel.value = preselectedLabId;
+          if (typeof onLabChange === "function") onLabChange();
+        } else {
+          sel.style.display   = "";
+          fixedDiv.style.display = "none";
         }
 
         // Fecha mínima = hoy
@@ -1551,6 +1582,13 @@
       // ── UTILS ──
       function closeModal(id) {
         document.getElementById(id).classList.remove("open");
+        // Restaurar select de lab si estaba oculto por preselección
+        if (id === "newModal") {
+          const sel = document.getElementById("newLab");
+          const fixedDiv = document.getElementById("newLabFixed");
+          if (sel) sel.style.display = "";
+          if (fixedDiv) fixedDiv.style.display = "none";
+        }
       }
       function toggleMenu() {
         document.getElementById("sidebar").classList.toggle("open");
@@ -1578,14 +1616,12 @@
         const role = currentUser?.role;
         const todayStr = today();
 
-        // Reservas de este lab HOY (pending + approved + occupied)
         const labResv = allReservations.filter(r =>
           r.lab_id === labId &&
           r.fecha_uso === todayStr &&
           ["pending","approved","occupied"].includes(r.status)
         ).sort((a,b) => (a.hora_inicio > b.hora_inicio ? 1 : -1));
 
-        // Construir timeline con bloques libres entre reservas
         const openMin  = timeToMin(lab.open_time  || "07:30");
         const closeMin = timeToMin(lab.close_time || "15:00");
         const blocks   = buildTimeline(labResv, openMin, closeMin, role);
@@ -1596,14 +1632,14 @@
           modal.id = "labScheduleModal";
           modal.className = "modal";
           modal.innerHTML = `
-            <div class="modal-box" style="max-width:500px;">
+            <div class="modal-box" style="max-width:520px;">
               <button class="modal-close" onclick="document.getElementById('labScheduleModal').classList.remove('open')">&times;</button>
               <h3 id="schedModalTitle" style="margin-bottom:4px;"></h3>
               <p id="schedModalSub"  style="font-size:12px;color:#9ca3af;margin-bottom:14px;"></p>
               <div id="schedTimeline" class="schedule-timeline"></div>
               <div class="modal-actions" style="margin-top:14px;">
                 <button class="btn-cancel" onclick="document.getElementById('labScheduleModal').classList.remove('open')">Cerrar</button>
-                <button class="btn" onclick="document.getElementById('labScheduleModal').classList.remove('open');openNewModal();">
+                <button class="btn" id="schedBtnNewReserva">
                   <i class="fas fa-plus"></i> Nueva Reserva
                 </button>
               </div>
@@ -1617,6 +1653,13 @@
         document.getElementById("schedModalSub").textContent =
           `Horarios del día · Hoy ${formatDate(todayStr)} · ${lab.open_time}–${lab.close_time}`;
         document.getElementById("schedTimeline").innerHTML = blocks;
+
+        // FIX: botón "Nueva Reserva" cierra modal y abre openNewModal CON el lab preseleccionado
+        document.getElementById("schedBtnNewReserva").onclick = () => {
+          document.getElementById("labScheduleModal").classList.remove("open");
+          openNewModal(labId);
+        };
+
         modal.classList.add("open");
       }
 
@@ -1633,36 +1676,60 @@
         let cursor = openMin;
 
         if (!reservations.length) {
-          html += freeBlock(minToTime(openMin), minToTime(closeMin));
-          return html || `<p style="color:#9ca3af;font-size:13px;text-align:center;">Sin reservas hoy — laboratorio disponible todo el día.</p>`;
+          return freeBlock(minToTime(openMin), minToTime(closeMin));
         }
 
         for (const r of reservations) {
           const rStart = timeToMin(r.hora_inicio?.substring(0,5) || "00:00");
           const rEnd   = timeToMin(r.hora_fin?.substring(0,5)   || "00:00");
 
-          // Hueco libre antes de esta reserva
-          if (rStart > cursor) {
-            html += freeBlock(minToTime(cursor), minToTime(rStart));
-          }
+          if (rStart > cursor) html += freeBlock(minToTime(cursor), minToTime(rStart));
 
-          // Bloque ocupado — info según rol
           const isOccupied = r.status === "occupied";
-          const isPending  = r.status === "pending";
           const blockClass = isOccupied ? "occupied-block" : "pending-block";
           const badgeClass = isOccupied ? "badge-occ" : "badge-pend";
           const badgeLabel = isOccupied ? "En uso" : "Pendiente";
-          const statusLabel = { occupied:"En uso", approved:"Aprobado", pending:"Pendiente" }[r.status] || r.status;
 
-          // Privacidad: admin ve nombre, docente/alumno ve "Reservado"
           let infoHtml = "";
           if (role === "administrador") {
-            const quien = r.alumno?.username || r.docente?.username || "—";
+            // Admin: ve quién, activos y consumibles
+            const quien = r.alumno?.username || "—";
             const doc   = r.docente?.username || "—";
-            const consItems = r.reservation_consumables?.map(c => c.consumables?.name).join(", ") || "";
-            infoHtml = `<div><strong>${quien}</strong> · Doc: ${doc}${consItems ? `<br><small style="color:#9ca3af;">${consItems}</small>` : ""}</div>`;
+
+            // Activos de la reserva
+            const assets = (r.reservation_assets || [])
+              .map(a => a.assets?.name).filter(Boolean);
+            // Consumibles de la reserva
+            const cons = (r.reservation_consumables || [])
+              .map(c => `${c.consumables?.name} x${c.quantity_requested}`).filter(Boolean);
+
+            const assetStr = assets.length
+              ? `<br><small style="color:#6366f1;"><i class="fas fa-box" style="width:12px;"></i> ${assets.join(", ")}</small>`
+              : "";
+            const consStr  = cons.length
+              ? `<br><small style="color:#d97706;"><i class="fas fa-flask" style="width:12px;"></i> ${cons.join(", ")}</small>`
+              : "";
+
+            infoHtml = `<div>
+              <strong>${quien}</strong> <span style="color:#9ca3af;font-size:11px;">· Doc: ${doc}</span>
+              ${assetStr}${consStr}
+            </div>`;
           } else {
-            infoHtml = `<div style="color:#6b7280;">Reservado</div>`;
+            // Docente/alumno: solo ve si es SU propia reserva o "Reservado"
+            const esPropia = r.alumno_id === currentUser?.id || r.docente_id === currentUser?.id;
+            if (esPropia) {
+              const cons = (r.reservation_consumables || [])
+                .map(c => c.consumables?.name).filter(Boolean).join(", ");
+              const assets = (r.reservation_assets || [])
+                .map(a => a.assets?.name).filter(Boolean).join(", ");
+              infoHtml = `<div>
+                <strong style="color:#4f46e5;">Tu reserva</strong>
+                ${assets ? `<br><small style="color:#6366f1;"><i class="fas fa-box" style="width:12px;"></i> ${assets}</small>` : ""}
+                ${cons   ? `<br><small style="color:#d97706;"><i class="fas fa-flask" style="width:12px;"></i> ${cons}</small>`   : ""}
+              </div>`;
+            } else {
+              infoHtml = `<div style="color:#6b7280;font-style:italic;">Reservado</div>`;
+            }
           }
 
           html += `<div class="schedule-block ${blockClass}">
@@ -1674,10 +1741,7 @@
           cursor = Math.max(cursor, rEnd);
         }
 
-        // Hueco libre al final
-        if (cursor < closeMin) {
-          html += freeBlock(minToTime(cursor), minToTime(closeMin));
-        }
+        if (cursor < closeMin) html += freeBlock(minToTime(cursor), minToTime(closeMin));
 
         return html;
       }

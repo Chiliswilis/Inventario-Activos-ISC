@@ -12,6 +12,10 @@ const SELECT_FULL = `
   reservation_consumables(
     id, quantity_requested, quantity_delivered, leftover_qty,
     consumables(id, name, unit)
+  ),
+  reservation_assets(
+    id, asset_id,
+    assets(id, name, serial_number)
   )
 `;
 
