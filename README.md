@@ -150,6 +150,7 @@ Inventario-Activos-ISC-Victor/
 │   │   ├── scripts/
 │   │   │   ├── pages/     ← Scripts
 │   │   │   │   ├── activos.js
+│   │   │   │   ├── categories-manager.js
 │   │   │   │   ├── conmmon.js
 │   │   │   │   ├── configuración.js
 │   │   │   │   ├── consumibles.js
