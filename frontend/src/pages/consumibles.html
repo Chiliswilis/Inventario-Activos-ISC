@@ -1,174 +1,361 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Consumibles</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-
-</head>
-<body>
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-<div class="menu-section">Principal</div>
-<a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-<div class="menu-section">Inventario</div>
-<a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-<a href="consumibles.html" class="active"><i class="fas fa-flask"></i> Consumibles</a>
-<div class="menu-section">Gestión</div>
-<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-<a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-<div class="menu-section">Sistema</div>
-<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-flask"></i> Gestión de Consumibles</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-  <div class="content">
-
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-boxes"></i></div><div><div class="stat-label">Total consumibles</div><div class="stat-value" id="statTotal">—</div></div></div>
-      <div class="stat-card"><div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div><div><div class="stat-label">Stock bajo</div><div class="stat-value" id="statLow">—</div></div></div>
-      <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-calendar-times"></i></div><div><div class="stat-label">Por caducar (30 días)</div><div class="stat-value" id="statExpiry">—</div></div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div><div class="stat-label">En buen estado</div><div class="stat-value" id="statOk">—</div></div></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Consumibles</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
+      </div>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+        <a href="consumibles.html" class="active"
+          ><i class="fas fa-flask"></i> Consumibles</a
+        >
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+        <a href="configuracion.html"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
+      </div>
     </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title"><span class="dot dot-blue"></span> Inventario de Consumibles</div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-export admin-only" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
-          <button class="btn admin-only" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Consumible</button>
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <h2><i class="fas fa-flask"></i> Gestión de Consumibles</h2>
+        </div>
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
         </div>
       </div>
-
-      <div class="filters-bar" style="flex-direction:column;align-items:flex-start;gap:10px;">
-        <div class="area-tabs">
-          <button type="button" class="area-tab active all" onclick="selectArea(this,'')"><i class="fas fa-globe-americas"></i> Todos</button>
-          <button type="button" class="area-tab sistemas"   onclick="selectArea(this,'sistemas')"><i class="fas fa-desktop"></i> Sistemas</button>
-          <button type="button" class="area-tab lab"        onclick="selectArea(this,'lab')"><i class="fas fa-microscope"></i> Lab / Alimentos</button>
+      <div class="content">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-boxes"></i></div>
+            <div>
+              <div class="stat-label">Total consumibles</div>
+              <div class="stat-value" id="statTotal">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+              <div class="stat-label">Stock bajo</div>
+              <div class="stat-value" id="statLow">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">
+              <i class="fas fa-calendar-times"></i>
+            </div>
+            <div>
+              <div class="stat-label">Por caducar (30 días)</div>
+              <div class="stat-value" id="statExpiry">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+              <div class="stat-label">En buen estado</div>
+              <div class="stat-value" id="statOk">—</div>
+            </div>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;width:100%;">
-          <input type="text" id="searchInput" placeholder="Buscar por nombre o descripción..." oninput="applyFilters()" style="min-width:220px;">
-          <select id="categoryFilter" onchange="applyFilters()"><option value="">Todas las categorías</option></select>
-          <select id="stockFilter" onchange="applyFilters()">
-            <option value="">Todos los estados</option>
-            <option value="low">Stock bajo</option>
-            <option value="mid">Stock medio</option>
-            <option value="ok">Suficiente</option>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="dot dot-blue"></span> Inventario de Consumibles
+            </div>
+            <div style="display: flex; gap: 8px">
+  <button class="btn-export admin-only" onclick="exportCSV()">
+    <i class="fas fa-file-csv"></i> Exportar CSV
+  </button>
+  <button class="btn-secondary admin-only" onclick="openCatManager()">
+    <i class="fas fa-tags"></i> Categorías
+  </button>
+  <button class="btn admin-only" onclick="openModal()">
+    <i class="fas fa-plus"></i> Nuevo Consumible
+  </button>
+</div>
+          </div>
+
+          <div
+            class="filters-bar"
+            style="flex-direction: column; align-items: flex-start; gap: 10px"
+          >
+            <div class="area-tabs">
+              <button
+                type="button"
+                class="area-tab active all"
+                onclick="selectArea(this, '')"
+              >
+                <i class="fas fa-globe-americas"></i> Todos
+              </button>
+              <button
+                type="button"
+                class="area-tab sistemas"
+                onclick="selectArea(this, 'sistemas')"
+              >
+                <i class="fas fa-desktop"></i> Sistemas
+              </button>
+              <button
+                type="button"
+                class="area-tab lab"
+                onclick="selectArea(this, 'laboratorio')"
+              >
+                <i class="fas fa-microscope"></i> Lab / Alimentos
+              </button>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Buscar por nombre o descripción..."
+                oninput="applyFilters()"
+                style="min-width: 220px"
+              />
+              <select id="categoryFilter" onchange="applyFilters()">
+                <option value="">Todas las categorías</option>
+              </select>
+              <select id="stockFilter" onchange="applyFilters()">
+                <option value="">Todos los estados</option>
+                <option value="low">Stock bajo</option>
+                <option value="mid">Stock medio</option>
+                <option value="ok">Suficiente</option>
+              </select>
+              <select id="expiryFilter" onchange="applyFilters()">
+                <option value="">Cualquier caducidad</option>
+                <option value="expired">Caducados</option>
+                <option value="soon">Por caducar (30 días)</option>
+                <option value="ok">Sin riesgo</option>
+                <option value="none">Sin fecha registrada</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <div id="tableWrapper">
+              <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando consumibles...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL AGREGAR / EDITAR -->
+    <div class="modal" id="consumibleModal">
+      <div class="modal-content">
+        <button class="close" onclick="closeModal()">&times;</button>
+        <h3 id="modalTitle">Agregar Consumible</h3>
+        <input type="hidden" id="consumibleId" />
+        <div class="section-sep">Información general</div>
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input
+            type="text"
+            id="consumibleName"
+            placeholder="Ej: Papel A4, Ácido clorhídrico..."
+          />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea
+            id="consumibleDescription"
+            placeholder="Descripción opcional (marca, concentración...)"
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Área *</label>
+            <select id="consumibleArea" onchange="updateCategoryOptions()">
+              <option value="" disabled selected>Selecciona área</option>
+              <option value="sistemas">Sistemas</option>
+              <option value="laboratorio">Laboratorio / Alimentos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select id="consumibleCategory" onchange="onCategoryChange()">
+              <option value="" disabled selected>
+                Seleccione área primero
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="section-sep">Stock e inventario</div>
+        <div class="form-group">
+          <label>Unidad *</label>
+          <select id="consumibleUnit" onchange="onUnitChange()">
+            <option value="" disabled selected>
+              Seleccione categoría primero
+            </option>
           </select>
-          <select id="expiryFilter" onchange="applyFilters()">
-            <option value="">Cualquier caducidad</option>
-            <option value="expired">Caducados</option>
-            <option value="soon">Por caducar (30 días)</option>
-            <option value="ok">Sin riesgo</option>
-            <option value="none">Sin fecha registrada</option>
-          </select>
+        </div>
+        <div class="form-group">
+          <label>Cantidad existente *</label>
+          <div id="quantityWrapper">
+            <input
+              type="number"
+              id="consumibleQuantity"
+              placeholder="0"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+        </div>
+        <div class="section-sep">Caducidad y ubicación</div>
+        <div class="form-row">
+          <div class="form-group" id="expiryRow">
+            <label>Fecha de caducidad <span>(opcional)</span></label>
+            <input type="date" id="consumibleExpiry" />
+          </div>
+          <div class="form-group">
+            <label>Ubicación</label>
+            <input
+              type="text"
+              id="consumibleLocation"
+              placeholder="Ubicación"
+              value="Lab. Ciencias Básicas"
+            />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn"
+            style="flex: 1; justify-content: center"
+            onclick="saveConsumible()"
+          >
+            <i class="fas fa-save"></i> Guardar
+          </button>
         </div>
       </div>
+    </div>
 
-      <div class="table-scroll">
-        <div id="tableWrapper">
-          <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando consumibles...</p></div>
-        </div>
+    <div class="toast" id="toast"></div>
+    <div class="modal" id="catManagerModal">
+  <div class="modal-content" style="max-width:560px;">
+    <button class="close" onclick="closeCatManager()">&times;</button>
+    <h3 id="catManagerTitle" style="display:flex;align-items:center;gap:10px;">
+      <i class="fas fa-tags" style="color:#4f46e5;"></i> Gestión de Categorías
+    </h3>
+ 
+    <!-- ── SECCIÓN LISTA ── -->
+    <div id="catListSection">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:13px;color:#6b7280;">
+          Categorías registradas para este módulo
+        </span>
+        <button class="btn" style="padding:7px 14px;font-size:12.5px;" onclick="openAddCat()">
+          <i class="fas fa-plus"></i> Nueva
+        </button>
       </div>
+      <div id="catList" style="max-height:380px;overflow-y:auto;"></div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL AGREGAR / EDITAR -->
-<div class="modal" id="consumibleModal">
-  <div class="modal-content">
-    <button class="close" onclick="closeModal()">&times;</button>
-    <h3 id="modalTitle">Agregar Consumible</h3>
-    <input type="hidden" id="consumibleId">
-    <div class="section-sep">Información general</div>
-    <div class="form-group">
-      <label>Nombre *</label>
-      <input type="text" id="consumibleName" placeholder="Ej: Papel A4, Ácido clorhídrico...">
-    </div>
-    <div class="form-group">
-      <label>Descripción</label>
-      <textarea id="consumibleDescription" placeholder="Descripción opcional (marca, concentración...)"></textarea>
-    </div>
-    <div class="form-row">
+ 
+    <!-- ── SECCIÓN FORMULARIO ── -->
+    <div id="catFormSection" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <button onclick="cancelCatForm()"
+          style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:18px;padding:0;">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <span id="catFormTitle" style="font-weight:600;font-size:15px;color:#1f2a3a;">Nueva categoría</span>
+      </div>
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" id="catInputName" placeholder="Ej: Electrónica, Papelería..." />
+      </div>
+      <div class="form-group">
+        <label>Descripción <span style="font-weight:400;color:#9ca3af;">(opcional)</span></label>
+        <input type="text" id="catInputDesc" placeholder="Descripción breve..." />
+      </div>
       <div class="form-group">
         <label>Área *</label>
-        <select id="consumibleArea" onchange="updateCategoryOptions()">
+        <select id="catInputArea">
           <option value="" disabled selected>Selecciona área</option>
           <option value="sistemas">Sistemas</option>
           <option value="laboratorio">Laboratorio / Alimentos</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Categoría *</label>
-        <select id="consumibleCategory" onchange="onCategoryChange()"><option value="" disabled selected>Seleccione área primero</option></select>
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn-cancel" onclick="cancelCatForm()">Cancelar</button>
+        <button class="btn" style="flex:1;justify-content:center;" onclick="saveCat()">
+          <i class="fas fa-save"></i> Guardar
+        </button>
       </div>
-    </div>
-    <div class="section-sep">Stock e inventario</div>
-    <div class="form-group">
-      <label>Unidad *</label>
-      <select id="consumibleUnit" onchange="onUnitChange()"><option value="" disabled selected>Seleccione categoría primero</option></select>
-    </div>
-    <div class="form-group">
-      <label>Cantidad existente *</label>
-      <div id="quantityWrapper"><input type="number" id="consumibleQuantity" placeholder="0" min="0" step="1" value="0"></div>
-    </div>
-    <div class="section-sep">Caducidad y ubicación</div>
-    <div class="form-row">
-      <div class="form-group" id="expiryRow">
-        <label>Fecha de caducidad <span>(opcional)</span></label>
-        <input type="date" id="consumibleExpiry">
-      </div>
-      <div class="form-group">
-        <label>Ubicación</label>
-        <input type="text" id="consumibleLocation" placeholder="Ubicación" value="Lab. Ciencias Básicas">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button type="button" class="btn" style="flex:1;justify-content:center;" onclick="saveConsumible()"><i class="fas fa-save"></i> Guardar</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<script>
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-</script>
-<script src="../scripts/pages/common.js"></script>
-<script src="../scripts/pages/consumibles.js"></script>
-<script src="../scripts/pages/realtime.js"></script>
-</body>
+    <script>
+      function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+    </script>
+    <script>const pageType = "consumable";</script>
+    <script src="../scripts/pages/categories-manager.js"></script>
+    <script src="../scripts/pages/common.js"></script>
+    <script src="../scripts/pages/consumibles.js"></script>
+    <script src="../scripts/pages/realtime.js"></script>
+  </body>
 </html>

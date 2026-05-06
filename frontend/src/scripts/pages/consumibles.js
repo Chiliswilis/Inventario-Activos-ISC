@@ -5,9 +5,13 @@ let allConsumables = [];
 let categories     = [];
 let activeArea     = "";
 
+// ── Paginación ──
+let _currentPage  = 1;
+let _pageSize     = 20;  // elementos por página por defecto
+
 let currentRole = "alumno";
 try {
-  const u = JSON.parse(localStorage.getItem("user"));
+  const u = JSON.parse(sessionStorage.getItem("user"));
   if (u && u.role) currentRole = u.role;
 } catch {}
 const isAdmin = currentRole === "administrador";
@@ -64,7 +68,15 @@ function updateCategoryOptions() {
     opt.textContent = cat.name;
     sel.appendChild(opt);
   });
-  // Actualizar unidades y caducidad según la primera categoría disponible
+
+  // Autocompletar ubicación según área
+  const locEl = document.getElementById("consumibleLocation");
+  if (locEl && !document.getElementById("consumibleId").value) {
+    // Solo autocompletar en modo "agregar" (no editar)
+    locEl.value = area === "laboratorio" ? "Lab. Ciencias Básicas" : "Lab. de Sistemas";
+  }
+
+  // Actualizar unidades según la primera categoría disponible
   onCategoryChange();
 }
 
@@ -118,55 +130,68 @@ function renderTable(data) {
   const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
 
   if (!data.length) {
-    wrap.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-box-open"></i>
-        <p>No hay consumibles para los filtros seleccionados</p>
-      </div>`;
+    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay consumibles para los filtros seleccionados</p></div>`;
     return;
   }
+
+  // ── Paginación ──
+  const totalPages = Math.ceil(data.length / _pageSize);
+  _currentPage     = Math.min(_currentPage, totalPages);
+  const pageData   = data.slice((_currentPage - 1) * _pageSize, _currentPage * _pageSize);
+
+  const pageSizeOpts = [10, 20, 50, 100].map(n =>
+    `<option value="${n}" ${n === _pageSize ? "selected" : ""}>${n}</option>`).join("");
+
+  const paginationBar = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+                gap:8px;padding:10px 4px;font-size:13px;color:#6b7280;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        Mostrar
+        <select onchange="_pageSize=parseInt(this.value);_currentPage=1;applyFilters()"
+          style="padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;">${pageSizeOpts}</select>
+        por página &nbsp;·&nbsp; <strong>${data.length}</strong> resultado${data.length !== 1 ? "s" : ""}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onclick="if(_currentPage>1){_currentPage--;applyFilters();}"
+          ${_currentPage === 1 ? "disabled" : ""}
+          style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;background:white;cursor:pointer;font-size:12px;">‹</button>
+        <span style="padding:4px 12px;background:#f3f4f6;border-radius:4px;">${_currentPage} / ${totalPages}</span>
+        <button onclick="if(_currentPage<${totalPages}){_currentPage++;applyFilters();}"
+          ${_currentPage === totalPages ? "disabled" : ""}
+          style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;background:white;cursor:pointer;font-size:12px;">›</button>
+      </div>
+    </div>`;
 
   wrap.innerHTML = `
     <table>
       <thead><tr>
-        <th>#</th>
-        <th>Nombre</th>
-        <th>Área</th>
-        <th>Categoría</th>
-        <th>Cant. existente</th>
-        <th>Unidad</th>
-        <th>Caducidad</th>
-        <th>Ubicación</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <th>#</th><th>Nombre</th><th>Área</th><th>Categoría</th>
+        <th>Cant.</th><th>Unidad</th><th>Caducidad</th>
+        <th>Ubicación</th><th>Estado</th><th>Acciones</th>
       </tr></thead>
       <tbody id="consumablesBody"></tbody>
-    </table>`;
+    </table>
+    ${paginationBar}`;
 
   const tbody = document.getElementById("consumablesBody");
 
-  data.forEach(c => {
+  pageData.forEach(c => {
     const stockLevel = getStockLevel(c);
     const low = stockLevel === "low";
     const mid = stockLevel === "mid";
 
     const catName = c.categories?.name
-      || categories.find(x => String(x.id) === String(c.category_id))?.name
-      || "—";
+      || categories.find(x => String(x.id) === String(c.category_id))?.name || "—";
 
-    // ✅ FIX: normalizar área — el valor en BD es "laboratorio", no "lab"
     const area = c.area
-      || categories.find(x => String(x.id) === String(c.category_id))?.area
-      || "";
+      || categories.find(x => String(x.id) === String(c.category_id))?.area || "";
 
-    // ✅ FIX: badge corregido — "laboratorio" (antes estaba "lab" y nunca coincidía)
     const areaBadge = area === "sistemas"
       ? `<span class="badge badge-sistemas"><i class="fas fa-desktop"></i> Sistemas</span>`
       : area === "laboratorio"
       ? `<span class="badge badge-lab"><i class="fas fa-microscope"></i> Lab / Alimentos</span>`
       : `<span style="color:#9ca3af;font-size:12px;">—</span>`;
 
-    // Caducidad semáforo
     let expiryHtml = `<span class="expiry-none">Sin registro</span>`;
     if (c.expiry_date) {
       const ed  = new Date(c.expiry_date);
@@ -182,28 +207,21 @@ function renderTable(data) {
       ? `<span class="badge badge-mid"><i class="fas fa-exclamation-triangle"></i> Stock medio</span>`
       : `<span class="badge badge-ok"><i class="fas fa-check"></i> Suficiente</span>`;
 
-    const cantDisplay = `<strong style="color:${low ? "#dc2626" : "#374151"}">${c.quantity}</strong>`;
-
-    const acciones = isAdmin
-      ? `<i class="fas fa-edit edit-btn"    title="Editar"   onclick="openEdit(${c.id})"></i>
-         <i class="fas fa-trash delete-btn" title="Eliminar" onclick="confirmDelete(${c.id}, '${esc(c.name)}')"></i>`
-      : `<span style="color:#9ca3af;font-size:11px;">Solo lectura</span>`;
-
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="color:#9ca3af;font-size:12px;">${c.id}</td>
-      <td>
-        <strong>${esc(c.name)}</strong>
-        ${c.description ? `<br><small style="color:#9ca3af;font-size:11px;">${esc(c.description)}</small>` : ""}
-      </td>
+      <td><strong>${esc(c.name)}</strong>${c.description ? `<br><small style="color:#9ca3af;font-size:11px;">${esc(c.description)}</small>` : ""}</td>
       <td>${areaBadge}</td>
       <td><span style="font-size:12.5px;">${esc(catName)}</span></td>
-      <td>${cantDisplay}</td>
+      <td><strong style="color:${low ? "#dc2626" : "#374151"}">${formatQty(c.quantity, c.unit)}</strong></td>
       <td style="color:#6b7280;font-size:12.5px;">${esc(c.unit)}</td>
       <td>${expiryHtml}</td>
-      <td style="font-size:12px;color:#6b7280;">${esc(c.location || "Lab. Ciencias Básicas")}</td>
+      <td style="font-size:12px;color:#6b7280;">${esc(c.location || "—")}</td>
       <td>${estadoBadge}</td>
-      <td class="actions">${acciones}</td>`;
+      <td class="actions">${isAdmin
+        ? `<i class="fas fa-edit edit-btn" title="Editar" onclick="openEdit(${c.id})"></i>
+           <i class="fas fa-trash delete-btn" title="Eliminar" onclick="confirmDelete(${c.id},'${esc(c.name)}')"></i>`
+        : `<span style="color:#9ca3af;font-size:11px;">Solo lectura</span>`}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -242,16 +260,10 @@ function applyFilters() {
     return matchSearch && matchArea && matchCat && matchStock && matchExpiry;
   });
 
+  _currentPage = 1;  // reset al filtrar
   updateStats(filtered);
   renderTable(filtered);
 }
-
-/** Se ejecuta cuando el usuario cambia la categoría en el modal.
- *  Actualiza las opciones de Unidad según área + categoría:
- *  - Sistemas > Cómputo  → Pieza, Metros
- *  - Laboratorio/Alimentos → Pieza, Litros, Kilogramos
- *  - Otros                → Pieza, Litros, Kilogramos
- */
 function onCategoryChange() {
   const area    = document.getElementById("consumibleArea").value;
   const catSel  = document.getElementById("consumibleCategory");
@@ -259,19 +271,27 @@ function onCategoryChange() {
   const unitSel = document.getElementById("consumibleUnit");
   const prev    = unitSel.value;
 
-  const isComputo = area === "sistemas" && catText.includes("cómputo") || catText.includes("computo");
+  // Fix: paréntesis correctos — antes faltaban y "computo" siempre era true
+  const isComputo = area === "sistemas" && (catText.includes("cómputo") || catText.includes("computo"));
 
   if (isComputo) {
     unitSel.innerHTML = `
       <option value="" disabled selected>Seleccione unidad</option>
       <option value="pieza">Pieza</option>
       <option value="metros">Metros</option>`;
+  } else if (area === "sistemas") {
+    unitSel.innerHTML = `
+      <option value="" disabled selected>Seleccione unidad</option>
+      <option value="pieza">Pieza</option>`;
   } else {
+    // Laboratorio / Alimentos y otros — incluye gramos
     unitSel.innerHTML = `
       <option value="" disabled selected>Seleccione unidad</option>
       <option value="pieza">Pieza</option>
       <option value="litros">Litros</option>
-      <option value="kg">Kilogramos (kg)</option>`;
+      <option value="kg">Kilogramos (kg)</option>
+      <option value="gramos">Gramos (g)</option>
+      <option value="metros">Metros</option>`;
   }
 
   // Restaurar valor previo si sigue siendo válido
@@ -283,21 +303,25 @@ function onCategoryChange() {
 }
 
 
-/* ─────────────────── STOCK HELPERS ─────────────────── */
-/**
- * Devuelve el nivel de stock:
- *  "low" → cantidad ≤ 2  (piezas/metros)
- *  "mid" → cantidad 3–7  (zona de alerta)
- *  "ok"  → cantidad > 7
- * Para kg/litros usa min_quantity de la BD.
- */
+function formatQty(qty, unit) {
+  const q = parseFloat(qty);
+  if (isNaN(q)) return "—";
+  if (Number.isInteger(q)) return q;
+  return parseFloat(q.toFixed(3));
+}
+
 function getStockLevel(c) {
   const unit = (c.unit || "").toLowerCase();
-  if (unit === "kg" || unit === "litros") {
-    return c.quantity <= c.min_quantity ? "low" : "ok";
+  const qty  = parseFloat(c.quantity) || 0;
+  const min  = parseFloat(c.min_quantity) || 0;
+  if (["kg", "litros", "gramos", "metros"].includes(unit)) {
+    if (qty <= 0) return "low";
+    if (min > 0) return qty <= min ? "low" : qty <= min * 1.5 ? "mid" : "ok";
+    // sin min_quantity definido: usar umbrales relativos
+    return qty < 0.5 ? "low" : qty < 1 ? "mid" : "ok";
   }
-  if (c.quantity <= 2) return "low";
-  if (c.quantity <= 7) return "mid";
+  if (qty <= 2) return "low";
+  if (qty <= 7) return "mid";
   return "ok";
 }
 
@@ -305,12 +329,18 @@ function getStockLevel(c) {
 function onUnitChange() {
   const unit      = document.getElementById("consumibleUnit").value;
   const wrapper   = document.getElementById("quantityWrapper");
-  const isDecimal = unit === "kg" || unit === "litros";
+  const isDecimal = unit === "kg" || unit === "litros" || unit === "gramos";
+  const isEditing = !!document.getElementById("consumibleId").value;
+
+  // Al editar, conservar el valor actual del input antes de regenerarlo
+  const prevQty = isEditing
+    ? (document.getElementById("consumibleQuantity")?.value || "0")
+    : "0";
 
   wrapper.innerHTML = `
     <input type="number" id="consumibleQuantity"
            placeholder="${isDecimal ? "0.00" : "0"}"
-           min="0" step="${isDecimal ? "0.01" : "1"}" value="0"
+           min="0" step="${isDecimal ? "0.01" : "1"}" value="${prevQty}"
            style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;
                   font-size:13.5px;font-family:'Poppins',sans-serif;color:#374151;outline:none;transition:0.2s;"
            onfocus="this.style.borderColor='#4f46e5';this.style.boxShadow='0 0 0 3px rgba(79,70,229,0.08)'"
@@ -366,11 +396,21 @@ function confirmDelete(id, name) {
 async function deleteConsumable(id) {
   try {
     const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error();
+    if (!res.ok) {
+      let msg = "No se pudo eliminar";
+      try {
+        const err = await res.json();
+        if (err.message) msg = err.message;
+        else if (err.details) msg = err.details;
+        else if (err.hint)    msg = err.hint;
+      } catch {}
+      showToast(msg, "error");
+      return;
+    }
     showToast("Consumible eliminado", "success");
     await loadConsumables();
-  } catch {
-    showToast("No se pudo eliminar", "error");
+  } catch (e) {
+    showToast("No se pudo conectar con el servidor", "error");
   }
 }
 
@@ -457,7 +497,7 @@ async function saveConsumible() {
   const location    = document.getElementById("consumibleLocation").value.trim();
 
   const qRaw      = document.getElementById("consumibleQuantity").value;
-  const isDecimal = unit === "kg" || unit === "litros" || unit === "metros";
+  const isDecimal = unit === "kg" || unit === "litros" || unit === "metros" || unit === "gramos";
   const quantity  = isDecimal ? parseFloat(qRaw) : parseInt(qRaw);
 
   if (!name || !area || !category_id || !unit || isNaN(quantity)) {
@@ -465,7 +505,16 @@ async function saveConsumible() {
     return;
   }
 
-  // ✅ Incluir área en el body para que se guarde en la BD
+  // Validar fecha de caducidad: no puede ser anterior a hoy
+  if (expiry_date) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const exp   = new Date(expiry_date + "T00:00:00");
+    if (exp < today) {
+      showToast("La fecha de caducidad no puede ser anterior a hoy", "error");
+      return;
+    }
+  }
+
   const body   = { name, description, area, category_id, quantity, min_quantity: 0, unit, expiry_date, location };
   const url    = id ? `${API_URL}/${id}` : API_URL;
   const method = id ? "PUT" : "POST";
@@ -481,7 +530,7 @@ async function saveConsumible() {
       showToast("Error: " + (err.message || "No se pudo guardar"), "error");
       return;
     }
-    showToast(id ? "Consumible actualizado ✅" : "Consumible agregado ✅", "success");
+    showToast(id ? "Consumible actualizado" : "Consumible agregado", "success");
     closeModal();
     await loadConsumables();
   } catch {
@@ -506,7 +555,7 @@ function exportCSV() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement("a"); a.href = url; a.download = "consumibles.csv"; a.click();
   URL.revokeObjectURL(url);
-  showToast("Exportado correctamente ✅", "success");
+  showToast("Exportado correctamente", "success");
 }
 
 /* ─────────────────── UTILS ─────────────────── */

@@ -1,10 +1,10 @@
 const consumiblesService = require("./consumibles.service");
+const { logAction }      = require("../audit/audit.service");
 
 /* ── LISTAR ── */
 async function getAll(req, res) {
   try {
-    const data = await consumiblesService.getAll();
-    res.json(data);
+    res.json(await consumiblesService.getAll());
   } catch (err) {
     console.error("Error listar consumibles:", err);
     res.status(err.status || 500).json(err);
@@ -14,8 +14,7 @@ async function getAll(req, res) {
 /* ── OBTENER POR ID ── */
 async function getById(req, res) {
   try {
-    const data = await consumiblesService.getById(req.params.id);
-    res.json(data);
+    res.json(await consumiblesService.getById(req.params.id));
   } catch (err) {
     console.error("Error obtener consumible:", err);
     res.status(err.status || 500).json({ message: err.message });
@@ -30,6 +29,18 @@ async function create(req, res) {
       return res.status(400).json({ message: "name, category_id y unit son obligatorios" });
 
     const data = await consumiblesService.create(req.body);
+
+    await logAction({
+      userId:      req.user?.id,
+      userRole:    req.user?.role,
+      action:      "CREATE",
+      module:      "consumibles",
+      recordId:    data?.id,
+      description: `Nuevo consumible creado: "${name}" — Unidad: ${unit} · Stock inicial: ${req.body.stock ?? 0}`,
+      newValue:    { name, category_id, unit, stock: req.body.stock },
+      req,
+    });
+
     res.json(data);
   } catch (err) {
     console.error("Error crear consumible:", err);
@@ -44,7 +55,25 @@ async function update(req, res) {
     if (!name || !category_id || !unit)
       return res.status(400).json({ message: "name, category_id y unit son obligatorios" });
 
-    const data = await consumiblesService.update(req.params.id, req.body);
+    const before = await consumiblesService.getById(req.params.id).catch(() => null);
+    const data   = await consumiblesService.update(req.params.id, req.body);
+
+    await logAction({
+      userId:      req.user?.id,
+      userRole:    req.user?.role,
+      action:      "UPDATE",
+      module:      "consumibles",
+      recordId:    Number(req.params.id),
+      description: `Editó consumible #${req.params.id}: "${name}"${
+        before?.stock !== undefined && req.body.stock !== undefined && before.stock !== req.body.stock
+          ? ` — Stock: ${before.stock} → ${req.body.stock}`
+          : ""
+      }`,
+      oldValue:    before ? { name: before.name, stock: before.stock, unit: before.unit } : null,
+      newValue:    { name, category_id, unit, stock: req.body.stock },
+      req,
+    });
+
     res.json(data);
   } catch (err) {
     console.error("Error actualizar consumible:", err);
@@ -55,11 +84,24 @@ async function update(req, res) {
 /* ── ELIMINAR ── */
 async function remove(req, res) {
   try {
+    const before = await consumiblesService.getById(req.params.id).catch(() => null);
     const result = await consumiblesService.remove(req.params.id);
+
+    await logAction({
+      userId:      req.user?.id,
+      userRole:    req.user?.role,
+      action:      "DELETE",
+      module:      "consumibles",
+      recordId:    Number(req.params.id),
+      description: `Eliminó consumible #${req.params.id}: "${before?.name || "—"}"`,
+      oldValue:    before ? { name: before.name, stock: before.stock, unit: before.unit } : null,
+      req,
+    });
+
     res.json(result);
   } catch (err) {
     console.error("Error eliminar consumible:", err);
-    res.status(err.status || 500).json(err);
+    res.status(err.status || 500).json({ message: err.message || "Error al eliminar" });
   }
 }
 

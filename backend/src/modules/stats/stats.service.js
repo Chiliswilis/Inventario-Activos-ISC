@@ -14,15 +14,12 @@ const getStats = async () => {
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
 
-  const today    = new Date();
-  const startDay = new Date(today.setHours(0,0,0,0)).toISOString();
-  const endDay   = new Date(today.setHours(23,59,59,999)).toISOString();
+  const todayStr = new Date().toISOString().split("T")[0];
 
   const { count: todayReservations } = await supabase
     .from("reservations")
     .select("*", { count: "exact", head: true })
-    .gte("start_time", startDay)
-    .lte("start_time", endDay);
+    .eq("fecha_uso", todayStr);
 
   // ── Últimos activos modificados ──────────────────────────────────────────
   const { data: rawAssets } = await supabase
@@ -68,6 +65,27 @@ const getStats = async () => {
     }
   }
 
+  // Para activos NO borrowed, buscar quién fue el último en modificarlos via logs
+  const nonBorrowedIds = (rawAssets || [])
+    .filter(a => a.status !== "borrowed")
+    .map(a => a.id);
+
+  if (nonBorrowedIds.length > 0) {
+    const { data: logRows } = await supabase
+      .from("logs")
+      .select("record_id, user_id, users!logs_user_id_fkey(username)")
+      .eq("table_name", "assets")
+      .in("record_id", nonBorrowedIds)
+      .order("timestamp", { ascending: false });
+
+    // Tomar solo el log más reciente por asset (el primero en el array ordenado desc)
+    (logRows || []).forEach(row => {
+      if (!userByAsset[row.record_id] && row.users?.username) {
+        userByAsset[row.record_id] = row.users.username;
+      }
+    });
+  }
+
   // Combinar: cada activo lleva el username si está prestado
   const lastMovements = (rawAssets || []).map(a => ({
     ...a,
@@ -91,4 +109,28 @@ const getStats = async () => {
   };
 };
 
-module.exports = { getStats };
+const getMyStats = async (userId) => {
+  const { count: myRequests } = await supabase
+    .from("requests")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  const { count: myReservations } = await supabase
+    .from("reservations")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  const { count: myPending } = await supabase
+    .from("requests")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "pending");
+
+  return {
+    myRequests:     myRequests     || 0,
+    myReservations: myReservations || 0,
+    myPending:      myPending      || 0,
+  };
+};
+
+module.exports = { getStats, getMyStats };

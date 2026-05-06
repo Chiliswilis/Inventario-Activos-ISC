@@ -1,6 +1,11 @@
+
 function getUser() {
-  try { return JSON.parse(localStorage.getItem("user")) || null; }
-  catch { return null; }
+  try {
+    // Leer de sessionStorage primero (aislado por pestaña)
+    const raw = sessionStorage.getItem("user") || localStorage.getItem("user");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
 }
 function getUserRole()  { return getUser()?.role     || "alumno"; }
 function getUsername()  { return getUser()?.username || "Usuario"; }
@@ -130,6 +135,9 @@ function showLogoutModal() {
 }
 
 function doLogout() {
+  sessionStorage.removeItem("user");
+  sessionStorage.removeItem("session");
+  // Limpiar también localStorage por si quedaron datos de versiones anteriores
   localStorage.removeItem("user");
   localStorage.removeItem("session");
   window.location.href = "/login.html";

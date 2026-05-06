@@ -9,6 +9,7 @@ const SELECT_FULL = `
   approval_date, return_date,
   user_id, docente_id,
   fecha_solicitud, hora_solicitud,
+  queue_position,
   users!requests_user_id_fkey(id, username, role),
   docente:users!requests_docente_id_fkey(id, username),
   rejected_user:users!requests_rejected_by_fkey(id, username),
@@ -61,17 +62,18 @@ async function create(body) {
     throw err;
   }
 
-  // Validar rango horario
+  // Validar rango horario (admin tiene ventana ampliada hasta 18:00)
   const normT = t => (t || "").substring(0, 5);
   const hNorm = normT(hora_solicitud);
-  const maxH  = dow === 6 ? "13:00" : "15:00";
+  const isAdmin = body.role === "administrador"; // se puede pasar role en body opcionalmente
+  const maxH  = dow === 6 ? "13:00" : (isAdmin ? "18:00" : "15:00");
   if (hNorm < "07:30") {
     const err = new Error("Hora mínima de solicitud: 07:30 AM");
     err.status = 400;
     throw err;
   }
   if (hNorm > maxH) {
-    const err = new Error(`Hora máxima de solicitud: ${dow === 6 ? "1:00 PM (sábado)" : "3:00 PM"}`);
+    const err = new Error(`Hora máxima de solicitud: ${dow === 6 ? "1:00 PM (sábado)" : (isAdmin ? "6:00 PM" : "3:00 PM")}`);
     err.status = 400;
     throw err;
   }
@@ -83,7 +85,7 @@ async function create(body) {
       docente_id:         docente_id || null,
       asset_id:           items.length ? null : (asset_id      || null),
       consumable_id:      items.length ? null : (consumable_id || null),
-      quantity_requested: items.length ? 1    : (parseInt(quantity_requested) || 1),
+      quantity_requested: items.length ? 1    : (parseFloat(quantity_requested) || 1),
       notes:              notes        || null,
       purpose:            purpose      || null,
       request_type:       request_type || "asset",
@@ -102,7 +104,7 @@ async function create(body) {
       request_id:    req_data.id,
       asset_id:      it.asset_id      || null,
       consumable_id: it.consumable_id || null,
-      quantity:      parseInt(it.quantity) || 1
+      quantity:      parseFloat(it.quantity) || 1
     }));
     const { error: itemErr } = await supabase.from("request_items").insert(itemRows);
     if (itemErr) throw itemErr;
@@ -126,6 +128,64 @@ async function create(body) {
 async function approve(id, body) {
   const { pickup_date, pickup_location, admin_message } = body;
 
+  // Obtener solicitud con ítems
+  const { data: solicitudActual } = await supabase
+    .from("requests")
+    .select(`
+      id, status, request_type, asset_id, consumable_id, quantity_requested,
+      request_items(id, asset_id, consumable_id, quantity)
+    `)
+    .eq("id", id).single();
+
+  // ── COLA DE PRIORIDAD: verificar activos prestados ──
+  const assetsToCheck = [];
+  if (solicitudActual?.asset_id) assetsToCheck.push(solicitudActual.asset_id);
+  for (const item of (solicitudActual?.request_items || [])) {
+    if (item.asset_id) assetsToCheck.push(item.asset_id);
+  }
+
+  const borrowedAssets = [];
+  for (const assetId of assetsToCheck) {
+    const { data: asset } = await supabase
+      .from("assets").select("id, name, status").eq("id", assetId).single();
+    if (asset && asset.status === "borrowed") borrowedAssets.push(asset);
+  }
+
+  // Si hay activos prestados → encolar en lugar de aprobar
+  if (borrowedAssets.length > 0) {
+    // Calcular posición en cola para este activo
+    const { count } = await supabase
+      .from("requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "queued");
+
+    const queuePos = (count || 0) + 1;
+    const assetNames = borrowedAssets.map(a => a.name).join(", ");
+
+    const { data: queued, error: qErr } = await supabase
+      .from("requests")
+      .update({
+        status: "queued",
+        queue_position: queuePos,
+        admin_message: `En lista de espera (posición #${queuePos}). Activo(s) en préstamo: ${assetNames}. Se notificará cuando estén disponibles.`
+      })
+      .eq("id", id)
+      .select("id, status, queue_position, admin_message");
+
+    if (qErr) throw qErr;
+
+    await supabase.from("logs").insert([{
+      action: "Solicitud encolada (activo en préstamo)",
+      table_name: "requests",
+      record_id: parseInt(id),
+      details: `Posición #${queuePos} · Activos en préstamo: ${assetNames}`
+    }]);
+
+    broadcast("requests", "UPDATE", queued[0]);
+    return { ...queued[0], queued: true, borrowedAssets: assetNames };
+  }
+
+  // ── Flujo normal de aprobación ──
   const { data, error } = await supabase
     .from("requests")
     .update({
@@ -160,11 +220,11 @@ async function approve(id, body) {
   // Descontar consumibles
   const consumablesToDiscount = [];
   if (solicitud.consumable_id) {
-    consumablesToDiscount.push({ id: solicitud.consumable_id, qty: parseInt(solicitud.quantity_requested) || 1 });
+    consumablesToDiscount.push({ id: solicitud.consumable_id, qty: parseFloat(solicitud.quantity_requested) || 1 });
   }
   for (const item of (solicitud.request_items || [])) {
     if (item.consumable_id) {
-      consumablesToDiscount.push({ id: item.consumable_id, qty: parseInt(item.quantity) || 1 });
+      consumablesToDiscount.push({ id: item.consumable_id, qty: parseFloat(item.quantity) || 1 });
     }
   }
   for (const c of consumablesToDiscount) {
@@ -228,7 +288,24 @@ async function reject(id, body) {
 
 /* ── DEVOLUCIÓN ── */
 async function returnRequest(id, body) {
-  const { incident, incident_cause, incident_solution, items_condition = [] } = body;
+  const { incident, incident_cause, incident_solution, items_condition = [], return_date } = body;
+
+  // Validar fecha de devolución si viene en el body
+  if (return_date) {
+    const fecha = return_date.substring(0, 10);
+    const hora  = return_date.substring(11, 16);
+    const dow   = new Date(fecha + "T12:00:00").getDay();
+    if (dow === 0) {
+      const err = new Error("No se permiten devoluciones los domingos");
+      err.status = 400; throw err;
+    }
+    const [h, m] = hora.split(":").map(Number);
+    const mins = h * 60 + m;
+    if (mins < 8 * 60 || mins > 14 * 60) {
+      const err = new Error("Horario de devolución: 8:00 AM – 2:00 PM");
+      err.status = 400; throw err;
+    }
+  }
 
   // Obtener solicitud con ítems
   const { data: req_data } = await supabase
@@ -240,13 +317,13 @@ async function returnRequest(id, body) {
     .from("requests")
     .update({
       status: "returned",
-      return_date: new Date().toISOString(),
+      return_date: return_date ? new Date(return_date).toISOString() : new Date().toISOString(),
       incident: incident || false,
       incident_cause:    incident ? (incident_cause    || null) : null,
       incident_solution: incident ? (incident_solution || null) : null
     })
     .eq("id", id)
-    .select("id, status, incident");
+    .select("id, status, incident, return_date");
 
   if (error) throw error;
 
@@ -285,6 +362,51 @@ async function returnRequest(id, body) {
       ? `Con incidente: ${incident_cause || "Sin descripción"}`
       : "Sin incidentes"
   }]);
+
+  // ── COLA DE PRIORIDAD: promover siguiente solicitud en espera ──
+  // Recolectar los asset_ids que acaban de quedar disponibles
+  const freedAssets = [];
+  for (const ic of items_condition) { if (ic.asset_id && ic.return_condition !== "perdido") freedAssets.push(ic.asset_id); }
+  if (items_condition.length === 0 && req_data?.asset_id) freedAssets.push(req_data.asset_id);
+  for (const a of (req_data?.request_items || [])) { if (a.asset_id) freedAssets.push(a.asset_id); }
+
+  if (freedAssets.length > 0) {
+    // Buscar solicitudes encoladas que pidan estos activos, orden por queue_position
+    for (const assetId of freedAssets) {
+      const { data: queued } = await supabase
+        .from("requests")
+        .select("id, queue_position, request_items(asset_id), asset_id")
+        .eq("status", "queued")
+        .order("queue_position", { ascending: true })
+        .limit(10);
+
+      const match = (queued || []).find(q => {
+        const directMatch = q.asset_id === assetId;
+        const itemMatch   = (q.request_items || []).some(ri => ri.asset_id === assetId);
+        return directMatch || itemMatch;
+      });
+
+      if (match) {
+        // Promover: cambiar a pending_admin para que admin la apruebe formalmente
+        await supabase.from("requests")
+          .update({
+            status: "pending_admin",
+            queue_position: null,
+            admin_message: "✅ El activo solicitado ya está disponible. Por favor aprueba esta solicitud."
+          })
+          .eq("id", match.id);
+
+        broadcast("requests", "UPDATE", { id: match.id, status: "pending_admin" });
+
+        await supabase.from("logs").insert([{
+          action: "Solicitud promovida de la cola",
+          table_name: "requests",
+          record_id: match.id,
+          details: `Activo ID ${assetId} liberado — solicitud promovida a pending_admin`
+        }]);
+      }
+    }
+  }
 
   broadcast("requests", "UPDATE", data[0]);
   return data[0];
@@ -326,7 +448,7 @@ async function update(id, body) {
         request_id:    parseInt(id),
         asset_id:      it.asset_id      || null,
         consumable_id: it.consumable_id || null,
-        quantity:      parseInt(it.quantity) || 1
+        quantity:      parseFloat(it.quantity) || 1
       }));
       const { error: itemErr } = await supabase.from("request_items").insert(newItemRows);
       if (itemErr) throw itemErr;
@@ -352,7 +474,6 @@ async function update(id, body) {
   return data[0];
 }
 
-/* ── ELIMINAR ── */
 async function remove(id) {
   const { error } = await supabase.from("requests").delete().eq("id", id);
   if (error) throw error;

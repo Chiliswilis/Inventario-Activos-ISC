@@ -1,220 +1,429 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-
-</head>
-<body>
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-<div class="menu-section">Principal</div>
-<a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Panel Principal</a>
-<div class="menu-section">Inventario</div>
-<a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-<a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-<div class="menu-section">Gestión</div>
-<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-<a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-<div class="menu-section">Sistema</div>
-<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-chart-line"></i> Panel Principal</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-  <div class="content">
-
-    <!-- ════ VISTA ADMIN ════ -->
-    <div class="content-inner" id="view-admin" style="display:none;">
-      <div class="section-label">Resumen General</div>
-      <div class="cards">
-        <div class="metric-card assets">
-          <div class="metric-top">
-            <div class="metric-label">Activos Totales</div>
-            <div class="metric-icon"><i class="fas fa-box"></i></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
+      </div>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html" class="active"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+        <a href="configuracion.html"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
+      </div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
           </div>
-          <div>
-            <div class="metric-value loading-val" id="cardAssets">—</div>
-            <div class="metric-trend">Inventario registrado</div>
-          </div>
+          <h2><i class="fas fa-chart-line"></i> Panel Principal</h2>
         </div>
-        <div class="metric-card consumables">
-          <div class="metric-top">
-            <div class="metric-label">Consumibles</div>
-            <div class="metric-icon"><i class="fas fa-flask"></i></div>
-          </div>
-          <div>
-            <div class="metric-value loading-val" id="cardConsumables">—</div>
-            <div class="metric-trend">En almacén</div>
-          </div>
-        </div>
-        <div class="metric-card requests">
-          <div class="metric-top">
-            <div class="metric-label">Solicitudes Pendientes</div>
-            <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
-          </div>
-          <div>
-            <div class="metric-value loading-val" id="cardRequests">—</div>
-            <div class="metric-trend">Requieren atención</div>
-          </div>
-        </div>
-        <div class="metric-card reservations">
-          <div class="metric-top">
-            <div class="metric-label">Reservas Hoy</div>
-            <div class="metric-icon"><i class="fas fa-calendar-check"></i></div>
-          </div>
-          <div>
-            <div class="metric-value loading-val" id="cardReservations">—</div>
-            <div class="metric-trend" id="todayDate">—</div>
-          </div>
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
         </div>
       </div>
+      <div class="content">
+        <!-- ════ VISTA ADMIN ════ -->
+        <div class="content-inner" id="view-admin" style="display: none">
+          <div class="section-label">Resumen General</div>
+          <div class="cards">
+            <div class="metric-card assets">
+              <div class="metric-top">
+                <div class="metric-label">Activos Totales</div>
+                <div class="metric-icon"><i class="fas fa-box"></i></div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardAssets">—</div>
+                <div class="metric-trend">Inventario registrado</div>
+              </div>
+            </div>
+            <div class="metric-card consumables">
+              <div class="metric-top">
+                <div class="metric-label">Consumibles</div>
+                <div class="metric-icon"><i class="fas fa-flask"></i></div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardConsumables">
+                  —
+                </div>
+                <div class="metric-trend">En almacén</div>
+              </div>
+            </div>
+            <div class="metric-card requests">
+              <div class="metric-top">
+                <div class="metric-label">Solicitudes Pendientes</div>
+                <div class="metric-icon">
+                  <i class="fas fa-clipboard-list"></i>
+                </div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardRequests">—</div>
+                <div class="metric-trend">Requieren atención</div>
+              </div>
+            </div>
+            <div class="metric-card reservations">
+              <div class="metric-top">
+                <div class="metric-label">Reservas Hoy</div>
+                <div class="metric-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardReservations">
+                  —
+                </div>
+                <div class="metric-trend" id="todayDate">—</div>
+              </div>
+            </div>
+          </div>
 
-      <div class="section-label">Operaciones</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px;">
-        <div class="panel" style="grid-row:1/3;">
-          <div class="panel-header">
-            <div class="panel-title"><span class="dot dot-blue"></span> Últimos Movimientos</div>
-          </div>
-          <div class="panel-scroll">
-            <table>
-              <thead><tr><th>ID</th><th>Activo</th><th>Usuario</th><th>Estado</th></tr></thead>
-              <tbody id="movementsBody">
-                <tr class="loading-row"><td colspan="4">Cargando datos...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title"><span class="dot dot-blue"></span> Acerca del Sistema</div>
-          </div>
-          <div class="panel-body">
-            <p style="font-size:13px;color:var(--ibm-gray-70);line-height:1.75;font-weight:300;">Gestiona, controla y visualiza todos los activos, consumibles y movimientos del laboratorio de Ingeniería en Sistemas Computacionales del Tecnológico Superior de Jalisco.</p>
-            <div style="margin-top:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--ibm-blue-10);color:var(--ibm-blue);font-size:11px;font-weight:700;letter-spacing:0.5px;border:1px solid var(--ibm-blue-20);">
-              <i class="fas fa-circle" style="font-size:6px;"></i> SGIAC-ISC · v1.0
+          <div class="section-label">Operaciones</div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 3fr 2fr;
+              grid-template-rows: auto auto;
+              gap: 16px;
+            "
+          >
+            <div class="panel" style="grid-row: 1/3">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="dot dot-blue"></span> Últimos Movimientos
+                </div>
+              </div>
+              <div class="panel-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Activo</th>
+                      <th>Usuario</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="movementsBody">
+                    <tr class="loading-row">
+                      <td colspan="4">Cargando datos...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="dot dot-blue"></span> Acerca del Sistema
+                </div>
+              </div>
+              <div class="panel-body">
+                <p
+                  style="
+                    font-size: 13px;
+                    color: var(--ibm-gray-70);
+                    line-height: 1.75;
+                    font-weight: 300;
+                  "
+                >
+                  Gestiona, controla y visualiza todos los activos, consumibles
+                  y movimientos del laboratorio de Ingeniería en Sistemas
+                  Computacionales del Tecnológico Superior de Jalisco.
+                </p>
+                <div
+                  style="
+                    margin-top: 16px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 5px 10px;
+                    background: var(--ibm-blue-10);
+                    color: var(--ibm-blue);
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                    border: 1px solid var(--ibm-blue-20);
+                  "
+                >
+                  <i class="fas fa-circle" style="font-size: 6px"></i> SGIAC-ISC
+                  · v1.0
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="dot dot-green"></span> Actividad Reciente
+                </div>
+              </div>
+              <div id="activityContainer" style="padding: 0"></div>
             </div>
           </div>
         </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title"><span class="dot dot-green"></span> Actividad Reciente</div>
-          </div>
-          <div id="activityContainer" style="padding:0;">
-            <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--ibm-gray-10);">
-              <div style="width:7px;height:7px;background:var(--ibm-gray-30);border-radius:50%;flex-shrink:0;margin-top:5px;"></div>
-              <div style="font-size:13px;color:var(--ibm-gray-50);">Cargando actividad...</div>
+        <!-- /view-admin -->
+
+        <!-- ════ VISTA DOCENTE ════ -->
+        <div class="content-inner" id="view-docente" style="display: none">
+          <div class="section-label">Resumen del Laboratorio</div>
+          <div class="cards">
+            <div class="metric-card assets">
+              <div class="metric-top">
+                <div class="metric-label">Activos Totales</div>
+                <div class="metric-icon"><i class="fas fa-box"></i></div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardAssetsD">—</div>
+                <div class="metric-trend">Inventario registrado</div>
+              </div>
+            </div>
+            <div class="metric-card consumables">
+              <div class="metric-top">
+                <div class="metric-label">Consumibles</div>
+                <div class="metric-icon"><i class="fas fa-flask"></i></div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardConsumablesD">
+                  —
+                </div>
+                <div class="metric-trend">En almacén</div>
+              </div>
+            </div>
+            <div class="metric-card requests">
+              <div class="metric-top">
+                <div class="metric-label">Mis Solicitudes</div>
+                <div class="metric-icon">
+                  <i class="fas fa-clipboard-list"></i>
+                </div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardRequestsD">—</div>
+                <div class="metric-trend">Pendientes</div>
+              </div>
+            </div>
+            <div class="metric-card reservations">
+              <div class="metric-top">
+                <div class="metric-label">Reservas Hoy</div>
+                <div class="metric-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+              </div>
+              <div>
+                <div class="metric-value loading-val" id="cardReservationsD">
+                  —
+                </div>
+                <div class="metric-trend" id="todayDateD">—</div>
+              </div>
             </div>
           </div>
+          <div class="section-label">Acceso Rápido</div>
+          <div id="quickAccessCards"></div>
         </div>
-      </div>
-    </div>
 
-    <!-- ════ VISTA DOCENTE ════ -->
-    <div class="content-inner" id="view-docente" style="display:none;">
-      <div class="section-label">Resumen del Laboratorio</div>
-      <div class="cards">
-        <div class="metric-card assets">
-          <div class="metric-top"><div class="metric-label">Activos Totales</div><div class="metric-icon"><i class="fas fa-box"></i></div></div>
-          <div><div class="metric-value loading-val" id="cardAssetsD">—</div><div class="metric-trend">Inventario registrado</div></div>
-        </div>
-        <div class="metric-card consumables">
-          <div class="metric-top"><div class="metric-label">Consumibles</div><div class="metric-icon"><i class="fas fa-flask"></i></div></div>
-          <div><div class="metric-value loading-val" id="cardConsumablesD">—</div><div class="metric-trend">En almacén</div></div>
-        </div>
-        <div class="metric-card requests">
-          <div class="metric-top"><div class="metric-label">Mis Solicitudes</div><div class="metric-icon"><i class="fas fa-clipboard-list"></i></div></div>
-          <div><div class="metric-value loading-val" id="cardRequestsD">—</div><div class="metric-trend">Pendientes</div></div>
-        </div>
-        <div class="metric-card reservations">
-          <div class="metric-top"><div class="metric-label">Reservas Hoy</div><div class="metric-icon"><i class="fas fa-calendar-check"></i></div></div>
-          <div><div class="metric-value loading-val" id="cardReservationsD">—</div><div class="metric-trend" id="todayDateD">—</div></div>
-        </div>
-      </div>
-      <div class="section-label">Acceso Rápido</div>
-      <div id="quickAccessCards"></div>
-    </div>
-
-    <!-- ════ VISTA ALUMNO ════ -->
-    <div class="content-inner" id="view-alumno" style="display:none;">
-      <!-- Banner de bienvenida -->
-      <div style="background:linear-gradient(135deg,#1f2a3a 0%,#0f62fe 100%);padding:32px 36px;margin-bottom:24px;display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;">
-        <div style="position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
-        <img src="../assets/logoTsj.png" alt="Logo" style="width:64px;filter:brightness(0) invert(1);opacity:0.85;flex-shrink:0;">
-        <div>
-          <h1 id="welcomeName" style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;font-family:'IBM Plex Sans',sans-serif;">Bienvenido/a</h1>
-          <p style="font-size:13px;color:rgba(255,255,255,0.72);line-height:1.6;max-width:480px;">Aquí puedes consultar el catálogo de activos y consumibles del laboratorio, y gestionar tus solicitudes y reservas de equipos.</p>
-          <div style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);font-size:11px;font-weight:600;color:rgba(255,255,255,0.88);letter-spacing:0.4px;">
-            <i class="fas fa-university"></i> Tecnológico Superior de Jalisco &nbsp;·&nbsp; ISC
+        <!-- ════ VISTA ALUMNO ════ -->
+        <div class="content-inner" id="view-alumno" style="display: none">
+          <!-- Banner de bienvenida -->
+          <div
+            style="
+              background: linear-gradient(135deg, #1f2a3a 0%, #0f62fe 100%);
+              padding: 32px 36px;
+              margin-bottom: 24px;
+              display: flex;
+              align-items: center;
+              gap: 28px;
+              position: relative;
+              overflow: hidden;
+            "
+          >
+            <div
+              style="
+                position: absolute;
+                right: -60px;
+                top: -60px;
+                width: 260px;
+                height: 260px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.05);
+              "
+            ></div>
+            <img
+              src="../assets/logoTsj.png"
+              alt="Logo"
+              style="
+                width: 64px;
+                filter: brightness(0) invert(1);
+                opacity: 0.85;
+                flex-shrink: 0;
+              "
+            />
+            <div>
+              <h1
+                id="welcomeName"
+                style="
+                  font-size: 20px;
+                  font-weight: 700;
+                  color: #fff;
+                  margin-bottom: 4px;
+                  font-family: &quot;IBM Plex Sans&quot;, sans-serif;
+                "
+              >
+                Bienvenido/a
+              </h1>
+              <p
+                style="
+                  font-size: 13px;
+                  color: rgba(255, 255, 255, 0.72);
+                  line-height: 1.6;
+                  max-width: 480px;
+                "
+              >
+                Aquí puedes consultar el catálogo de activos y consumibles del
+                laboratorio, y gestionar tus solicitudes y reservas de equipos.
+              </p>
+              <div
+                style="
+                  margin-top: 12px;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 4px 12px;
+                  background: rgba(255, 255, 255, 0.1);
+                  border: 1px solid rgba(255, 255, 255, 0.18);
+                  font-size: 11px;
+                  font-weight: 600;
+                  color: rgba(255, 255, 255, 0.88);
+                  letter-spacing: 0.4px;
+                "
+              >
+                <i class="fas fa-university"></i> Tecnológico Superior de
+                Jalisco &nbsp;·&nbsp; ISC
+              </div>
+            </div>
           </div>
+
+          <div
+            style="
+              background: var(--ibm-blue-10);
+              border: 1px solid var(--ibm-blue-20);
+              padding: 13px 18px;
+              display: flex;
+              align-items: flex-start;
+              gap: 12px;
+              margin-bottom: 22px;
+            "
+          >
+            <i
+              class="fas fa-info-circle"
+              style="color: var(--ibm-blue); margin-top: 1px"
+            ></i>
+            <p
+              style="
+                font-size: 13px;
+                color: var(--ibm-blue-60);
+                line-height: 1.55;
+              "
+            >
+              <strong>Recuerda:</strong> Para solicitar un activo o reservar un
+              equipo, verifica que esté disponible en el catálogo. Si tienes
+              dudas, contacta al encargado del laboratorio.
+            </p>
+          </div>
+
+          <div class="section-label">Mi Actividad</div>
+          <div class="stats-row" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="stat-card" style="--c: var(--ibm-yellow)">
+              <div class="stat-icon orange">
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+              <div>
+                <div class="stat-label">Mis Solicitudes</div>
+                <div class="stat-value loading-val" id="myRequests">—</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+              <div>
+                <div class="stat-label">Mis Reservas</div>
+                <div class="stat-value loading-val" id="myReservations">—</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+              <div>
+                <div class="stat-label">En Proceso</div>
+                <div class="stat-value loading-val" id="myPending">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label" style="margin-top: 20px">
+            ¿Qué deseas hacer?
+          </div>
+          <div id="quickAccessCards"></div>
         </div>
       </div>
-
-      <div style="background:var(--ibm-blue-10);border:1px solid var(--ibm-blue-20);padding:13px 18px;display:flex;align-items:flex-start;gap:12px;margin-bottom:22px;">
-        <i class="fas fa-info-circle" style="color:var(--ibm-blue);margin-top:1px;"></i>
-        <p style="font-size:13px;color:var(--ibm-blue-60);line-height:1.55;"><strong>Recuerda:</strong> Para solicitar un activo o reservar un equipo, verifica que esté disponible en el catálogo. Si tienes dudas, contacta al encargado del laboratorio.</p>
-      </div>
-
-      <div class="section-label">Mi Actividad</div>
-      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
-        <div class="stat-card" style="--c:var(--ibm-yellow);">
-          <div class="stat-icon orange"><i class="fas fa-clipboard-list"></i></div>
-          <div><div class="stat-label">Mis Solicitudes</div><div class="stat-value loading-val" id="myRequests">—</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
-          <div><div class="stat-label">Mis Reservas</div><div class="stat-value loading-val" id="myReservations">—</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
-          <div><div class="stat-label">En Proceso</div><div class="stat-value loading-val" id="myPending">—</div></div>
-        </div>
-      </div>
-
-      <div class="section-label" style="margin-top:20px;">¿Qué deseas hacer?</div>
-      <div id="quickAccessCards"></div>
+      <!-- /content -->
     </div>
+    <!-- /main -->
 
-  </div><!-- /content -->
-</div><!-- /main -->
-
-<script>
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-</script>
-<script src="../scripts/pages/realtime.js"></script>
-<script src="../scripts/pages/common.js"></script>
-<script src="../scripts/pages/dashboard.js"></script>
-</body>
+    <script>
+      function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+    </script>
+    <script src="../scripts/pages/realtime.js"></script>
+    <script src="../scripts/pages/common.js"></script>
+    <script src="../scripts/pages/dashboard.js"></script>
+  </body>
 </html>

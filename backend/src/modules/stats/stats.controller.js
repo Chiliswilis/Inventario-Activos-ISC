@@ -10,4 +10,14 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { getStats };
+const getMyStats = async (req, res) => {
+  try {
+    const data = await service.getMyStats(req.user.id);
+    res.json(data);
+  } catch (err) {
+    console.error("Error my stats:", err);
+    res.status(500).json({ error: "Error al obtener estadísticas" });
+  }
+};
+
+module.exports = { getStats, getMyStats };

@@ -120,25 +120,54 @@ Inventario-Activos-ISC-Victor/
 │   │   ├── middlewares/
 │   │   │   └── auth.middleware.js
 │   │   └── modules/
-│   │       ├── auth/
-│   │       ├── assets/
-│   │       ├── categories/
-│   │       ├── consumibles/
-│   │       ├── events/
-│   │       ├── requests/
-│   │       ├── reservations/
-│   │       ├── stats/
-│   │       └── users/
+│   │       ├── auth/ .controller.js, .routes.js, .service.js
+│   │       ├── assets/ .controller.js, .routes.js, .service.js
+│   │       ├── audit/ .controller.js, .routes.js, .service.js
+│   │       ├── categories/ .controller.js, .routes.js, .service.js
+│   │       ├── consumibles/ .controller.js, .routes.js, .service.js
+│   │       ├── events/ .controller.js, .routes.js, .service.js
+│   │       ├── requests/ .controller.js, .routes.js, .service.js
+│   │       ├── reservations/ .controller.js, .routes.js, .service.js
+│   │       ├── labs/ .controller.js, .routes.js, .service.js
+│   │       ├── stats/ .controller.js, .routes.js, .service.js
+│   │       └── users/ .controller.js, .routes.js, .service.js
 │   ├── server.js
 │   ├── package.json
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── public/         ← HTML y assets estáticos
-│   │   └── js/             ← Scripts por página
+│   │   ├── assets/
+│   │   │   └── imágenes...
+│   │   ├── pages/ ← HTMLs
+│   │   │    ├── activos.html
+│   │   │    ├── configuración.html
+│   │   │    ├── consumibles.html
+│   │   │    ├── dashboard.html
+│   │   │    ├── reportes.html
+│   │   │    ├── reservas.html
+│   │   │    ├── solicitudes.html
+│   │   │    └── usuarios.html
+│   │   ├── scripts/
+│   │   │   ├── pages/     ← Scripts
+│   │   │   │   ├── activos.js
+│   │   │   │   ├── categories-manager.js
+│   │   │   │   ├── conmmon.js
+│   │   │   │   ├── configuración.js
+│   │   │   │   ├── consumibles.js
+│   │   │   │   ├── dashboard.js
+│   │   │   │   ├── realtime.js
+│   │   │   │   ├── reportes.js
+│   │   │   │   ├── reservas.js
+│   │   │   │   ├── solicitudes.js
+│   │   │   │   └── usuarios.js
+│   │   │   └── services/api.js
+│   │   ├── styles/        ← responsives
+│   │   │    ├── responsive.css
+│   │   │    └── sgiac-shared.css
+│   │   └── login.html
 │   ├── nginx.conf
 │   └── Dockerfile
-├── .env.example            ← Plantilla de variables de entorno
+├── .env.example           ← Plantilla de variables de entorno
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md

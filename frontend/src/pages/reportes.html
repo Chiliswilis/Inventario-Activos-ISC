@@ -1,237 +1,1267 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Reportes</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--ibm-gray-20);border:1px solid var(--ibm-gray-20);margin-top:1px;}
-.report-card{background:#fff;padding:22px;position:relative;border-top:3px solid var(--ibm-gray-20);transition:box-shadow 0.15s;}
-.report-card:hover{box-shadow:inset 0 0 0 2px var(--ibm-blue);}
-.report-card.assets{border-top-color:var(--ibm-purple);}
-.report-card.consumables{border-top-color:var(--ibm-blue);}
-.report-card.requests{border-top-color:var(--ibm-green);}
-.report-card.reservations{border-top-color:var(--ibm-orange);}
-.report-card-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;}
-.report-card h3{font-size:14px;font-weight:700;color:var(--ibm-gray-90);margin-bottom:6px;}
-.report-card p{font-size:12.5px;color:var(--ibm-gray-70);line-height:1.5;margin-bottom:18px;}
-.btn-group{display:flex;gap:8px;}
-.btn-report{flex:1;padding:9px 12px;border:none;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background 0.15s;}
-.btn-csv{background:var(--ibm-purple-10);color:var(--ibm-purple);}
-.btn-csv:hover{background:var(--ibm-purple);color:#fff;}
-.btn-pdf{background:var(--ibm-red-10);color:var(--ibm-red);}
-.btn-pdf:hover{background:var(--ibm-red);color:#fff;}
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
-.chart-panel{background:#fff;border:1px solid var(--ibm-gray-20);padding:22px;}
-.chart-panel h4{font-size:12.5px;font-weight:700;color:var(--ibm-gray-90);margin-bottom:16px;display:flex;align-items:center;gap:8px;letter-spacing:0.5px;text-transform:uppercase;}
-.chart-wrap{position:relative;height:240px;}
-@media(max-width:768px){.chart-grid{grid-template-columns:1fr;}}
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Reportes</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+      .report-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1px;
+        background: var(--ibm-gray-20);
+        border: 1px solid var(--ibm-gray-20);
+        margin-top: 1px;
+      }
+      .report-card {
+        background: #fff;
+        padding: 22px;
+        position: relative;
+        border-top: 3px solid var(--ibm-gray-20);
+        transition: box-shadow 0.15s;
+      }
+      .report-card:hover {
+        box-shadow: inset 0 0 0 2px var(--ibm-blue);
+      }
+      .report-card.assets {
+        border-top-color: var(--ibm-purple);
+      }
+      .report-card.consumables {
+        border-top-color: var(--ibm-blue);
+      }
+      .report-card.requests {
+        border-top-color: var(--ibm-green);
+      }
+      .report-card.reservations {
+        border-top-color: var(--ibm-orange);
+      }
+      .report-card-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        margin-bottom: 14px;
+      }
+      .report-card h3 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ibm-gray-90);
+        margin-bottom: 6px;
+      }
+      .report-card p {
+        font-size: 12.5px;
+        color: var(--ibm-gray-70);
+        line-height: 1.5;
+        margin-bottom: 18px;
+      }
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-report {
+        flex: 1;
+        padding: 9px 12px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        font-family: "IBM Plex Sans", sans-serif;
+        transition: background 0.15s;
+      }
+      .btn-csv {
+        background: var(--ibm-purple-10);
+        color: var(--ibm-purple);
+      }
+      .btn-csv:hover {
+        background: var(--ibm-purple);
+        color: #fff;
+      }
+      .btn-pdf {
+        background: var(--ibm-red-10);
+        color: var(--ibm-red);
+      }
+      .btn-pdf:hover {
+        background: var(--ibm-red);
+        color: #fff;
+      }
+      .chart-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .chart-panel {
+        background: #fff;
+        border: 1px solid var(--ibm-gray-20);
+        padding: 22px;
+      }
+      .chart-panel h4 {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--ibm-gray-90);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .chart-wrap {
+        position: relative;
+        height: 240px;
+      }
+      @media (max-width: 768px) {
+        .chart-grid {
+          grid-template-columns: 1fr;
+        }
+      }
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-    <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-    <div class="menu-section">Inventario</div>
-    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-    <div class="menu-section">Gestión</div>
-    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-    <div class="menu-section">Sistema</div>
-    <a href="reportes.html" class="active"><i class="fas fa-file-alt"></i> Reportes</a>
-    <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-file-alt"></i> Reportes y Estadísticas</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-  <div class="content">
-    <!-- Resumen -->
-    <div class="section-label">Resumen del Sistema</div>
-    <div class="stats-row" style="margin-bottom:24px;">
-      <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-box"></i></div><div><div class="stat-label">Activos</div><div class="stat-value" id="statActivos">—</div></div></div>
-      <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-flask"></i></div><div><div class="stat-label">Consumibles</div><div class="stat-value" id="statConsumibles">—</div></div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="fas fa-clipboard-list"></i></div><div><div class="stat-label">Solicitudes</div><div class="stat-value" id="statSolicitudes">—</div></div></div>
-      <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div><div><div class="stat-label">Reservas</div><div class="stat-value" id="statReservas">—</div></div></div>
+      /* ── Audit Logs ── */
+      .audit-filters {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 14px 18px;
+        background: #fff;
+        border: 1px solid var(--ibm-gray-20);
+        border-bottom: none;
+      }
+      .audit-filters select,
+      .audit-filters input[type="date"] {
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        font-size: 12.5px;
+        font-family: "IBM Plex Sans", sans-serif;
+        background: #f9fafb;
+        color: #111827;
+        cursor: pointer;
+      }
+      .audit-filters select:focus,
+      .audit-filters input:focus { outline: 2px solid var(--ibm-blue); }
+      .audit-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 2px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: "IBM Plex Mono", monospace;
+        white-space: nowrap;
+      }
+      .audit-LOGIN    { background:#defbe6; color:#198038; }
+      .audit-LOGOUT   { background:#fff1f1; color:#da1e28; }
+      .audit-CREATE   { background:#edf5ff; color:#0043ce; }
+      .audit-UPDATE   { background:#fcf4d6; color:#b28600; }
+      .audit-DELETE   { background:#fff1f1; color:#da1e28; }
+      .audit-STATUS_CHANGE { background:#f4e6ff; color:#6929c4; }
+      .audit-module {
+        font-size: 10.5px;
+        font-family: "IBM Plex Mono", monospace;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 2px;
+      }
+      .audit-detail-btn {
+        background: none;
+        border: 1px solid #d1d5db;
+        padding: 2px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        font-family: "IBM Plex Sans", sans-serif;
+        color: #6b7280;
+        transition: all 0.1s;
+      }
+      .audit-detail-btn:hover { background:#f3f4f6; }
+      .audit-diff-row td {
+        background: #f9fafb !important;
+        padding: 0 !important;
+      }
+      .audit-diff-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: #e5e7eb;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+      }
+      .audit-diff-inner pre {
+        margin: 0;
+        padding: 10px 14px;
+        background: #f9fafb;
+        white-space: pre-wrap;
+        word-break: break-all;
+        line-height: 1.5;
+      }
+      .audit-diff-inner .diff-old { border-left: 3px solid #da1e28; }
+      .audit-diff-inner .diff-new { border-left: 3px solid #198038; }
+      .audit-count {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-left: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
+      </div>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html" class="active"
+          ><i class="fas fa-file-alt"></i> Reportes</a
+        >
+        <a href="configuracion.html"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
+      </div>
     </div>
-
-    <!-- Exportar -->
-    <div class="section-label">Generar Reportes</div>
-    <div class="report-grid">
-      <div class="report-card assets">
-        <div class="report-card-icon" style="background:var(--ibm-purple-10);color:var(--ibm-purple);"><i class="fas fa-box"></i></div>
-        <h3>Reporte de Activos</h3>
-        <p>Inventario completo con estado, ubicación y número de serie.</p>
-        <div class="btn-group">
-          <button class="btn-report btn-csv" onclick="exportCSV('assets')"><i class="fas fa-file-csv"></i> CSV</button>
-          <button class="btn-report btn-pdf" onclick="exportPDF('assets')"><i class="fas fa-file-pdf"></i> PDF</button>
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <h2><i class="fas fa-file-alt"></i> Reportes y Estadísticas</h2>
+        </div>
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
         </div>
       </div>
-      <div class="report-card consumables">
-        <div class="report-card-icon" style="background:var(--ibm-blue-10);color:var(--ibm-blue);"><i class="fas fa-flask"></i></div>
-        <h3>Reporte de Consumibles</h3>
-        <p>Stock actual, mínimos y alertas de inventario bajo.</p>
-        <div class="btn-group">
-          <button class="btn-report btn-csv" onclick="exportCSV('consumables')"><i class="fas fa-file-csv"></i> CSV</button>
-          <button class="btn-report btn-pdf" onclick="exportPDF('consumables')"><i class="fas fa-file-pdf"></i> PDF</button>
+      <div class="content">
+        <!-- Resumen -->
+        <div class="section-label">Resumen del Sistema</div>
+        <div class="stats-row" style="margin-bottom: 24px">
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-box"></i></div>
+            <div>
+              <div class="stat-label">Activos</div>
+              <div class="stat-value" id="statActivos">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-flask"></i></div>
+            <div>
+              <div class="stat-label">Consumibles</div>
+              <div class="stat-value" id="statConsumibles">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div>
+              <div class="stat-label">Solicitudes</div>
+              <div class="stat-value" id="statSolicitudes">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div>
+              <div class="stat-label">Reservas</div>
+              <div class="stat-value" id="statReservas">—</div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="report-card requests">
-        <div class="report-card-icon" style="background:var(--ibm-green-10);color:var(--ibm-green);"><i class="fas fa-clipboard-list"></i></div>
-        <h3>Reporte de Solicitudes</h3>
-        <p>Historial de préstamos, estados y fechas de devolución.</p>
-        <div class="btn-group">
-          <button class="btn-report btn-csv" onclick="exportCSV('requests')"><i class="fas fa-file-csv"></i> CSV</button>
-          <button class="btn-report btn-pdf" onclick="exportPDF('requests')"><i class="fas fa-file-pdf"></i> PDF</button>
+
+        <!-- Exportar -->
+        <div class="section-label">Generar Reportes</div>
+        <div class="report-grid">
+          <div class="report-card assets">
+            <div
+              class="report-card-icon"
+              style="background: var(--ibm-purple-10); color: var(--ibm-purple)"
+            >
+              <i class="fas fa-box"></i>
+            </div>
+            <h3>Reporte de Activos</h3>
+            <p>Inventario completo con estado, ubicación y número de serie.</p>
+            <div class="btn-group">
+              <button class="btn-report btn-csv" onclick="exportCSV('assets')">
+                <i class="fas fa-file-csv"></i> CSV
+              </button>
+              <button class="btn-report btn-pdf" onclick="exportPDF('assets')">
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+          <div class="report-card consumables">
+            <div
+              class="report-card-icon"
+              style="background: var(--ibm-blue-10); color: var(--ibm-blue)"
+            >
+              <i class="fas fa-flask"></i>
+            </div>
+            <h3>Reporte de Consumibles</h3>
+            <p>Stock actual, mínimos y alertas de inventario bajo.</p>
+            <div class="btn-group">
+              <button
+                class="btn-report btn-csv"
+                onclick="exportCSV('consumables')"
+              >
+                <i class="fas fa-file-csv"></i> CSV
+              </button>
+              <button
+                class="btn-report btn-pdf"
+                onclick="exportPDF('consumables')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+          <div class="report-card requests">
+            <div
+              class="report-card-icon"
+              style="background: var(--ibm-green-10); color: var(--ibm-green)"
+            >
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3>Reporte de Solicitudes</h3>
+            <p>Historial de préstamos, estados y fechas de devolución.</p>
+            <div class="btn-group">
+              <button
+                class="btn-report btn-csv"
+                onclick="exportCSV('requests')"
+              >
+                <i class="fas fa-file-csv"></i> CSV
+              </button>
+              <button
+                class="btn-report btn-pdf"
+                onclick="exportPDF('requests')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+          <div class="report-card reservations">
+            <div
+              class="report-card-icon"
+              style="background: var(--ibm-orange-10); color: var(--ibm-orange)"
+            >
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <h3>Reporte de Reservas</h3>
+            <p>Uso de laboratorios, bitácoras de entrada y salida.</p>
+            <div class="btn-group">
+              <button
+                class="btn-report btn-csv"
+                onclick="exportCSV('reservations')"
+              >
+                <i class="fas fa-file-csv"></i> CSV
+              </button>
+              <button
+                class="btn-report btn-pdf"
+                onclick="exportPDF('reservations')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="report-card reservations">
-        <div class="report-card-icon" style="background:var(--ibm-orange-10);color:var(--ibm-orange);"><i class="fas fa-calendar-check"></i></div>
-        <h3>Reporte de Reservas</h3>
-        <p>Uso de laboratorios, bitácoras de entrada y salida.</p>
-        <div class="btn-group">
-          <button class="btn-report btn-csv" onclick="exportCSV('reservations')"><i class="fas fa-file-csv"></i> CSV</button>
-          <button class="btn-report btn-pdf" onclick="exportPDF('reservations')"><i class="fas fa-file-pdf"></i> PDF</button>
+
+        <!-- Gráficas -->
+        <div class="section-label" style="margin-top: 24px">
+          Gráficos Estadísticos
         </div>
+
+        <!-- Filtro de fechas global -->
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: #fff;
+            border: 1px solid var(--ibm-gray-20);
+            padding: 14px 18px;
+            margin-bottom: 16px;
+          "
+        >
+          <i class="fas fa-calendar-alt" style="color: #4f46e5"></i>
+          <span style="font-size: 13px; font-weight: 600; color: #374151"
+            >Filtrar por rango de fechas:</span
+          >
+          <input
+            type="date"
+            id="filterDateFrom"
+            onchange="applyDateFilter()"
+            style="
+              padding: 6px 10px;
+              border: 1px solid #d1d5db;
+              border-radius: 4px;
+              font-size: 13px;
+            "
+          />
+          <span style="font-size: 13px; color: #6b7280">—</span>
+          <input
+            type="date"
+            id="filterDateTo"
+            onchange="applyDateFilter()"
+            style="
+              padding: 6px 10px;
+              border: 1px solid #d1d5db;
+              border-radius: 4px;
+              font-size: 13px;
+            "
+          />
+          <button
+            onclick="
+              _dateFrom = '';
+              _dateTo = '';
+              document.getElementById('filterDateFrom').value = '';
+              document.getElementById('filterDateTo').value = '';
+              loadStats();
+            "
+            style="
+              padding: 6px 12px;
+              border: 1px solid #d1d5db;
+              border-radius: 4px;
+              background: #f3f4f6;
+              font-size: 12px;
+              cursor: pointer;
+              font-family: &quot;IBM Plex Sans&quot;, sans-serif;
+            "
+          >
+            <i class="fas fa-times"></i> Limpiar
+          </button>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-panel">
+            <h4>
+              <span class="dot dot-blue" style="display: inline-block"></span>
+              Estado de Activos
+            </h4>
+            <div class="chart-wrap"><canvas id="assetsChart"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>
+              <span class="dot dot-green" style="display: inline-block"></span>
+              Solicitudes por Estado
+            </h4>
+            <div class="chart-wrap"><canvas id="requestsChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Historial general -->
+        <div class="section-label" style="margin-top: 24px">
+          Historial General (Solicitudes y Reservas)
+        </div>
+        <div class="panel" style="margin-top: 0">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="dot dot-blue"></span> Registro de actividad
+            </div>
+          </div>
+          <div id="historialWrapper" class="panel-scroll">
+            <div class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Cargando historial...</p>
+            </div>
+          </div>
+        </div>
+        <!-- ── AUDIT LOGS (solo admin) ── -->
+        <div id="auditSection" style="display:none;margin-top:0">
+      <div class="section-label" style="margin-top: 24px">
+        Auditoría del Sistema
       </div>
-    </div>
-
-    <!-- Gráficas -->
-    <div class="section-label" style="margin-top:24px;">Gráficos Estadísticos</div>
-    <div class="chart-grid">
-      <div class="chart-panel">
-        <h4><span class="dot dot-blue" style="display:inline-block;"></span> Estado de Activos</h4>
-        <div class="chart-wrap"><canvas id="assetsChart"></canvas></div>
+      <div class="audit-filters">
+        <i class="fas fa-shield-alt" style="color:#6929c4"></i>
+        <span style="font-size:13px;font-weight:600;color:#374151">Filtros:</span>
+        <select id="auditModule" onchange="loadAuditLogs()">
+          <option value="">Todos los módulos</option>
+          <option value="auth">Auth</option>
+          <option value="solicitudes">Solicitudes</option>
+          <option value="reservas">Reservas</option>
+          <option value="activos">Activos</option>
+          <option value="consumibles">Consumibles</option>
+        </select>
+        <select id="auditAction" onchange="loadAuditLogs()">
+          <option value="">Todas las acciones</option>
+          <option value="LOGIN">LOGIN</option>
+          <option value="LOGOUT">LOGOUT</option>
+          <option value="CREATE">CREATE</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+          <option value="STATUS_CHANGE">STATUS_CHANGE</option>
+        </select>
+        <input type="date" id="auditFrom" onchange="loadAuditLogs()"
+          style="padding:6px 10px;border:1px solid #d1d5db;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;" />
+        <span style="font-size:13px;color:#6b7280">—</span>
+        <input type="date" id="auditTo" onchange="loadAuditLogs()"
+          style="padding:6px 10px;border:1px solid #d1d5db;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;" />
+        <select id="auditLimit" onchange="loadAuditLogs()" style="padding:6px 10px;border:1px solid #d1d5db;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;">
+          <option value="100">100 registros</option>
+          <option value="200" selected>200 registros</option>
+          <option value="500">500 registros</option>
+        </select>
+        <button onclick="resetAuditFilters()"
+          style="padding:6px 12px;border:1px solid #d1d5db;background:#f3f4f6;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+          <i class="fas fa-times"></i> Limpiar
+        </button>
+        <span class="audit-count" id="auditCount"></span>
       </div>
-      <div class="chart-panel">
-        <h4><span class="dot dot-green" style="display:inline-block;"></span> Solicitudes por Estado</h4>
-        <div class="chart-wrap"><canvas id="requestsChart"></canvas></div>
-      </div>
-    </div>
-  </div>
-</div>
+      <div class="panel" style="margin-top:0;border-top:none;">
+        <div class="panel-header" style="background:#faf5ff;border-bottom:1px solid #e9d5ff;">
+          <div class="panel-title">
+            <span style="width:8px;height:8px;border-radius:50%;background:#6929c4;display:inline-block;margin-right:6px;"></span>
+            Log de Actividad Detallado
+          </div>
+        </div>
+        <div id="auditWrapper" class="panel-scroll">
+          <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando logs...</p>
+          </div>
+        </div>
+        </div><!-- /auditSection -->
 
-<div class="toast" id="toast"></div>
+      </div><!-- /content -->
+    </div><!-- /main -->
 
-<script>
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-</script>
+    <div class="toast" id="toast"></div>
 
-<script>
-const BASE = "http://localhost:3000/api";
+    <script>
+      // Fix 1: BASE relativo — funciona en localhost, Docker y producción
+      const BASE = "/api";
 
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
+      function getStoredUser() {
+        try {
+          const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
+          return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+      }
 
-async function exportCSV(type) {
-  showToast("Generando reporte...", "info");
-  try {
-    let data, headers, rows;
-    if (type==="assets") { data=await fetch(`${BASE}/assets`).then(r=>r.json()); headers=["ID","Nombre","Categoría","Serie","Ubicación","Estado","Cantidad"]; rows=data.map(a=>[a.id,a.name,a.categories?.name||"",a.serial_number||"",a.location||"",a.status,a.quantity]); }
-    else if (type==="consumables") { data=await fetch(`${BASE}/consumibles`).then(r=>r.json()); headers=["ID","Nombre","Categoría","Cantidad","Mínimo","Unidad","Estado"]; rows=data.map(c=>[c.id,c.name,c.categories?.name||"",c.quantity,c.min_quantity,c.unit,c.quantity<=c.min_quantity?"Stock bajo":"OK"]); }
-    else if (type==="requests") { data=await fetch(`${BASE}/requests`).then(r=>r.json()); headers=["ID","Alumno","Tipo","Ítem","Cantidad","Estado","Fecha"]; rows=data.map(r=>[r.id,r.users?.username||"",r.request_type,r.assets?.name||r.consumibles?.name||"",r.quantity_requested,r.status,r.request_date?.split("T")[0]||""]); }
-    else if (type==="reservations") { data=await fetch(`${BASE}/reservations`).then(r=>r.json()).catch(()=>[]); headers=["ID","Alumno","Docente","Edificio","Laboratorio","Fecha","Hora inicio","Hora fin","Estado"]; rows=data.map(r=>[r.id,r.alumno?.username||"",r.docente?.username||"",r.edificio,r.laboratorio,r.fecha_uso,r.hora_inicio,r.hora_fin,r.status]); }
-    const csv=[headers,...rows].map(row=>row.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
-    const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}), url=URL.createObjectURL(blob), a=document.createElement("a");
-    a.href=url; a.download=`reporte_${type}_${new Date().toISOString().split("T")[0]}.csv`; a.click(); URL.revokeObjectURL(url);
-    showToast("Reporte exportado ✅","success");
-  } catch { showToast("Error al generar el reporte","error"); }
-}
+      function authHeaders() {
+        const user = getStoredUser();
+        const userId = user?.id || '';
+        return { 'x-user-id': String(userId) };
+      }
 
-async function exportPDF(type) {
-  showToast("Generando PDF...","info");
-  try {
-    const {jsPDF}=window.jspdf, doc=new jsPDF("p","mm","a4");
-    let title="", data=[], headers=[];
-    if(type==="assets"){title="REPORTE DE ACTIVOS";data=await fetch(`${BASE}/assets`).then(r=>r.json());headers=["ID","Nombre","Categoría","No. Serie","Ubicación","Estado","Cantidad"];const rows=data.map(a=>[a.id,a.name||"-",a.categories?.name||"-",a.serial_number||"-",a.location||"-",a.status||"-",a.quantity||"-"]);generatePDF(doc,title,headers,rows);}
-    else if(type==="consumables"){title="REPORTE DE CONSUMIBLES";data=await fetch(`${BASE}/consumibles`).then(r=>r.json());headers=["ID","Nombre","Categoría","Stock","Mínimo","Unidad","Estado"];const rows=data.map(c=>[c.id,c.name||"-",c.categories?.name||"-",c.quantity,c.min_quantity,c.unit||"-",c.quantity<=c.min_quantity?"BAJO":"NORMAL"]);generatePDF(doc,title,headers,rows);}
-    else if(type==="requests"){title="REPORTE DE SOLICITUDES";data=await fetch(`${BASE}/requests`).then(r=>r.json());headers=["ID","Usuario","Tipo","Ítem","Cantidad","Estado","Fecha"];const rows=data.map(r=>[r.id,r.users?.username||"-",r.request_type||"-",r.assets?.name||r.consumibles?.name||"-",r.quantity_requested||"-",r.status||"-",r.request_date?r.request_date.split("T")[0]:"-"]);generatePDF(doc,title,headers,rows);}
-    else if(type==="reservations"){title="REPORTE DE RESERVAS";data=await fetch(`${BASE}/reservations`).then(r=>r.json()).catch(()=>[]);headers=["ID","Alumno","Docente","Lab","Fecha","Inicio","Fin","Estado"];const rows=data.map(r=>[r.id,r.alumno?.username||"-",r.docente?.username||"-",r.laboratorio||"-",r.fecha_uso||"-",r.hora_inicio||"-",r.hora_fin||"-",r.status||"-"]);generatePDF(doc,title,headers,rows);}
-    doc.save(`SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.pdf`);
-    showToast("PDF generado ✅","success");
-  } catch(e){ console.error(e); showToast("Error al generar el PDF","error"); }
-}
+      function authFetch(url) {
+        return fetch(url, { headers: authHeaders() }).then(r => r.ok ? r.json() : []).catch(() => []);
+      }
 
-function generatePDF(doc,title,headers,rows) {
-  doc.setFillColor(31,42,58); doc.rect(0,0,210,35,"F");
-  doc.setTextColor(255); doc.setFontSize(18); doc.text("SGIAC-ISC",105,15,{align:"center"});
-  doc.setFontSize(10); doc.text("Sistema de Gestión · TecMM Campus La Huerta",105,23,{align:"center"});
-  doc.setTextColor(0); doc.setFontSize(15); doc.text(title,14,50);
-  doc.setFontSize(10); doc.text(`Fecha: ${new Date().toLocaleDateString("es-MX",{year:"numeric",month:"long",day:"numeric"})}`,14,60);
-  doc.autoTable({startY:70,head:[headers],body:rows,theme:"grid",styles:{fontSize:9,cellPadding:4},headStyles:{fillColor:[79,70,229],textColor:255,fontStyle:"bold",halign:"center"},alternateRowStyles:{fillColor:[245,247,250]},margin:{left:14,right:14}});
-}
+      function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
 
-function renderAssetsChart(assets) {
-  const ctx=document.getElementById("assetsChart"); if(!ctx) return;
-  const c={available:0,borrowed:0,maintenance:0}; assets.forEach(a=>{if(c[a.status]!==undefined)c[a.status]++;});
-  if(window._assetsChart) window._assetsChart.destroy();
-  window._assetsChart=new Chart(ctx,{type:"bar",data:{labels:["Disponibles","Prestados","Mantenimiento"],datasets:[{data:[c.available,c.borrowed,c.maintenance],backgroundColor:["#defbe6","#fcf4d6","#fff1f1"],borderColor:["#198038","#b28600","#da1e28"],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-}
+      // ── Filtro de fechas global ──────────────────────────────────
+      let _dateFrom = "";
+      let _dateTo = "";
 
-function renderRequestsChart(requests) {
-  const ctx=document.getElementById("requestsChart"); if(!ctx) return;
-  const c={pending:0,approved:0,rejected:0,returned:0}; requests.forEach(r=>{if(c[r.status]!==undefined)c[r.status]++;});
-  if(window._requestsChart) window._requestsChart.destroy();
-  window._requestsChart=new Chart(ctx,{type:"doughnut",data:{labels:["Pendientes","Aprobadas","Rechazadas","Devueltas"],datasets:[{data:[c.pending,c.approved,c.rejected,c.returned],backgroundColor:["#fcf4d6","#defbe6","#fff1f1","#d9fbfb"],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:12},padding:14,usePointStyle:true}}}}});
-}
+      function applyDateFilter() {
+        _dateFrom = document.getElementById("filterDateFrom")?.value || "";
+        _dateTo = document.getElementById("filterDateTo")?.value || "";
+        loadStats();
+      }
 
-async function loadStats() {
-  try {
-    const [assets,consumables,requests,reservations]=await Promise.all([
-      fetch(`${BASE}/assets`).then(r=>r.json()),
-      fetch(`${BASE}/consumibles`).then(r=>r.json()),
-      fetch(`${BASE}/requests`).then(r=>r.json()),
-      fetch(`${BASE}/reservations`).then(r=>r.json()).catch(()=>[])
-    ]);
-    document.getElementById("statActivos").textContent=assets.length||0;
-    document.getElementById("statConsumibles").textContent=consumables.length||0;
-    document.getElementById("statSolicitudes").textContent=requests.length||0;
-    document.getElementById("statReservas").textContent=reservations.length||0;
-    renderAssetsChart(assets); renderRequestsChart(requests);
-  } catch(e) { console.error("Error stats:",e); }
-}
+      function filterByDate(items, dateField) {
+        return items.filter((item) => {
+          const val = (item[dateField] || "").substring(0, 10);
+          if (_dateFrom && val < _dateFrom) return false;
+          if (_dateTo && val > _dateTo) return false;
+          return true;
+        });
+      }
 
-function showToast(msg,type="success") { const t=document.getElementById("toast"); t.textContent=msg; t.className=`toast ${type} show`; setTimeout(()=>t.classList.remove("show"),3000); }
+      // ── CSV ──────────────────────────────────────────────────────
+      async function exportCSV(type) {
+        showToast("Generando reporte...", "info");
+        try {
+          let data, headers, rows;
+          if (type === "assets") {
+            data = await authFetch(`${BASE}/assets`);
+            data = filterByDate(data, "updated_at");
+            headers = [
+              "ID",
+              "Nombre",
+              "Categoría",
+              "No. Serie",
+              "Ubicación",
+              "Estado",
+              "Cantidad",
+            ];
+            rows = data.map((a) => [
+              a.id,
+              a.name,
+              a.categories?.name || "",
+              a.serial_number || "",
+              a.location || "",
+              a.status,
+              a.quantity,
+            ]);
+          } else if (type === "consumables") {
+            data = await authFetch(`${BASE}/consumibles`);
+            headers = [
+              "ID",
+              "Nombre",
+              "Categoría",
+              "Stock",
+              "Mínimo",
+              "Unidad",
+              "Estado",
+            ];
+            rows = data.map((c) => [
+              c.id,
+              c.name,
+              c.categories?.name || "",
+              c.quantity,
+              c.min_quantity,
+              c.unit,
+              c.quantity <= c.min_quantity ? "Stock bajo" : "OK",
+            ]);
+          } else if (type === "requests") {
+            data = await authFetch(`${BASE}/requests`);
+            data = filterByDate(data, "fecha_solicitud");
+            headers = [
+              "ID",
+              "Alumno",
+              "Docente",
+              "Tipo",
+              "Propósito",
+              "Ítem",
+              "Cantidad",
+              "Estado",
+              "Fecha",
+              "Hora",
+            ];
+            rows = data.map((r) => [
+              r.id,
+              r.users?.username || "",
+              r.docente?.username || "",
+              r.request_type,
+              r.purpose || "",
+              r.request_items
+                ?.map((i) => i.assets?.name || i.consumables?.name)
+                .join("; ") ||
+                r.assets?.name ||
+                r.consumables?.name ||
+                "",
+              r.quantity_requested || "",
+              r.status,
+              r.fecha_solicitud || r.request_date?.split("T")[0] || "",
+              r.hora_solicitud || "",
+            ]);
+          } else if (type === "reservations") {
+            data = await authFetch(`${BASE}/reservations`);
+            data = filterByDate(data, "fecha_uso");
+            headers = [
+              "ID",
+              "Alumno",
+              "Docente",
+              "Laboratorio",
+              "Edificio",
+              "Fecha",
+              "Inicio",
+              "Fin",
+              "Grupo",
+              "Semestre",
+              "Propósito",
+              "Estado",
+            ];
+            rows = data.map((r) => [
+              r.id,
+              r.alumno?.username || "",
+              r.docente?.username || "",
+              r.lab?.nombre || r.laboratorio || "",
+              r.lab?.edificio || r.edificio || "",
+              r.fecha_uso || "",
+              r.hora_inicio || "",
+              r.hora_fin || "",
+              r.grupo || "",
+              r.semestre || "",
+              r.proposito || "",
+              r.status,
+            ]);
+          }
+          const csv = [headers, ...rows]
+            .map((row) =>
+              row
+                .map((v) => `"${String(v || "").replace(/"/g, '""')}"`)
+                .join(","),
+            )
+            .join("\n");
+          const blob = new Blob(["\ufeff" + csv], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast("Reporte exportado", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("Error al generar el reporte", "error");
+        }
+      }
 
-window.onload=loadStats;
-</script>
-<script src="../scripts/pages/common.js"></script>
-<script src="../scripts/pages/realtime.js"></script>
-</body>
+      // ── PDF ──────────────────────────────────────────────────────
+      async function exportPDF(type) {
+        showToast("Generando PDF...", "info");
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF("l", "mm", "a4"); // landscape para más columnas
+          let title = "",
+            data = [],
+            headers = [],
+            rows = [];
+
+          if (type === "assets") {
+            title = "REPORTE DE ACTIVOS";
+            data = await authFetch(`${BASE}/assets`);
+            data = filterByDate(data, "updated_at");
+            headers = [
+              "ID",
+              "Nombre",
+              "Categoría",
+              "No. Serie",
+              "Ubicación",
+              "Estado",
+              "Cant.",
+            ];
+            rows = data.map((a) => [
+              a.id,
+              a.name || "-",
+              a.categories?.name || "-",
+              a.serial_number || "-",
+              a.location || "-",
+              a.status || "-",
+              a.quantity || 0,
+            ]);
+          } else if (type === "consumables") {
+            title = "REPORTE DE CONSUMIBLES";
+            data = await authFetch(`${BASE}/consumibles`);
+            headers = [
+              "ID",
+              "Nombre",
+              "Área",
+              "Categoría",
+              "Stock",
+              "Mínimo",
+              "Unidad",
+              "Caducidad",
+              "Estado",
+            ];
+            rows = data.map((c) => [
+              c.id,
+              c.name || "-",
+              c.area || "-",
+              c.categories?.name || "-",
+              c.quantity,
+              c.min_quantity,
+              c.unit || "-",
+              c.expiry_date || "-",
+              c.quantity <= c.min_quantity ? "BAJO" : "NORMAL",
+            ]);
+          } else if (type === "requests") {
+            title = "REPORTE DE SOLICITUDES";
+            data = await authFetch(`${BASE}/requests`);
+            data = filterByDate(data, "fecha_solicitud");
+            headers = [
+              "ID",
+              "Alumno",
+              "Docente",
+              "Tipo",
+              "Propósito",
+              "Ítems",
+              "Estado",
+              "Fecha",
+            ];
+            rows = data.map((r) => [
+              r.id,
+              r.users?.username || "-",
+              r.docente?.username || "-",
+              r.request_type || "-",
+              (r.purpose || "-").substring(0, 40),
+              r.request_items
+                ?.map((i) => i.assets?.name || i.consumables?.name)
+                .join(", ")
+                .substring(0, 50) ||
+                r.assets?.name ||
+                "-",
+              r.status || "-",
+              r.fecha_solicitud || r.request_date?.split("T")[0] || "-",
+            ]);
+          } else if (type === "reservations") {
+            title = "REPORTE DE RESERVAS";
+            data = await authFetch(`${BASE}/reservations`);
+            data = filterByDate(data, "fecha_uso");
+            headers = [
+              "ID",
+              "Alumno",
+              "Docente",
+              "Laboratorio",
+              "Fecha",
+              "Inicio",
+              "Fin",
+              "Grupo",
+              "Semestre",
+              "Estado",
+            ];
+            rows = data.map((r) => [
+              r.id,
+              r.alumno?.username || "-",
+              r.docente?.username || "-",
+              r.lab?.nombre || r.laboratorio || "-",
+              r.fecha_uso || "-",
+              r.hora_inicio || "-",
+              r.hora_fin || "-",
+              r.grupo || "-",
+              r.semestre || "-",
+              r.status || "-",
+            ]);
+          }
+
+          // Header PDF
+          doc.setFillColor(31, 42, 58);
+          doc.rect(0, 0, 297, 30, "F");
+          doc.setTextColor(255);
+          doc.setFontSize(16);
+          doc.text("SGIAC-ISC", 148, 12, { align: "center" });
+          doc.setFontSize(9);
+          doc.text(
+            "Sistema de Gestión de Inventario · TecMM Campus La Huerta",
+            148,
+            20,
+            { align: "center" },
+          );
+          doc.setTextColor(0);
+          doc.setFontSize(13);
+          doc.text(title, 14, 42);
+          doc.setFontSize(9);
+          doc.setTextColor(100);
+          const dateLabel =
+            _dateFrom || _dateTo
+              ? `Período: ${_dateFrom || "inicio"} — ${_dateTo || "hoy"}`
+              : `Generado: ${new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}`;
+          doc.text(dateLabel, 14, 50);
+          doc.setTextColor(0);
+
+          doc.autoTable({
+            startY: 58,
+            head: [headers],
+            body: rows,
+            theme: "grid",
+            styles: { fontSize: 8, cellPadding: 3 },
+            headStyles: {
+              fillColor: [79, 70, 229],
+              textColor: 255,
+              fontStyle: "bold",
+              halign: "center",
+            },
+            alternateRowStyles: { fillColor: [245, 247, 250] },
+            margin: { left: 14, right: 14 },
+          });
+
+          doc.save(
+            `SGIAC-ISC_${type}_${new Date().toISOString().split("T")[0]}.pdf`,
+          );
+          showToast("PDF generado ", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("Error al generar el PDF", "error");
+        }
+      }
+
+      // ── Gráficas ─────────────────────────────────────────────────
+      function renderAssetsChart(assets) {
+        const ctx = document.getElementById("assetsChart");
+        if (!ctx) return;
+        const c = { available: 0, borrowed: 0, maintenance: 0, damaged: 0 };
+        assets.forEach((a) => {
+          if (c[a.status] !== undefined) c[a.status]++;
+        });
+        if (window._assetsChart) window._assetsChart.destroy();
+        window._assetsChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Disponibles", "Prestados", "Mantenimiento", "Dañados"],
+            datasets: [
+              {
+                data: [c.available, c.borrowed, c.maintenance, c.damaged],
+                backgroundColor: ["#defbe6", "#fcf4d6", "#edf5ff", "#fff1f1"],
+                borderColor: ["#198038", "#b28600", "#0043ce", "#da1e28"],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+          },
+        });
+      }
+
+      function renderRequestsChart(requests) {
+        const ctx = document.getElementById("requestsChart");
+        if (!ctx) return;
+        const c = {
+          pending: 0,
+          pending_admin: 0,
+          approved: 0,
+          rejected: 0,
+          returned: 0,
+        };
+        requests.forEach((r) => {
+          if (c[r.status] !== undefined) c[r.status]++;
+        });
+        if (window._requestsChart) window._requestsChart.destroy();
+        window._requestsChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: [
+              "Pendiente docente",
+              "Pendiente admin",
+              "Aprobadas",
+              "Rechazadas",
+              "Devueltas",
+            ],
+            datasets: [
+              {
+                data: [
+                  c.pending,
+                  c.pending_admin,
+                  c.approved,
+                  c.rejected,
+                  c.returned,
+                ],
+                backgroundColor: [
+                  "#fcf4d6",
+                  "#edf5ff",
+                  "#defbe6",
+                  "#fff1f1",
+                  "#d9fbfb",
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  font: { size: 11 },
+                  padding: 12,
+                  usePointStyle: true,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // ── Historial de solicitudes (tabla en página) ────────────────
+      function renderHistorial(requests, reservations) {
+        const wrap = document.getElementById("historialWrapper");
+        if (!wrap) return;
+
+        let filteredReq = filterByDate(requests, "fecha_solicitud");
+        let filteredRes = filterByDate(reservations, "fecha_uso");
+
+        if (!filteredReq.length && !filteredRes.length) {
+          wrap.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard"></i><p>Sin registros en el período seleccionado</p></div>`;
+          return;
+        }
+
+        const statusBadge = (s) =>
+          ({
+            pending: '<span class="badge badge-pending">Pendiente</span>',
+            pending_admin: '<span class="badge badge-info">Pend. admin</span>',
+            approved: '<span class="badge badge-approved">Aprobada</span>',
+            rejected: '<span class="badge badge-rejected">Rechazada</span>',
+            returned: '<span class="badge badge-returned">Devuelta</span>',
+            occupied: '<span class="badge badge-occupied">En uso</span>',
+            released: '<span class="badge badge-released">Liberada</span>',
+            cancelled: '<span class="badge badge-cancelled">Cancelada</span>',
+          })[s] || `<span class="badge">${s}</span>`;
+
+        const reqRows = filteredReq
+          .map((r) => {
+            const items =
+              r.request_items
+                ?.map((i) => i.assets?.name || i.consumables?.name)
+                .join(", ") ||
+              r.assets?.name ||
+              r.consumables?.name ||
+              "—";
+            return `<tr>
+      <td><strong>#${r.id}</strong></td>
+      <td>Solicitud</td>
+      <td>${r.users?.username || "—"}</td>
+      <td>${r.docente?.username || "—"}</td>
+      <td>${r.purpose || "—"}</td>
+      <td style="font-size:11px;">${items}</td>
+      <td>${r.fecha_solicitud || r.request_date?.split("T")[0] || "—"}</td>
+      <td>${statusBadge(r.status)}</td>
+    </tr>`;
+          })
+          .join("");
+
+        const resRows = filteredRes
+          .map(
+            (r) => `<tr>
+      <td><strong>#${r.id}</strong></td>
+      <td>Reserva</td>
+      <td>${r.alumno?.username || "—"}</td>
+      <td>${r.docente?.username || "—"}</td>
+      <td>${r.proposito || "—"}</td>
+      <td style="font-size:11px;">${r.lab?.nombre || r.laboratorio || "—"} · ${r.fecha_uso || ""} ${r.hora_inicio || ""}–${r.hora_fin || ""}</td>
+      <td>${r.fecha_uso || "—"}</td>
+      <td>${statusBadge(r.status)}</td>
+    </tr>`,
+          )
+          .join("");
+
+        wrap.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#</th><th>Tipo</th><th>Alumno</th><th>Docente</th>
+        <th>Propósito</th><th>Ítem / Lab</th><th>Fecha</th><th>Estado</th>
+      </tr></thead>
+      <tbody>${reqRows}${resRows}</tbody>
+    </table>`;
+      }
+
+      // ── Cargar todo ───────────────────────────────────────────────
+      let _assets = [],
+        _consumables = [],
+        _requests = [],
+        _reservations = [];
+
+      async function loadStats() {
+        try {
+          [_assets, _consumables, _requests, _reservations] = await Promise.all([
+              authFetch(`${BASE}/assets`),
+              authFetch(`${BASE}/consumibles`),
+              authFetch(`${BASE}/requests`),
+              authFetch(`${BASE}/reservations`),
+          ]);
+
+          const filteredReq = filterByDate(_requests, "fecha_solicitud");
+          const filteredRes = filterByDate(_reservations, "fecha_uso");
+
+          document.getElementById("statActivos").textContent =
+            _assets.length || 0;
+          document.getElementById("statConsumibles").textContent =
+            _consumables.length || 0;
+          document.getElementById("statSolicitudes").textContent =
+            filteredReq.length || 0;
+          document.getElementById("statReservas").textContent =
+            filteredRes.length || 0;
+
+          renderAssetsChart(_assets);
+          renderRequestsChart(filteredReq);
+          renderHistorial(filteredReq, filteredRes);
+        } catch (e) {
+          console.error("Error stats:", e);
+        }
+      }
+
+      function showToast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove("show"), 3000);
+      }
+
+      // ── Audit Logs ────────────────────────────────────────────────
+      const ACTION_ICONS = {
+        LOGIN:        { icon: 'fa-sign-in-alt',  cls: 'audit-LOGIN'  },
+        LOGOUT:       { icon: 'fa-sign-out-alt', cls: 'audit-LOGOUT' },
+        CREATE:       { icon: 'fa-plus',         cls: 'audit-CREATE' },
+        UPDATE:       { icon: 'fa-pen',          cls: 'audit-UPDATE' },
+        DELETE:       { icon: 'fa-trash',        cls: 'audit-DELETE' },
+        STATUS_CHANGE:{ icon: 'fa-exchange-alt', cls: 'audit-STATUS_CHANGE' },
+      };
+
+      async function loadAuditLogs() {
+        const module = document.getElementById('auditModule')?.value || '';
+        const action = document.getElementById('auditAction')?.value || '';
+        const from   = document.getElementById('auditFrom')?.value   || '';
+        const to     = document.getElementById('auditTo')?.value     || '';
+        const limit  = document.getElementById('auditLimit')?.value  || 200;
+        const wrap   = document.getElementById('auditWrapper');
+        if (!wrap) return;
+
+        wrap.innerHTML = `<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>`;
+
+        try {
+          const params = new URLSearchParams();
+          if (module) params.set('module', module);
+          if (action) params.set('action', action);
+          if (from)   params.set('from', from + 'T00:00:00');
+          if (to)     params.set('to',   to   + 'T23:59:59');
+          params.set('limit', limit);
+
+          const logs  = await fetch(`${BASE}/audit-logs?${params}`, {
+            headers: authHeaders()
+          }).then(r => r.json());
+
+          document.getElementById('auditCount').textContent = `${logs.length} registros`;
+
+          if (!logs.length) {
+            wrap.innerHTML = `<div class="empty-state"><i class="fas fa-shield-alt"></i><p>Sin logs en este período</p></div>`;
+            return;
+          }
+
+          const rows = logs.map((l, idx) => {
+            const ai   = ACTION_ICONS[l.action] || { icon: 'fa-circle', cls: '' };
+            const date = new Date(l.created_at);
+            const fecha = date.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+            const hora  = date.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+            const hasDiff = l.old_value || l.new_value;
+
+            return `<tr>
+              <td style="font-size:11px;color:#6b7280;white-space:nowrap;font-family:'IBM Plex Mono',monospace;">
+                ${fecha}<br><strong>${hora}</strong>
+              </td>
+              <td>
+                <strong style="font-size:13px;">${l.users?.username || '—'}</strong>
+                <br><span style="font-size:11px;color:#9ca3af;">${l.users?.email || ''}</span>
+                <br><span class="audit-module">${l.user_role || '—'}</span>
+              </td>
+              <td>
+                <span class="audit-badge ${ai.cls}">
+                  <i class="fas ${ai.icon}"></i> ${l.action}
+                </span>
+              </td>
+              <td><span class="audit-module">${l.module || '—'}</span>${l.record_id ? `<span style="font-size:11px;color:#9ca3af;margin-left:4px;">#${l.record_id}</span>` : ''}</td>
+              <td style="font-size:12.5px;max-width:320px;">${l.description || '—'}</td>
+              <td style="font-size:11px;color:#9ca3af;font-family:'IBM Plex Mono',monospace;">${l.ip_address || '—'}</td>
+              <td>
+                ${hasDiff ? `<button class="audit-detail-btn" onclick="toggleAuditDiff(${idx})">
+                  <i class="fas fa-code"></i> Ver diff
+                </button>` : '—'}
+              </td>
+            </tr>
+            ${hasDiff ? `<tr id="audit-diff-${idx}" class="audit-diff-row" style="display:none;">
+              <td colspan="7">
+                <div class="audit-diff-inner">
+                  <pre class="diff-old"><span style="font-weight:700;color:#da1e28;">— Antes</span>\n${l.old_value ? JSON.stringify(l.old_value, null, 2) : 'null'}</pre>
+                  <pre class="diff-new"><span style="font-weight:700;color:#198038;">+ Después</span>\n${l.new_value ? JSON.stringify(l.new_value, null, 2) : 'null'}</pre>
+                </div>
+              </td>
+            </tr>` : ''}`;
+          }).join('');
+
+          wrap.innerHTML = `<table>
+            <thead><tr>
+              <th>Fecha / Hora</th>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Módulo</th>
+              <th>Descripción</th>
+              <th>IP</th>
+              <th>Detalle</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+        } catch (e) {
+          console.error('Audit logs error:', e);
+          wrap.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar logs</p></div>`;
+        }
+      }
+
+      function toggleAuditDiff(idx) {
+        const row = document.getElementById(`audit-diff-${idx}`);
+        if (!row) return;
+        row.style.display = row.style.display === 'none' ? '' : 'none';
+      }
+
+      function resetAuditFilters() {
+        ['auditModule','auditAction','auditFrom','auditTo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        loadAuditLogs();
+      }
+
+      // Mostrar sección solo si es admin
+      function initAuditSection() {
+        const role = (typeof getUser === 'function' && getUser()?.role) || '';
+        if (role === 'administrador') {
+          const sec = document.getElementById('auditSection');
+          if (sec) sec.style.display = '';
+          loadAuditLogs();
+        }
+      }
+
+      window.onload = () => {
+        loadStats();
+        // Usar getStoredUser (no depende del timing de common.js)
+        const role = getStoredUser()?.role || '';
+        if (role === 'administrador') {
+          const sec = document.getElementById('auditSection');
+          if (sec) sec.style.display = '';
+          loadAuditLogs();
+        }
+      };
+    </script>
+    <script src="../scripts/pages/common.js"></script>
+    <script src="../scripts/pages/realtime.js"></script>
+  </body>
 </html>

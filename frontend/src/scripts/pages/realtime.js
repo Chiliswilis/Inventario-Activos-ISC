@@ -1,9 +1,3 @@
-// ============================================================
-// SGIAC-ISC | realtime.js
-// Tiempo real: SSE con fallback a polling cada 8s
-// Compatible con Docker (localhost:8080 o IP:8080)
-// ============================================================
-
 const REALTIME = (() => {
 
   // ── CONFIGURACIÓN ──────────────────────────────────────────
@@ -135,7 +129,9 @@ const REALTIME = (() => {
         _useSSE    = true;
         _connected = true;
         _setStatus("live");
-        _stopPolling();  // SSE activo, no necesitamos polling
+        _stopPolling();  // SSE activo, no necesitamos polling general
+        // Labs no tiene updated_at: mantener polling específico para detectar cambios de estado
+        _startLabsPolling();
       };
 
       // Evento genérico de cambio de BD
@@ -175,12 +171,13 @@ const REALTIME = (() => {
     { table: "assets",      endpoint: "/api/assets"      },
     { table: "requests",    endpoint: "/api/requests"     },
     { table: "reservations",endpoint: "/api/reservations" },
+    { table: "labs",        endpoint: "/api/labs"         },
   ];
 
   function _startPolling() {
     if (_pollTimer) return;
     _setStatus("polling");
-
+    _startLabsPolling();
     // Primer poll inmediato para inicializar timestamps
     _doPoll();
     _pollTimer = setInterval(_doPoll, POLL_INTERVAL);
@@ -188,6 +185,43 @@ const REALTIME = (() => {
 
   function _stopPolling() {
     if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
+  }
+
+  // ── POLLING DEDICADO PARA LABS (sin updated_at) ────────────
+  let _labsPollTimer = null;
+
+  function _startLabsPolling() {
+    if (_labsPollTimer) return;
+    // Hacer un fetch inmediato para inicializar el hash baseline
+    (async () => {
+      try {
+        const res  = await fetch("/api/labs", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            _lastPoll["labs"] = data.map(l => `${l.id}:${l.status}:${l.activo}`).sort().join("|");
+          }
+        }
+      } catch {}
+    })();
+
+    _labsPollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch("/api/labs", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+        const hash = data.map(l => `${l.id}:${l.status}:${l.activo}`).sort().join("|");
+        if (hash !== _lastPoll["labs"]) {
+          _lastPoll["labs"] = hash;
+          _emit("labs", "REFRESH", data);
+        }
+      } catch {}
+    }, 5000); // cada 5 segundos
+  }
+
+  function _stopLabsPolling() {
+    if (_labsPollTimer) { clearInterval(_labsPollTimer); _labsPollTimer = null; }
   }
 
   async function _doPoll() {
@@ -211,11 +245,11 @@ const REALTIME = (() => {
 
         // Si es el primer poll, solo guardamos referencias sin emitir
         if (!_lastPoll[table]) {
-          _lastPoll[table] = _getNewest(items);
+          _lastPoll[table] = _getNewest(items, table);
           continue;
         }
 
-        const newNewest = _getNewest(items);
+        const newNewest = _getNewest(items, table);
         if (newNewest && newNewest !== _lastPoll[table]) {
           _lastPoll[table] = newNewest;
           _emit(table, "REFRESH", items);
@@ -231,8 +265,12 @@ const REALTIME = (() => {
     }
   }
 
-  function _getNewest(items) {
-    // Buscar el updated_at o created_at más reciente del array
+  function _getNewest(items, table) {
+    // Para "labs": no tiene updated_at, usamos hash del contenido (status + activo)
+    if (table === "labs") {
+      return items.map(l => `${l.id}:${l.status}:${l.activo}`).sort().join("|");
+    }
+    // Para otras tablas: usar updated_at o created_at más reciente
     return items.reduce((max, item) => {
       const ts = item.updated_at || item.created_at || item.timestamp || "";
       return ts > max ? ts : max;
@@ -246,16 +284,17 @@ const REALTIME = (() => {
     requests:     "solicitudes",
     reservations: "reservas",
     logs:         "registros",
-    users:        "usuarios"
+    users:        "usuarios",
+    labs:         "laboratorios"
   };
 
   function _showChangeToast(table, eventType, record) {
     const tLabel = TABLE_LABELS[table] || table;
     let msg;
-    if (eventType === "INSERT") msg = `➕ Nuevo registro en ${tLabel}`;
-    else if (eventType === "UPDATE") msg = `✏️ Actualización en ${tLabel}`;
-    else if (eventType === "DELETE") msg = `🗑️ Eliminado en ${tLabel}`;
-    else if (eventType === "REFRESH") msg = `🔄 ${tLabel} actualizados`;
+    if (eventType === "INSERT") msg = `Nuevo registro en ${tLabel}`;
+    else if (eventType === "UPDATE") msg = `Actualización en ${tLabel}`;
+    else if (eventType === "DELETE") msg = `Eliminado en ${tLabel}`;
+    else if (eventType === "REFRESH") msg = `${tLabel} actualizados`;
     if (msg) _liveToast(msg);
   }
 
@@ -275,37 +314,3 @@ const REALTIME = (() => {
 
 // Auto-init
 REALTIME.init();
-
-
-// ============================================================
-// HELPERS DE INTEGRACIÓN — conectar REALTIME con las páginas
-// ============================================================
-
-/**
- * Uso en cada página (agregar al final del DOMContentLoaded):
- *
- * // consumibles.html
- * REALTIME.on("consumables", (event, data) => {
- *   loadConsumables();   // recargar tabla
- * });
- *
- * // activos.html
- * REALTIME.on("assets", (event, data) => {
- *   loadAssets();
- * });
- *
- * // solicitudes.html
- * REALTIME.on("requests", (event, data) => {
- *   loadRequests();
- * });
- *
- * // reservas.html
- * REALTIME.on("reservations", (event, data) => {
- *   loadReservations();
- * });
- *
- * // dashboard.html (cualquier cambio)
- * REALTIME.on("*", () => {
- *   loadDashboard();
- * });
- */

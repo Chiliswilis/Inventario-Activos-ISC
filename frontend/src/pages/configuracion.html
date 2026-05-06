@@ -1,805 +1,1506 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Configuración</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-<style>
-/* Estilos específicos de configuración */
-.config-layout{display:grid;grid-template-columns:210px 1fr;gap:16px;}
-.config-nav{background:#fff;border:1px solid var(--ibm-gray-20);padding:8px;height:fit-content;position:sticky;top:0;}
-.config-nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;cursor:pointer;font-size:12.5px;color:var(--ibm-gray-70);transition:background 0.15s;margin-bottom:2px;}
-.config-nav-item:hover{background:var(--ibm-gray-10);color:var(--ibm-gray-90);}
-.config-nav-item.active{background:var(--ibm-blue-10);color:var(--ibm-blue);font-weight:600;}
-.config-nav-item i{width:15px;text-align:center;font-size:13px;}
-.config-nav-divider{height:1px;background:var(--ibm-gray-20);margin:6px 0;}
-.config-panels{display:flex;flex-direction:column;gap:14px;}
-.config-section{background:#fff;border:1px solid var(--ibm-gray-20);padding:24px;animation:ibm-in 0.3s ease both;}
-.config-section-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--ibm-gray-20);}
-.config-section-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.config-section-icon.purple{background:var(--ibm-purple-10);color:var(--ibm-purple);}
-.config-section-icon.blue{background:var(--ibm-blue-10);color:var(--ibm-blue);}
-.config-section-icon.green{background:var(--ibm-green-10);color:var(--ibm-green);}
-.config-section-icon.red{background:var(--ibm-red-10);color:var(--ibm-red);}
-.config-section-icon.orange{background:var(--ibm-orange-10);color:var(--ibm-orange);}
-.config-section-icon.gray{background:var(--ibm-gray-10);color:var(--ibm-gray-70);}
-.config-section-header h3{font-size:14.5px;font-weight:700;color:var(--sidebar-bg);margin-bottom:1px;}
-.config-section-header p{font-size:12px;color:var(--ibm-gray-50);}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.form-grid .form-group{margin-bottom:0;}
-.form-grid .form-group.full{grid-column:1/-1;}
-.toggle-group{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--ibm-gray-10);}
-.toggle-group:last-child{border-bottom:none;padding-bottom:0;}
-.toggle-info h4{font-size:13px;font-weight:600;color:var(--ibm-gray-90);margin-bottom:2px;}
-.toggle-info p{font-size:12px;color:var(--ibm-gray-50);}
-.toggle{position:relative;width:42px;height:24px;flex-shrink:0;}
-.toggle input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--ibm-gray-30);transition:0.3s;}
-.toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:0.3s;}
-.toggle input:checked + .toggle-slider{background:var(--ibm-blue);}
-.toggle input:checked + .toggle-slider:before{transform:translateX(18px);}
-.db-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.db-field{background:var(--ibm-gray-10);padding:12px;}
-.db-field label{font-size:10.5px;color:var(--ibm-gray-50);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;font-weight:700;}
-.db-field span{font-size:13px;color:var(--ibm-gray-90);font-weight:500;}
-.roles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.role-card{padding:14px;border:1px solid var(--ibm-gray-20);}
-.role-card.admin{background:var(--ibm-purple-10);border-color:#e0cfff;}
-.role-card.docente{background:var(--ibm-cyan-10);border-color:#b3daff;}
-.role-card.alumno{background:var(--ibm-green-10);border-color:#a2f0c0;}
-.role-card h4{font-size:12.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.role-card.admin h4{color:var(--ibm-purple);}
-.role-card.docente h4{color:var(--ibm-cyan);}
-.role-card.alumno h4{color:var(--ibm-green);}
-.role-card ul{list-style:none;padding:0;}
-.role-card ul li{font-size:11.5px;color:var(--ibm-gray-70);padding:2px 0;display:flex;align-items:center;gap:5px;}
-.role-card.admin ul li::before{content:"✓";font-size:10px;color:var(--ibm-purple);}
-.role-card.docente ul li::before{content:"✓";font-size:10px;color:var(--ibm-cyan);}
-.role-card.alumno ul li::before{content:"✓";font-size:10px;color:var(--ibm-green);}
-.labs-table{width:100%;border-collapse:collapse;font-size:13px;}
-.labs-table th{background:var(--ibm-gray-10);color:var(--ibm-gray-70);padding:8px 12px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;}
-.labs-table td{padding:10px 12px;border-bottom:1px solid var(--ibm-gray-10);color:var(--ibm-gray-90);}
-.labs-table tr:last-child td{border-bottom:none;}
-.btn-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
-.btn-secondary{background:var(--ibm-gray-10);color:var(--ibm-gray-90);border:1px solid var(--ibm-gray-20);padding:9px 18px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;transition:background 0.15s;display:inline-flex;align-items:center;gap:6px;}
-.btn-secondary:hover{background:var(--ibm-gray-20);}
-@media(max-width:768px){.config-layout{grid-template-columns:1fr;}.config-nav{display:none;}.form-grid{grid-template-columns:1fr;}.roles-grid{grid-template-columns:1fr;}.db-info{grid-template-columns:1fr;}}
-</style>
-</head>
-<body>
-
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-    <div class="menu-section">Principal</div>
-    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-    <div class="menu-section">Inventario</div>
-    <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
-    <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-    <div class="menu-section">Gestión</div>
-    <a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-    <a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-    <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-    <div class="menu-section">Sistema</div>
-    <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-    <a href="configuracion.html" class="active"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-  
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-
-
-  <div class="content">
-    <div class="config-layout">
-
-      <!-- Nav lateral -->
-      <div class="config-nav">
-        <div class="config-nav-item active" onclick="navTo('secGeneral', this)">
-          <i class="fas fa-sliders-h"></i> General
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Configuración</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+    <style>
+      /* Estilos específicos de configuración */
+      .config-layout {
+        display: grid;
+        grid-template-columns: 210px 1fr;
+        gap: 16px;
+      }
+      .config-nav {
+        background: #fff;
+        border: 1px solid var(--ibm-gray-20);
+        padding: 8px;
+        height: fit-content;
+        position: sticky;
+        top: 0;
+      }
+      .config-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-size: 12.5px;
+        color: var(--ibm-gray-70);
+        transition: background 0.15s;
+        margin-bottom: 2px;
+      }
+      .config-nav-item:hover {
+        background: var(--ibm-gray-10);
+        color: var(--ibm-gray-90);
+      }
+      .config-nav-item.active {
+        background: var(--ibm-blue-10);
+        color: var(--ibm-blue);
+        font-weight: 600;
+      }
+      .config-nav-item i {
+        width: 15px;
+        text-align: center;
+        font-size: 13px;
+      }
+      .config-nav-divider {
+        height: 1px;
+        background: var(--ibm-gray-20);
+        margin: 6px 0;
+      }
+      .config-panels {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .config-section {
+        background: #fff;
+        border: 1px solid var(--ibm-gray-20);
+        padding: 24px;
+        animation: ibm-in 0.3s ease both;
+      }
+      .config-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--ibm-gray-20);
+      }
+      .config-section-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+      .config-section-icon.purple {
+        background: var(--ibm-purple-10);
+        color: var(--ibm-purple);
+      }
+      .config-section-icon.blue {
+        background: var(--ibm-blue-10);
+        color: var(--ibm-blue);
+      }
+      .config-section-icon.green {
+        background: var(--ibm-green-10);
+        color: var(--ibm-green);
+      }
+      .config-section-icon.red {
+        background: var(--ibm-red-10);
+        color: var(--ibm-red);
+      }
+      .config-section-icon.orange {
+        background: var(--ibm-orange-10);
+        color: var(--ibm-orange);
+      }
+      .config-section-icon.gray {
+        background: var(--ibm-gray-10);
+        color: var(--ibm-gray-70);
+      }
+      .config-section-header h3 {
+        font-size: 14.5px;
+        font-weight: 700;
+        color: var(--sidebar-bg);
+        margin-bottom: 1px;
+      }
+      .config-section-header p {
+        font-size: 12px;
+        color: var(--ibm-gray-50);
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .form-grid .form-group {
+        margin-bottom: 0;
+      }
+      .form-grid .form-group.full {
+        grid-column: 1/-1;
+      }
+      .toggle-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--ibm-gray-10);
+      }
+      .toggle-group:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .toggle-info h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ibm-gray-90);
+        margin-bottom: 2px;
+      }
+      .toggle-info p {
+        font-size: 12px;
+        color: var(--ibm-gray-50);
+      }
+      .toggle {
+        position: relative;
+        width: 42px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+      .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--ibm-gray-30);
+        transition: 0.3s;
+      }
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background: #fff;
+        transition: 0.3s;
+      }
+      .toggle input:checked + .toggle-slider {
+        background: var(--ibm-blue);
+      }
+      .toggle input:checked + .toggle-slider:before {
+        transform: translateX(18px);
+      }
+      .db-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .db-field {
+        background: var(--ibm-gray-10);
+        padding: 12px;
+      }
+      .db-field label {
+        font-size: 10.5px;
+        color: var(--ibm-gray-50);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 700;
+      }
+      .db-field span {
+        font-size: 13px;
+        color: var(--ibm-gray-90);
+        font-weight: 500;
+      }
+      .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .role-card {
+        padding: 14px;
+        border: 1px solid var(--ibm-gray-20);
+      }
+      .role-card.admin {
+        background: var(--ibm-purple-10);
+        border-color: #e0cfff;
+      }
+      .role-card.docente {
+        background: var(--ibm-cyan-10);
+        border-color: #b3daff;
+      }
+      .role-card.alumno {
+        background: var(--ibm-green-10);
+        border-color: #a2f0c0;
+      }
+      .role-card h4 {
+        font-size: 12.5px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .role-card.admin h4 {
+        color: var(--ibm-purple);
+      }
+      .role-card.docente h4 {
+        color: var(--ibm-cyan);
+      }
+      .role-card.alumno h4 {
+        color: var(--ibm-green);
+      }
+      .role-card ul {
+        list-style: none;
+        padding: 0;
+      }
+      .role-card ul li {
+        font-size: 11.5px;
+        color: var(--ibm-gray-70);
+        padding: 2px 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .role-card.admin ul li::before {
+        content: "✓";
+        font-size: 10px;
+        color: var(--ibm-purple);
+      }
+      .role-card.docente ul li::before {
+        content: "✓";
+        font-size: 10px;
+        color: var(--ibm-cyan);
+      }
+      .role-card.alumno ul li::before {
+        content: "✓";
+        font-size: 10px;
+        color: var(--ibm-green);
+      }
+      .labs-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .labs-table th {
+        background: var(--ibm-gray-10);
+        color: var(--ibm-gray-70);
+        padding: 8px 12px;
+        text-align: left;
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+      }
+      .labs-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--ibm-gray-10);
+        color: var(--ibm-gray-90);
+      }
+      .labs-table tr:last-child td {
+        border-bottom: none;
+      }
+      .btn-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      .btn-secondary {
+        background: var(--ibm-gray-10);
+        color: var(--ibm-gray-90);
+        border: 1px solid var(--ibm-gray-20);
+        padding: 9px 18px;
+        font-size: 13px;
+        font-family: "IBM Plex Sans", sans-serif;
+        cursor: pointer;
+        transition: background 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-secondary:hover {
+        background: var(--ibm-gray-20);
+      }
+      @media (max-width: 768px) {
+        .config-layout {
+          grid-template-columns: 1fr;
+        }
+        .config-nav {
+          display: none;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .roles-grid {
+          grid-template-columns: 1fr;
+        }
+        .db-info {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
+      </div>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html"><i class="fas fa-box"></i> Activos</a>
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+        <a href="configuracion.html" class="active"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
+      </div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
         </div>
-        <div class="config-nav-item" onclick="navTo('secBD', this)">
-          <i class="fas fa-database"></i> Base de Datos
-        </div>
-        <div class="config-nav-item" onclick="navTo('secLabs', this)">
-          <i class="fas fa-flask"></i> Laboratorios
-        </div>
-        <div class="config-nav-divider"></div>
-        <div class="config-nav-item" onclick="navTo('secRoles', this)">
-          <i class="fas fa-user-shield"></i> Roles y Permisos
-        </div>
-        <div class="config-nav-item" onclick="navTo('secNotif', this)">
-          <i class="fas fa-bell"></i> Notificaciones
-        </div>
-        <div class="config-nav-divider"></div>
-        <div class="config-nav-item" onclick="navTo('secSistema', this)">
-          <i class="fas fa-info-circle"></i> Información
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
         </div>
       </div>
 
-      <!-- Paneles -->
-      <div class="config-panels">
+      <div class="content">
+        <div class="config-layout">
+          <!-- Nav lateral -->
+          <div class="config-nav">
+            <div
+              class="config-nav-item active"
+              onclick="navTo('secGeneral', this)"
+            >
+              <i class="fas fa-sliders-h"></i> General
+            </div>
+            <div class="config-nav-item" onclick="navTo('secBD', this)">
+              <i class="fas fa-database"></i> Base de Datos
+            </div>
+            <div class="config-nav-item" onclick="navTo('secLabs', this)">
+              <i class="fas fa-flask"></i> Laboratorios
+            </div>
+            <div class="config-nav-divider"></div>
+            <div class="config-nav-item" onclick="navTo('secRoles', this)">
+              <i class="fas fa-user-shield"></i> Roles y Permisos
+            </div>
+            <div class="config-nav-item" onclick="navTo('secNotif', this)">
+              <i class="fas fa-bell"></i> Notificaciones
+            </div>
+            <div class="config-nav-divider"></div>
+            <div class="config-nav-item" onclick="navTo('secSistema', this)">
+              <i class="fas fa-info-circle"></i> Información
+            </div>
+          </div>
 
-        <!-- ── GENERAL ── -->
-        <div class="config-section" id="secGeneral">
-          <div class="config-section-header">
-            <div class="config-section-icon purple"><i class="fas fa-sliders-h"></i></div>
-            <div>
-              <h3>Configuración General</h3>
-              <p>Ajustes principales del sistema SGIAC-ISC</p>
+          <!-- Paneles -->
+          <div class="config-panels">
+            <!-- ── GENERAL ── -->
+            <div class="config-section" id="secGeneral">
+              <div class="config-section-header">
+                <div class="config-section-icon purple">
+                  <i class="fas fa-sliders-h"></i>
+                </div>
+                <div>
+                  <h3>Configuración General</h3>
+                  <p>Ajustes principales del sistema SGIAC-ISC</p>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Nombre del Sistema <span>no editable</span></label>
+                  <input
+                    type="text"
+                    id="cfgNombre"
+                    value="SGIAC-ISC"
+                    readonly
+                    disabled
+                    style="
+                      background: #e9ecef;
+                      color: #6c757d;
+                      cursor: not-allowed;
+                      border-color: #dee2e6;
+                      user-select: none;
+                    "
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Institución <span>no editable</span></label>
+                  <input
+                    type="text"
+                    id="cfgInstitucion"
+                    value="TecMM Campus La Huerta"
+                    readonly
+                    disabled
+                    style="
+                      background: #e9ecef;
+                      color: #6c757d;
+                      cursor: not-allowed;
+                      border-color: #dee2e6;
+                      user-select: none;
+                    "
+                  />
+                </div>
+                <div class="form-group" id="grpMaxReservas">
+                  <label
+                    >Máximo de reservas activas <span>por alumno</span></label
+                  >
+                  <input
+                    type="number"
+                    id="cfgMaxReservas"
+                    value="3"
+                    min="1"
+                    max="10"
+                  />
+                </div>
+                <div class="form-group" id="grpMinHoras">
+                  <label>Tiempo mínimo de reserva <span>en horas</span></label>
+                  <input type="number" id="cfgMinHoras" value="1" min="1" />
+                </div>
+                <div class="form-group full">
+                  <label>Descripción / Misión del sistema</label>
+                  <textarea id="cfgDescripcion">
+Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.</textarea
+                  >
+                </div>
+              </div>
+              <div class="btn-actions" id="btnActionsGeneral">
+                <button class="btn" onclick="saveGeneral()">
+                  <i class="fas fa-save"></i> Guardar cambios
+                </button>
+              </div>
+            </div>
+
+            <!-- ── BASE DE DATOS ── -->
+            <div class="config-section" id="secBD">
+              <div class="config-section-header">
+                <div class="config-section-icon blue">
+                  <i class="fas fa-database"></i>
+                </div>
+                <div>
+                  <h3>Base de Datos</h3>
+                  <p>Conexión a Supabase PostgreSQL</p>
+                </div>
+              </div>
+              <div class="db-info">
+                <div class="db-field">
+                  <label>Proveedor</label>
+                  <span>Supabase (PostgreSQL)</span>
+                </div>
+                <div class="db-field">
+                  <label>Estado</label>
+                  <span id="dbStatus"
+                    ><span class="status-badge status-warning"
+                      ><i class="fas fa-circle"></i> Sin verificar</span
+                    ></span
+                  >
+                </div>
+                <div class="db-field">
+                  <label>Proyecto URL</label>
+                  <span style="font-size: 12px; word-break: break-all"
+                    >Configurado en .env</span
+                  >
+                </div>
+                <div class="db-field">
+                  <label>Tablas activas</label>
+                  <span
+                    >users · assets · consumables · requests · reservations ·
+                    logs · categories</span
+                  >
+                </div>
+              </div>
+              <div class="btn-actions">
+                <button class="btn-secondary" onclick="testConnection()">
+                  <i class="fas fa-plug"></i> Probar conexión
+                </button>
+              </div>
+            </div>
+
+            <!-- ── LABORATORIOS ── -->
+            <div class="config-section" id="secLabs">
+              <div class="config-section-header">
+                <div class="config-section-icon green">
+                  <i class="fas fa-flask"></i>
+                </div>
+                <div>
+                  <h3>Laboratorios Registrados</h3>
+                  <p>Espacios disponibles para reserva</p>
+                </div>
+              </div>
+
+              <!-- Botón agregar (solo admin) -->
+              <div id="labsAdminActions" style="display:none;margin-bottom:14px;">
+                <button class="btn" onclick="openLabModal()">
+                  <i class="fas fa-plus"></i> Agregar Laboratorio
+                </button>
+              </div>
+
+              <!-- Tabla dinámica -->
+              <table class="labs-table">
+                <thead>
+                  <tr>
+                    <th>Edificio</th>
+                    <th>Laboratorio</th>
+                    <th>Horario</th>
+                    <th>Estado</th>
+                    <th id="labsActionsHeader" style="display:none;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="labsTableBody">
+                  <tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando laboratorios...
+                  </td></tr>
+                </tbody>
+              </table>
+
+              <!-- Mensaje para docentes (no admins) -->
+              <p id="labsContactMsg" style="font-size: 12px; color: #9ca3af; margin-top: 12px; display:none;">
+                <i class="fas fa-info-circle"></i> Para agregar nuevos
+                laboratorios, contacta al administrador del sistema.
+              </p>
+            </div>
+
+            <!-- MODAL LABORATORIO -->
+            <div class="modal" id="labModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+                 z-index:1000;display:none;align-items:center;justify-content:center;">
+              <div style="background:#fff;padding:28px;max-width:460px;width:90%;border-radius:8px;position:relative;">
+                <button onclick="closeLabModal()" style="position:absolute;top:12px;right:14px;background:none;
+                  border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
+                <h3 id="labModalTitle" style="margin-bottom:18px;font-size:15px;">Agregar Laboratorio</h3>
+                <input type="hidden" id="labId" />
+                <div class="form-group">
+                  <label>Edificio *</label>
+                  <select id="labEdificio" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;
+                    border-radius:6px;font-size:13px;font-family:inherit;">
+                    <option value="" disabled selected>Selecciona edificio</option>
+                    <option value="Edificio A">Edificio A</option>
+                    <option value="Edificio B">Edificio B</option>
+                    <option value="Edificio C">Edificio C</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Nombre del Laboratorio *</label>
+                  <input type="text" id="labNombre" placeholder="Ej. Laboratorio de Redes"
+                    style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                    font-size:13px;font-family:inherit;box-sizing:border-box;" />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                  <div class="form-group">
+                    <label>Hora apertura</label>
+                    <input type="time" id="labOpenTime" value="07:30"
+                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                      font-size:13px;font-family:inherit;box-sizing:border-box;" />
+                  </div>
+                  <div class="form-group">
+                    <label>Hora cierre</label>
+                    <input type="time" id="labCloseTime" value="15:00"
+                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                      font-size:13px;font-family:inherit;box-sizing:border-box;" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Estado *</label>
+                  <select id="labActivo" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;
+                    border-radius:6px;font-size:13px;font-family:inherit;">
+                    <option value="true">Activo (disponible para reservas)</option>
+                    <option value="maintenance">En Mantenimiento</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:18px;">
+                  <button onclick="closeLabModal()" style="flex:1;padding:9px;background:#f3f4f6;
+                    border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;">
+                    Cancelar
+                  </button>
+                  <button onclick="saveLab()" class="btn" style="flex:2;justify-content:center;">
+                    <i class="fas fa-save"></i> Guardar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── ROLES Y PERMISOS ── -->
+            <div class="config-section" id="secRoles">
+              <div class="config-section-header">
+                <div class="config-section-icon orange">
+                  <i class="fas fa-user-shield"></i>
+                </div>
+                <div>
+                  <h3>Roles y Permisos</h3>
+                  <p>Acceso y capacidades por rol en el sistema</p>
+                </div>
+              </div>
+              <div class="roles-grid">
+                <div class="role-card admin">
+                  <h4><i class="fas fa-shield-alt"></i> Administrador</h4>
+                  <ul>
+                    <li>Ver y gestionar todos los módulos</li>
+                    <li>Crear/editar/eliminar usuarios</li>
+                    <li>Agregar activos y consumibles</li>
+                    <li>Aprobar y rechazar solicitudes</li>
+                    <li>Generar reportes y exportar</li>
+                    <li>Configurar el sistema</li>
+                  </ul>
+                </div>
+                <div class="role-card docente">
+                  <h4><i class="fas fa-chalkboard-teacher"></i> Docente</h4>
+                  <ul>
+                    <li>Ver activos y consumibles</li>
+                    <li>Aprobar reservas de alumnos</li>
+                    <li>Llenar bitácora de entrada/salida</li>
+                    <li>Gestionar solicitudes asignadas</li>
+                  </ul>
+                </div>
+                <div class="role-card alumno">
+                  <h4><i class="fas fa-user-graduate"></i> Alumno</h4>
+                  <ul>
+                    <li>Ver activos y consumibles</li>
+                    <li>Crear solicitudes de préstamo</li>
+                    <li>Solicitar reservas de laboratorio</li>
+                    <li>Ver estado de sus solicitudes</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── NOTIFICACIONES ── -->
+            <div class="config-section" id="secNotif">
+              <div class="config-section-header">
+                <div class="config-section-icon gray">
+                  <i class="fas fa-bell"></i>
+                </div>
+                <div>
+                  <h3>Notificaciones</h3>
+                  <p>Configurar alertas y avisos del sistema</p>
+                </div>
+              </div>
+
+              <!-- Tabs por rol (solo admin ve todos) -->
+              <div
+                id="notifTabs"
+                style="
+                  display: flex;
+                  gap: 0;
+                  margin-bottom: 20px;
+                  border: 1px solid #e5e7eb;
+                  border-radius: 8px;
+                  overflow: hidden;
+                  width: fit-content;
+                "
+              >
+                <button
+                  type="button"
+                  id="tabAdmin"
+                  class="notif-tab active-tab"
+                  onclick="switchNotifTab('admin')"
+                  style="
+                    padding: 7px 18px;
+                    font-size: 13px;
+                    font-family: &quot;Poppins&quot;, sans-serif;
+                    cursor: pointer;
+                    border: none;
+                    background: #1f2a3a;
+                    color: white;
+                    font-weight: 500;
+                    border-right: 1px solid #e5e7eb;
+                  "
+                >
+                  <i class="fas fa-shield-alt" style="margin-right: 5px"></i>
+                  Admin
+                </button>
+                <button
+                  type="button"
+                  id="tabDocente"
+                  class="notif-tab"
+                  onclick="switchNotifTab('docente')"
+                  style="
+                    padding: 7px 18px;
+                    font-size: 13px;
+                    font-family: &quot;Poppins&quot;, sans-serif;
+                    cursor: pointer;
+                    border: none;
+                    background: white;
+                    color: #6b7280;
+                    font-weight: 500;
+                    border-right: 1px solid #e5e7eb;
+                  "
+                >
+                  <i
+                    class="fas fa-chalkboard-teacher"
+                    style="margin-right: 5px"
+                  ></i>
+                  Docente
+                </button>
+                <button
+                  type="button"
+                  id="tabAlumno"
+                  class="notif-tab"
+                  onclick="switchNotifTab('alumno')"
+                  style="
+                    padding: 7px 18px;
+                    font-size: 13px;
+                    font-family: &quot;Poppins&quot;, sans-serif;
+                    cursor: pointer;
+                    border: none;
+                    background: white;
+                    color: #6b7280;
+                    font-weight: 500;
+                  "
+                >
+                  <i class="fas fa-user-graduate" style="margin-right: 5px"></i>
+                  Alumno
+                </button>
+              </div>
+
+              <!-- Panel Admin -->
+              <div id="notifAdmin">
+                <div class="form-group" style="margin-bottom: 16px">
+                  <label>Email de notificaciones</label>
+                  <input
+                    type="email"
+                    id="cfgEmail"
+                    placeholder="admin@ejemplo.com"
+                  />
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Alerta de stock bajo</h4>
+                    <p>Notificar cuando un consumible llegue al mínimo</p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togStock" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Nueva solicitud pendiente</h4>
+                    <p>Avisar cuando un alumno cree una solicitud</p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togSolicitud" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Reserva aprobada / rechazada</h4>
+                    <p>Notificar cuando el estado de una reserva cambie</p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togReserva" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Nuevo usuario registrado</h4>
+                    <p>Avisar cuando se cree una nueva cuenta en el sistema</p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togNuevoUsuario" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Registro de actividad (logs)</h4>
+                    <p>Guardar en bitácora todas las acciones del sistema</p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togLogs" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="btn-actions">
+                  <button class="btn" onclick="saveNotif('admin')">
+                    <i class="fas fa-save"></i> Guardar preferencias
+                  </button>
+                </div>
+              </div>
+
+              <!-- Panel Docente -->
+              <div id="notifDocente" style="display: none">
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Nueva solicitud de alumno</h4>
+                    <p>
+                      Avisar cuando un alumno solicite un préstamo o reserva
+                    </p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togDocSolicitud" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Devolución de material</h4>
+                    <p>
+                      Notificar cuando un alumno devuelva un activo prestado
+                    </p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togDocDevolucion" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Alerta de stock bajo</h4>
+                    <p>Recibir aviso cuando un consumible esté por agotarse</p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togDocStock" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Cambio de estado de reserva</h4>
+                    <p>
+                      Notificar cuando el admin apruebe o rechace una reserva
+                    </p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togDocReserva" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="btn-actions">
+                  <button class="btn" onclick="saveNotif('docente')">
+                    <i class="fas fa-save"></i> Guardar preferencias
+                  </button>
+                </div>
+              </div>
+
+              <!-- Panel Alumno -->
+              <div id="notifAlumno" style="display: none">
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Solicitud aprobada</h4>
+                    <p>
+                      Notificar cuando el docente apruebe tu solicitud de
+                      préstamo
+                    </p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togAluSolicitudAprobada" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Solicitud rechazada</h4>
+                    <p>Avisar cuando una solicitud sea rechazada</p>
+                  </div>
+                  <label class="toggle"
+                    ><input
+                      type="checkbox"
+                      id="togAluSolicitudRechazada" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Reserva aprobada</h4>
+                    <p>
+                      Notificar cuando tu reserva de laboratorio sea aprobada
+                    </p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togAluReservaAprobada" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>Recordatorio de devolución</h4>
+                    <p>
+                      Avisar cuando se acerque la fecha límite para devolver
+                      material
+                    </p>
+                  </div>
+                  <label class="toggle"
+                    ><input type="checkbox" id="togAluRecordatorio" /><span
+                      class="toggle-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="btn-actions">
+                  <button class="btn" onclick="saveNotif('alumno')">
+                    <i class="fas fa-save"></i> Guardar preferencias
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── INFORMACIÓN DEL SISTEMA ── -->
+            <div class="config-section" id="secSistema">
+              <div class="config-section-header">
+                <div class="config-section-icon gray">
+                  <i class="fas fa-info-circle"></i>
+                </div>
+                <div>
+                  <h3>Información del Sistema</h3>
+                  <p>Versión y datos técnicos</p>
+                </div>
+              </div>
+              <div class="db-info">
+                <div class="db-field">
+                  <label>Versión</label>
+                  <span>SGIAC-ISC v1.0</span>
+                </div>
+                <div class="db-field">
+                  <label>Backend</label>
+                  <span>Node.js + Express</span>
+                </div>
+                <div class="db-field">
+                  <label>Base de datos</label>
+                  <span>Supabase (PostgreSQL 15)</span>
+                </div>
+                <div class="db-field">
+                  <label>Frontend</label>
+                  <span>HTML · CSS · JavaScript</span>
+                </div>
+                <div class="db-field">
+                  <label>Desarrollado por</label>
+                  <span>Equipo ISC — TecMM La Huerta</span>
+                </div>
+                <div class="db-field">
+                  <label>Ciclo escolar</label>
+                  <span>2025–2026</span>
+                </div>
+                <div class="db-field">
+                  <label>ENTORNO DE EJECUCIÓN</label>
+                  <span>Docker Compose</span>
+                </div>
+                <div class="db-field">
+                  <label>ARQUITECTURA</label>
+                  <span
+                    >Frontend: Nginx + HTML/CSS/JS<br />Backend: Node.js +
+                    Express</span
+                  >
+                </div>
+              </div>
             </div>
           </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nombre del Sistema <span>no editable</span></label>
-              <input type="text" id="cfgNombre" value="SGIAC-ISC" readonly disabled style="background:#e9ecef;color:#6c757d;cursor:not-allowed;border-color:#dee2e6;user-select:none;">
-            </div>
-            <div class="form-group">
-              <label>Institución <span>no editable</span></label>
-              <input type="text" id="cfgInstitucion" value="TecMM Campus La Huerta" readonly disabled style="background:#e9ecef;color:#6c757d;cursor:not-allowed;border-color:#dee2e6;user-select:none;">
-            </div>
-            <div class="form-group" id="grpMaxReservas">
-              <label>Máximo de reservas activas <span>por alumno</span></label>
-              <input type="number" id="cfgMaxReservas" value="3" min="1" max="10">
-            </div>
-            <div class="form-group" id="grpMinHoras">
-              <label>Tiempo mínimo de reserva <span>en horas</span></label>
-              <input type="number" id="cfgMinHoras" value="1" min="1">
-            </div>
-            <div class="form-group full">
-              <label>Descripción / Misión del sistema</label>
-              <textarea id="cfgDescripcion">Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.</textarea>
-            </div>
-          </div>
-          <div class="btn-actions" id="btnActionsGeneral">
-            <button class="btn" onclick="saveGeneral()"><i class="fas fa-save"></i> Guardar cambios</button>
-          </div>
+          <!-- /config-panels -->
         </div>
-
-        <!-- ── BASE DE DATOS ── -->
-        <div class="config-section" id="secBD">
-          <div class="config-section-header">
-            <div class="config-section-icon blue"><i class="fas fa-database"></i></div>
-            <div>
-              <h3>Base de Datos</h3>
-              <p>Conexión a Supabase PostgreSQL</p>
-            </div>
-          </div>
-          <div class="db-info">
-            <div class="db-field">
-              <label>Proveedor</label>
-              <span>Supabase (PostgreSQL)</span>
-            </div>
-            <div class="db-field">
-              <label>Estado</label>
-              <span id="dbStatus"><span class="status-badge status-warning"><i class="fas fa-circle"></i> Sin verificar</span></span>
-            </div>
-            <div class="db-field">
-              <label>Proyecto URL</label>
-              <span style="font-size:12px;word-break:break-all;">Configurado en .env</span>
-            </div>
-            <div class="db-field">
-              <label>Tablas activas</label>
-              <span>users · assets · consumables · requests · reservations · logs · categories</span>
-            </div>
-          </div>
-          <div class="btn-actions">
-            <button class="btn-secondary" onclick="testConnection()"><i class="fas fa-plug"></i> Probar conexión</button>
-          </div>
-        </div>
-
-        <!-- ── LABORATORIOS ── -->
-        <div class="config-section" id="secLabs">
-          <div class="config-section-header">
-            <div class="config-section-icon green"><i class="fas fa-flask"></i></div>
-            <div>
-              <h3>Laboratorios Registrados</h3>
-              <p>Espacios disponibles para reserva</p>
-            </div>
-          </div>
-          <table class="labs-table">
-            <thead>
-              <tr>
-                <th>Edificio</th>
-                <th>Laboratorio</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Edificio A</strong></td>
-                <td>Laboratorio de Ciencias Básicas</td>
-                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
-              </tr>
-              <tr>
-                <td><strong>Edificio A</strong></td>
-                <td>Laboratorio de Computo A</td>
-                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
-              </tr>
-              <tr>
-                <td><strong>Edificio A</strong></td>
-                <td>Laboratorio de Sistemas</td>
-                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
-              </tr>
-              <td><strong>Edificio A</strong></td>
-                <td>Laboratorio de circuitos</td>
-                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
-              </tr>
-              <tr>
-                <td><strong>Edificio B</strong></td>
-                <td>Laboratorio de Computo A</td>
-                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
-              </tr>
-              <td><strong>Edificio B<B/strong></td>
-                <td>Laboratorio de Computo B</td>
-                <td><span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span></td>
-              </tr>
-            </tbody>
-          </table>
-          <p style="font-size:12px;color:#9ca3af;margin-top:12px;">
-            <i class="fas fa-info-circle"></i> Para agregar nuevos laboratorios, contacta al administrador del sistema.
-          </p>
-        </div>
-
-        <!-- ── ROLES Y PERMISOS ── -->
-        <div class="config-section" id="secRoles">
-          <div class="config-section-header">
-            <div class="config-section-icon orange"><i class="fas fa-user-shield"></i></div>
-            <div>
-              <h3>Roles y Permisos</h3>
-              <p>Acceso y capacidades por rol en el sistema</p>
-            </div>
-          </div>
-          <div class="roles-grid">
-            <div class="role-card admin">
-              <h4><i class="fas fa-shield-alt"></i> Administrador</h4>
-              <ul>
-                <li>Ver y gestionar todos los módulos</li>
-                <li>Crear/editar/eliminar usuarios</li>
-                <li>Agregar activos y consumibles</li>
-                <li>Aprobar y rechazar solicitudes</li>
-                <li>Generar reportes y exportar</li>
-                <li>Configurar el sistema</li>
-              </ul>
-            </div>
-            <div class="role-card docente">
-              <h4><i class="fas fa-chalkboard-teacher"></i> Docente</h4>
-              <ul>
-                <li>Ver activos y consumibles</li>
-                <li>Aprobar reservas de alumnos</li>
-                <li>Llenar bitácora de entrada/salida</li>
-                <li>Gestionar solicitudes asignadas</li>
-              </ul>
-            </div>
-            <div class="role-card alumno">
-              <h4><i class="fas fa-user-graduate"></i> Alumno</h4>
-              <ul>
-                <li>Ver activos y consumibles</li>
-                <li>Crear solicitudes de préstamo</li>
-                <li>Solicitar reservas de laboratorio</li>
-                <li>Ver estado de sus solicitudes</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── NOTIFICACIONES ── -->
-        <div class="config-section" id="secNotif">
-          <div class="config-section-header">
-            <div class="config-section-icon gray"><i class="fas fa-bell"></i></div>
-            <div>
-              <h3>Notificaciones</h3>
-              <p>Configurar alertas y avisos del sistema</p>
-            </div>
-          </div>
-
-          <!-- Tabs por rol (solo admin ve todos) -->
-          <div id="notifTabs" style="display:flex;gap:0;margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;width:fit-content;">
-            <button type="button" id="tabAdmin" class="notif-tab active-tab" onclick="switchNotifTab('admin')" style="padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;border:none;background:#1f2a3a;color:white;font-weight:500;border-right:1px solid #e5e7eb;">
-              <i class="fas fa-shield-alt" style="margin-right:5px;"></i> Admin
-            </button>
-            <button type="button" id="tabDocente" class="notif-tab" onclick="switchNotifTab('docente')" style="padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;border:none;background:white;color:#6b7280;font-weight:500;border-right:1px solid #e5e7eb;">
-              <i class="fas fa-chalkboard-teacher" style="margin-right:5px;"></i> Docente
-            </button>
-            <button type="button" id="tabAlumno" class="notif-tab" onclick="switchNotifTab('alumno')" style="padding:7px 18px;font-size:13px;font-family:'Poppins',sans-serif;cursor:pointer;border:none;background:white;color:#6b7280;font-weight:500;">
-              <i class="fas fa-user-graduate" style="margin-right:5px;"></i> Alumno
-            </button>
-          </div>
-
-          <!-- Panel Admin -->
-          <div id="notifAdmin">
-            <div class="form-group" style="margin-bottom:16px;">
-              <label>Email de notificaciones</label>
-              <input type="email" id="cfgEmail" placeholder="admin@ejemplo.com">
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Alerta de stock bajo</h4>
-                <p>Notificar cuando un consumible llegue al mínimo</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togStock"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Nueva solicitud pendiente</h4>
-                <p>Avisar cuando un alumno cree una solicitud</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togSolicitud"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Reserva aprobada / rechazada</h4>
-                <p>Notificar cuando el estado de una reserva cambie</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togReserva"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Nuevo usuario registrado</h4>
-                <p>Avisar cuando se cree una nueva cuenta en el sistema</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togNuevoUsuario"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Registro de actividad (logs)</h4>
-                <p>Guardar en bitácora todas las acciones del sistema</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togLogs"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="btn-actions">
-              <button class="btn" onclick="saveNotif('admin')"><i class="fas fa-save"></i> Guardar preferencias</button>
-            </div>
-          </div>
-
-          <!-- Panel Docente -->
-          <div id="notifDocente" style="display:none;">
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Nueva solicitud de alumno</h4>
-                <p>Avisar cuando un alumno solicite un préstamo o reserva</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togDocSolicitud"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Devolución de material</h4>
-                <p>Notificar cuando un alumno devuelva un activo prestado</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togDocDevolucion"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Alerta de stock bajo</h4>
-                <p>Recibir aviso cuando un consumible esté por agotarse</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togDocStock"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Cambio de estado de reserva</h4>
-                <p>Notificar cuando el admin apruebe o rechace una reserva</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togDocReserva"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="btn-actions">
-              <button class="btn" onclick="saveNotif('docente')"><i class="fas fa-save"></i> Guardar preferencias</button>
-            </div>
-          </div>
-
-          <!-- Panel Alumno -->
-          <div id="notifAlumno" style="display:none;">
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Solicitud aprobada</h4>
-                <p>Notificar cuando el docente apruebe tu solicitud de préstamo</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togAluSolicitudAprobada"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Solicitud rechazada</h4>
-                <p>Avisar cuando una solicitud sea rechazada</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togAluSolicitudRechazada"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Reserva aprobada</h4>
-                <p>Notificar cuando tu reserva de laboratorio sea aprobada</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togAluReservaAprobada"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-group">
-              <div class="toggle-info">
-                <h4>Recordatorio de devolución</h4>
-                <p>Avisar cuando se acerque la fecha límite para devolver material</p>
-              </div>
-              <label class="toggle"><input type="checkbox" id="togAluRecordatorio"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="btn-actions">
-              <button class="btn" onclick="saveNotif('alumno')"><i class="fas fa-save"></i> Guardar preferencias</button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ── INFORMACIÓN DEL SISTEMA ── -->
-        <div class="config-section" id="secSistema">
-          <div class="config-section-header">
-            <div class="config-section-icon gray"><i class="fas fa-info-circle"></i></div>
-            <div>
-              <h3>Información del Sistema</h3>
-              <p>Versión y datos técnicos</p>
-            </div>
-          </div>
-          <div class="db-info">
-            <div class="db-field">
-              <label>Versión</label>
-              <span>SGIAC-ISC v1.0</span>
-            </div>
-            <div class="db-field">
-              <label>Backend</label>
-              <span>Node.js + Express</span>
-            </div>
-            <div class="db-field">
-              <label>Base de datos</label>
-              <span>Supabase (PostgreSQL 15)</span>
-            </div>
-            <div class="db-field">
-              <label>Frontend</label>
-              <span>HTML · CSS · JavaScript</span>
-            </div>
-            <div class="db-field">
-              <label>Desarrollado por</label>
-              <span>Equipo ISC — TecMM La Huerta</span>
-            </div>
-            <div class="db-field">
-              <label>Ciclo escolar</label>
-              <span>2025–2026</span>
-            </div>
-            <div class="db-field">
-        <label>ENTORNO DE EJECUCIÓN</label>
-        <span>Docker Compose</span>
+        <!-- /config-layout -->
+      </div>
+      <!-- /content -->
     </div>
-    <div class="db-field">
-        <label>ARQUITECTURA</label>
-        <span>Frontend: Nginx + HTML/CSS/JS<br>Backend: Node.js + Express</span>
-    </div>
-          </div>
-        </div>
+    <!-- /main -->
 
-      </div><!-- /config-panels -->
-    </div><!-- /config-layout -->
-  </div><!-- /content -->
-</div><!-- /main -->
+    <div class="toast" id="toast"></div>
 
-<div class="toast" id="toast"></div>
-
-<script>
-// ══════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════
-function showToast(msg, type = "success") {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove("show"), 3500);
-}
-
-function toggleMenu(){
-  const s=document.getElementById("sidebar");
-  const o=document.getElementById("sidebarOverlay");
-  s.classList.toggle("open");
-  o.classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-
-// ══════════════════════════════════════════════
-// NAV LATERAL — mostrar/ocultar secciones
-// ══════════════════════════════════════════════
-const ALL_SECTIONS = ['secGeneral','secBD','secLabs','secRoles','secNotif','secSistema'];
-
-function navTo(id, el) {
-  // Ocultar todas las secciones
-  ALL_SECTIONS.forEach(secId => {
-    const sec = document.getElementById(secId);
-    if (sec) sec.style.display = 'none';
-  });
-  // Mostrar solo la sección elegida
-  const target = document.getElementById(id);
-  if (target) {
-    target.style.display = 'block';
-    // Scroll al tope del contenido
-    const content = document.querySelector(".content");
-    if (content) content.scrollTo({ top: 0, behavior: "smooth" });
-  }
-  // Actualizar nav activo
-  document.querySelectorAll(".config-nav-item").forEach(e => e.classList.remove("active"));
-  if (el) el.classList.add("active");
-}
-
-function initNav() {
-  // Ocultar todas excepto General al cargar
-  ALL_SECTIONS.forEach(secId => {
-    const sec = document.getElementById(secId);
-    if (sec && secId !== 'secGeneral') sec.style.display = 'none';
-  });
-}
-
-// ══════════════════════════════════════════════
-// ROL DEL USUARIO (viene de common.js / localStorage)
-// ══════════════════════════════════════════════
-function getUserRole() {
-  // Claves posibles donde common.js/auth puede guardar la sesion
-  const KEYS = ["sgiac_user","sgiac_session","sgiac_auth","user","currentUser","session","authUser"];
-  const ROLE_FIELDS = ["role","rol","tipo","type","userRole","user_role"];
-
-  for (const key of KEYS) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const obj = JSON.parse(raw);
-      for (const field of ROLE_FIELDS) {
-        if (obj[field]) return obj[field].toString().toLowerCase();
+    <script>
+      function showToast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove("show"), 3500);
       }
-      // Buscar en sub-objetos comunes
-      const sub = obj.user || obj.data || obj.userData || obj.perfil;
-      if (sub) {
-        for (const field of ROLE_FIELDS) {
-          if (sub[field]) return sub[field].toString().toLowerCase();
+
+      function toggleMenu() {
+        const s = document.getElementById("sidebar");
+        const o = document.getElementById("sidebarOverlay");
+        s.classList.toggle("open");
+        o.classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+
+      const ALL_SECTIONS = [
+        "secGeneral",
+        "secBD",
+        "secLabs",
+        "secRoles",
+        "secNotif",
+        "secSistema",
+      ];
+
+      function navTo(id, el) {
+        // Ocultar todas las secciones
+        sessionStorage.setItem("configTab", id);
+        ALL_SECTIONS.forEach((secId) => {
+          const sec = document.getElementById(secId);
+          if (sec) sec.style.display = "none";
+        });
+        // Mostrar solo la sección elegida
+        const target = document.getElementById(id);
+        if (target) {
+          target.style.display = "block";
+          // Scroll al tope del contenido
+          const content = document.querySelector(".content");
+          if (content) content.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        // Actualizar nav activo
+        document
+          .querySelectorAll(".config-nav-item")
+          .forEach((e) => e.classList.remove("active"));
+        if (el) el.classList.add("active");
+      }
+
+      function initNav() {
+  const saved = sessionStorage.getItem("configTab") || "secGeneral";
+  ALL_SECTIONS.forEach((secId) => {
+    const sec = document.getElementById(secId);
+    if (sec) sec.style.display = secId === saved ? "block" : "none";
+  });
+  // Marcar nav activo
+  document.querySelectorAll(".config-nav-item").forEach(el => {
+    const onclick = el.getAttribute("onclick") || "";
+    if (onclick.includes(saved)) el.classList.add("active");
+    else el.classList.remove("active");
+  });
+}
+
+      function getUserRole() {
+        // Fix: usar sessionStorage (migrado desde localStorage en común.js y login.html)
+        try {
+          const raw = sessionStorage.getItem("user");
+          if (raw) {
+            const obj = JSON.parse(raw);
+            if (obj?.role) return obj.role.toString().toLowerCase();
+          }
+        } catch (e) {}
+
+        // Respaldo: leer el badge visible en el header (pintado por common.js)
+        const badge = document.querySelector(".role-badge span");
+        if (badge) {
+          const t = badge.textContent.trim().toLowerCase();
+          if (t.includes("admin")) return "administrador";
+          if (t.includes("docente")) return "docente";
+          if (t.includes("alumno")) return "alumno";
+        }
+
+        return "alumno"; // rol más restrictivo por defecto
+      }
+
+      const CFG_KEY = "sgiac_config_general";
+
+      function loadGeneral() {
+        const role = getUserRole();
+        const saved = JSON.parse(sessionStorage.getItem(CFG_KEY) || "{}");
+
+        // Valores por defecto o guardados
+        document.getElementById("cfgMaxReservas").value = saved.maxReservas ?? 3;
+        document.getElementById("cfgMinHoras").value    = saved.minHoras ?? 1;
+        if (document.getElementById("cfgDescripcion"))
+          document.getElementById("cfgDescripcion").value =
+            saved.descripcion ??
+            "Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.";
+
+        // Campos SIEMPRE bloqueados (para todos los roles)
+        const LOCKED_ALL = ["cfgNombre", "cfgInstitucion", "cfgDescripcion"];
+        // Campos editables SOLO para admin
+        const EDITABLE_ADMIN = ["cfgMaxReservas", "cfgMinHoras"];
+
+        // Bloquear campos fijos para todos
+        LOCKED_ALL.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.setAttribute("readonly", "");
+          el.setAttribute("disabled", "");
+          el.style.background  = "#e9ecef";
+          el.style.color       = "#6c757d";
+          el.style.cursor      = "not-allowed";
+          el.style.borderColor = "#dee2e6";
+          el.style.userSelect  = "none";
+        });
+
+        if (role === "administrador") {
+          // Admin: solo puede editar maxReservas y minHoras
+          EDITABLE_ADMIN.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.removeAttribute("readonly");
+            el.removeAttribute("disabled");
+            el.style.background  = "";
+            el.style.color       = "";
+            el.style.cursor      = "";
+            el.style.borderColor = "";
+            el.style.userSelect  = "";
+          });
+          const btn = document.getElementById("btnActionsGeneral");
+          if (btn) btn.style.display = "";
+        } else {
+          // Docente / Alumno: bloquear TODOS los campos
+          EDITABLE_ADMIN.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.setAttribute("readonly", "");
+            el.setAttribute("disabled", "");
+            el.style.background  = "#e9ecef";
+            el.style.color       = "#6c757d";
+            el.style.cursor      = "not-allowed";
+            el.style.borderColor = "#dee2e6";
+            el.style.userSelect  = "none";
+          });
+          // Ocultar botón Guardar cambios
+          const btn = document.getElementById("btnActionsGeneral");
+          if (btn) btn.style.display = "none";
         }
       }
-    } catch (e) { /* continuar */ }
-  }
 
-  // Respaldo 1: leer el badge visible en el header (pintado por common.js)
-  const badgeSelectors = [
-    ".user .badge", ".user [class*='badge']", "#roleBadge",
-    ".role-badge", ".user-role", ".header .badge", "[data-role]"
-  ];
-  for (const sel of badgeSelectors) {
-    try {
-      const el = document.querySelector(sel);
-      if (el) {
-        const t = (el.textContent || el.getAttribute("data-role") || "").trim().toLowerCase();
-        if (t.includes("admin"))   return "admin";
-        if (t.includes("docente")) return "docente";
-        if (t.includes("alumno"))  return "alumno";
+      function saveGeneral() {
+        const role = getUserRole();
+        if (role !== "administrador") {
+          showToast("Sin permisos para guardar", "error");
+          return;
+        }
+        const data = {
+          maxReservas:
+            parseInt(document.getElementById("cfgMaxReservas").value) || 3,
+          minHoras: parseInt(document.getElementById("cfgMinHoras").value) || 1,
+          descripcion: document.getElementById("cfgDescripcion")?.value || "",
+        };
+        sessionStorage.setItem(CFG_KEY, JSON.stringify(data));
+        showToast("Configuración general guardada", "success");
       }
-    } catch(e) {}
-  }
 
-  // Respaldo 2: leer el span de nombre en el header
-  const uname = document.getElementById("username");
-  if (uname) {
-    const t = uname.textContent.trim().toLowerCase();
-    if (t.includes("admin"))   return "admin";
-    if (t.includes("docente")) return "docente";
-    if (t.includes("alumno"))  return "alumno";
-  }
+      const DB_STATUS_KEY = "sgiac_db_status";
 
-  return "alumno"; // rol mas restrictivo por defecto
-}
-
-// ══════════════════════════════════════════════
-// CONFIGURACIÓN GENERAL — persistencia localStorage
-// ══════════════════════════════════════════════
-const CFG_KEY = "sgiac_config_general";
-
-function loadGeneral() {
-  const role = getUserRole();
-  const saved = JSON.parse(localStorage.getItem(CFG_KEY) || "{}");
-
-  // Valores por defecto o guardados
-  document.getElementById("cfgMaxReservas").value = saved.maxReservas ?? 3;
-  document.getElementById("cfgMinHoras").value    = saved.minHoras    ?? 1;
-  if (document.getElementById("cfgDescripcion"))
-    document.getElementById("cfgDescripcion").value = saved.descripcion
-      ?? "Sistema de Gestión de Inventario y Activos para el Departamento de ISC del TecMM Campus La Huerta.";
-
-  // Solo admin puede editar reservas y tiempo mínimo, y ver el botón guardar
-  if (role !== "admin") {
-    ["cfgMaxReservas","cfgMinHoras"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.setAttribute("readonly", "");
-        el.setAttribute("disabled", "");
-        el.style.background   = "#e9ecef";
-        el.style.color        = "#6c757d";
-        el.style.cursor       = "not-allowed";
-        el.style.borderColor  = "#dee2e6";
-        el.style.userSelect   = "none";
+      function loadDbStatus() {
+        const saved = sessionStorage.getItem(DB_STATUS_KEY);
+        if (saved === "ok") {
+          document.getElementById("dbStatus").innerHTML =
+            `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
+        } else if (saved === "error") {
+          document.getElementById("dbStatus").innerHTML =
+            `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
+        }
       }
-    });
-    const btn = document.getElementById("btnActionsGeneral");
-    if (btn) btn.style.display = "none";
-  } else {
-    // Admin: campos editables con estilo normal
-    ["cfgMaxReservas","cfgMinHoras"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.removeAttribute("readonly");
-        el.removeAttribute("disabled");
-        el.style.background  = "";
-        el.style.color       = "";
-        el.style.cursor      = "";
-        el.style.borderColor = "";
-        el.style.userSelect  = "";
+
+      async function testConnection() {
+        showToast("Probando conexión...", "info");
+        document.getElementById("dbStatus").innerHTML =
+          `<span class="status-badge status-warning"><i class="fas fa-circle"></i> Verificando...</span>`;
+        try {
+          const res = await fetch("/api/users", { cache: "no-store" });
+          if (res.ok) {
+            document.getElementById("dbStatus").innerHTML =
+              `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
+            sessionStorage.setItem(DB_STATUS_KEY, "ok");
+            showToast("Conexión exitosa a Supabase", "success");
+          } else {
+            throw new Error("HTTP " + res.status);
+          }
+        } catch (e) {
+          document.getElementById("dbStatus").innerHTML =
+            `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
+          sessionStorage.setItem(DB_STATUS_KEY, "error");
+          showToast("No se pudo conectar al servidor", "error");
+        }
       }
-    });
-    const btn = document.getElementById("btnActionsGeneral");
-    if (btn) btn.style.display = "";
-  }
-}
 
+      const NOTIF_KEY = "sgiac_notif_prefs";
 
+      // Mapeo: tab → ids de checkboxes
+      const NOTIF_IDS = {
+        admin: [
+          "togStock",
+          "togSolicitud",
+          "togReserva",
+          "togNuevoUsuario",
+          "togLogs",
+          "cfgEmail",
+        ],
+        docente: [
+          "togDocSolicitud",
+          "togDocDevolucion",
+          "togDocStock",
+          "togDocReserva",
+        ],
+        alumno: [
+          "togAluSolicitudAprobada",
+          "togAluSolicitudRechazada",
+          "togAluReservaAprobada",
+          "togAluRecordatorio",
+        ],
+      };
 
-function saveGeneral() {
-  const role = getUserRole();
-  if (role !== "admin") { showToast("Sin permisos para guardar", "error"); return; }
-  const data = {
-    maxReservas: parseInt(document.getElementById("cfgMaxReservas").value) || 3,
-    minHoras:    parseInt(document.getElementById("cfgMinHoras").value)    || 1,
-    descripcion: document.getElementById("cfgDescripcion")?.value || ""
-  };
-  localStorage.setItem(CFG_KEY, JSON.stringify(data));
-  showToast("Configuración general guardada ✅", "success");
-}
+      function loadNotif() {
+        const saved = JSON.parse(sessionStorage.getItem(NOTIF_KEY) || "{}");
+        // Defaults si no hay nada guardado
+        const defaults = {
+          togStock: true,
+          togSolicitud: true,
+          togReserva: true,
+          togNuevoUsuario: false,
+          togLogs: true,
+          cfgEmail: "adminWilly@gmail.com",
+          togDocSolicitud: true,
+          togDocDevolucion: true,
+          togDocStock: false,
+          togDocReserva: true,
+          togAluSolicitudAprobada: true,
+          togAluSolicitudRechazada: true,
+          togAluReservaAprobada: true,
+          togAluRecordatorio: false,
+        };
+        const prefs = Object.assign({}, defaults, saved);
 
-// ══════════════════════════════════════════════
-// BASE DE DATOS — probar conexión con persistencia
-// ══════════════════════════════════════════════
-const DB_STATUS_KEY = "sgiac_db_status";
+        Object.keys(prefs).forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (el.type === "checkbox") el.checked = !!prefs[id];
+          else if (el.type === "email") el.value = prefs[id] || "";
+        });
 
-function loadDbStatus() {
-  const saved = localStorage.getItem(DB_STATUS_KEY);
-  if (saved === "ok") {
-    document.getElementById("dbStatus").innerHTML =
-      `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
-  } else if (saved === "error") {
-    document.getElementById("dbStatus").innerHTML =
-      `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
-  }
-}
+        // Mostrar solo tabs relevantes según rol
+        const role = getUserRole();
+        const tabsDiv = document.getElementById("notifTabs");
+        if (role === "administrador") {
+          tabsDiv.style.display = "flex";
+          switchNotifTab("admin");
+        } else if (role === "docente") {
+          tabsDiv.style.display = "none";
+          document.getElementById("notifAdmin").style.display = "none";
+          document.getElementById("notifDocente").style.display = "block";
+          document.getElementById("notifAlumno").style.display = "none";
+        } else {
+          tabsDiv.style.display = "none";
+          document.getElementById("notifAdmin").style.display = "none";
+          document.getElementById("notifDocente").style.display = "none";
+          document.getElementById("notifAlumno").style.display = "block";
+        }
+      }
 
-async function testConnection() {
-  showToast("Probando conexión...", "info");
-  document.getElementById("dbStatus").innerHTML =
-    `<span class="status-badge status-warning"><i class="fas fa-circle"></i> Verificando...</span>`;
-  try {
-    const res = await fetch("/api/users", { cache: "no-store" });
-    if (res.ok) {
-      document.getElementById("dbStatus").innerHTML =
-        `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Conectado</span>`;
-      localStorage.setItem(DB_STATUS_KEY, "ok");
-      showToast("Conexión exitosa a Supabase ✅", "success");
-    } else { throw new Error("HTTP " + res.status); }
-  } catch(e) {
-    document.getElementById("dbStatus").innerHTML =
-      `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Sin conexión</span>`;
-    localStorage.setItem(DB_STATUS_KEY, "error");
-    showToast("No se pudo conectar al servidor", "error");
-  }
-}
+      function switchNotifTab(tab) {
+        ["admin", "docente", "alumno"].forEach((t) => {
+          document.getElementById(
+            "notif" + t.charAt(0).toUpperCase() + t.slice(1),
+          ).style.display = t === tab ? "block" : "none";
+          const btn = document.getElementById(
+            "tab" + t.charAt(0).toUpperCase() + t.slice(1),
+          );
+          if (btn) {
+            btn.style.background = t === tab ? "#1f2a3a" : "white";
+            btn.style.color = t === tab ? "white" : "#6b7280";
+          }
+        });
+      }
 
-// ══════════════════════════════════════════════
-// NOTIFICACIONES — tabs + persistencia por rol
-// ══════════════════════════════════════════════
-const NOTIF_KEY = "sgiac_notif_prefs";
+      function saveNotif(tab) {
+        const saved = JSON.parse(sessionStorage.getItem(NOTIF_KEY) || "{}");
+        const ids = NOTIF_IDS[tab] || [];
+        ids.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          saved[id] = el.type === "checkbox" ? el.checked : el.value;
+        });
+        sessionStorage.setItem(NOTIF_KEY, JSON.stringify(saved));
+        showToast("Preferencias de notificaciones guardadas", "success");
+      }
 
-// Mapeo: tab → ids de checkboxes
-const NOTIF_IDS = {
-  admin:   ["togStock","togSolicitud","togReserva","togNuevoUsuario","togLogs","cfgEmail"],
-  docente: ["togDocSolicitud","togDocDevolucion","togDocStock","togDocReserva"],
-  alumno:  ["togAluSolicitudAprobada","togAluSolicitudRechazada","togAluReservaAprobada","togAluRecordatorio"]
-};
+      // ──────────────────────────────────────────
+      // LABORATORIOS – funciones dinámicas
+      // ──────────────────────────────────────────
+      const LABS_API = "/api/labs";
+      let allLabs    = [];
 
-function loadNotif() {
-  const saved = JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}");
-  // Defaults si no hay nada guardado
-  const defaults = {
-    togStock: true, togSolicitud: true, togReserva: true, togNuevoUsuario: false, togLogs: true,
-    cfgEmail: "adminWilly@gmail.com",
-    togDocSolicitud: true, togDocDevolucion: true, togDocStock: false, togDocReserva: true,
-    togAluSolicitudAprobada: true, togAluSolicitudRechazada: true, togAluReservaAprobada: true, togAluRecordatorio: false
-  };
-  const prefs = Object.assign({}, defaults, saved);
+      async function loadLabs() {
+        try {
+          const res = await fetch(LABS_API);
+          allLabs = await res.json();
+        } catch {
+          allLabs = [];
+        }
+        renderLabsTable();
+      }
 
-  Object.keys(prefs).forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (el.type === "checkbox") el.checked = !!prefs[id];
-    else if (el.type === "email") el.value = prefs[id] || "";
-  });
+      function renderLabsTable() {
+        const role   = getUserRole();
+        const isAdm  = role === "administrador";
+        const tbody  = document.getElementById("labsTableBody");
+        const header = document.getElementById("labsActionsHeader");
+        const adminBtn = document.getElementById("labsAdminActions");
+        const msg    = document.getElementById("labsContactMsg");
 
-  // Mostrar solo tabs relevantes según rol
-  const role = getUserRole();
-  const tabsDiv = document.getElementById("notifTabs");
-  if (role === "admin") {
-    tabsDiv.style.display = "flex";
-    switchNotifTab("admin");
-  } else if (role === "docente") {
-    tabsDiv.style.display = "none";
-    document.getElementById("notifAdmin").style.display  = "none";
-    document.getElementById("notifDocente").style.display = "block";
-    document.getElementById("notifAlumno").style.display  = "none";
-  } else {
-    tabsDiv.style.display = "none";
-    document.getElementById("notifAdmin").style.display   = "none";
-    document.getElementById("notifDocente").style.display = "none";
-    document.getElementById("notifAlumno").style.display  = "block";
-  }
-}
+        // Mostrar/ocultar UI según rol
+        if (isAdm) {
+          adminBtn.style.display  = "";
+          header.style.display    = "";
+          if (msg) msg.style.display = "none";
+        } else if (role === "docente") {
+          adminBtn.style.display  = "none";
+          header.style.display    = "none";
+          if (msg) msg.style.display = "";
+        } else {
+          // alumno: no ve el mensaje ni botones
+          adminBtn.style.display  = "none";
+          header.style.display    = "none";
+          if (msg) msg.style.display = "none";
+        }
 
-function switchNotifTab(tab) {
-  ["admin","docente","alumno"].forEach(t => {
-    document.getElementById("notif" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = (t === tab) ? "block" : "none";
-    const btn = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1));
-    if (btn) {
-      btn.style.background = (t === tab) ? "#1f2a3a" : "white";
-      btn.style.color      = (t === tab) ? "white"   : "#6b7280";
-    }
-  });
-}
+        if (!allLabs.length) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:16px;">Sin laboratorios registrados</td></tr>`;
+          return;
+        }
 
-function saveNotif(tab) {
-  const saved = JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}");
-  const ids = NOTIF_IDS[tab] || [];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    saved[id] = (el.type === "checkbox") ? el.checked : el.value;
-  });
-  localStorage.setItem(NOTIF_KEY, JSON.stringify(saved));
-  showToast("Preferencias de notificaciones guardadas ✅", "success");
-}
+        tbody.innerHTML = allLabs.map(l => {
+          let statusBadge, statusVal;
+          if (l.activo === false || l.activo === "false") {
+            statusBadge = `<span class="status-badge status-error"><i class="fas fa-times-circle"></i> Inactivo</span>`;
+            statusVal = "false";
+          } else if (l.activo === "maintenance" || l.status === "maintenance") {
+            statusBadge = `<span class="status-badge status-warning"><i class="fas fa-tools"></i> Mantenimiento</span>`;
+            statusVal = "maintenance";
+          } else {
+            statusBadge = `<span class="status-badge status-ok"><i class="fas fa-check-circle"></i> Activo</span>`;
+            statusVal = "true";
+          }
 
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
-document.addEventListener("DOMContentLoaded", () => {
-  initNav();
-  loadGeneral();
-  loadDbStatus();
-  loadNotif();
-});
-</script>
-<script src="../scripts/pages/realtime.js"></script>
-<script src="../scripts/pages/common.js"></script>
-<script>
-// Re-aplicar permisos luego de que common.js establezca la sesion en el DOM/localStorage
-// Se ejecuta con un pequeño delay para dar tiempo al script externo
-window.addEventListener("load", function() {
-  setTimeout(function() {
-    loadGeneral(); // re-corre con el rol ya disponible en el DOM
-  }, 300);
-});
-</script>
+          const actions = isAdm
+            ? `<td><div style="display:flex;gap:6px;">
+                 <button data-labid="${l.id}" onclick="editLab(parseInt(this.dataset.labid))" title="Editar"
+                   style="padding:4px 10px;background:#e0e7ff;border:1px solid #c7d2fe;
+                          border-radius:5px;cursor:pointer;font-size:12px;color:#4f46e5;">
+                   <i class="fas fa-edit"></i>
+                 </button>
+               </div></td>`
+            : `<td style="display:none;"></td>`;
 
+          const horario = (l.open_time && l.close_time)
+            ? `${l.open_time}–${l.close_time}`
+            : "—";
 
-</body>
+          return `<tr>
+            <td><strong>${l.edificio || "—"}</strong></td>
+            <td>${l.nombre || "—"}</td>
+            <td style="font-size:12px;color:#6b7280;">${horario}</td>
+            <td>${statusBadge}</td>
+            ${actions}
+          </tr>`;
+        }).join("");
+      }
+
+      function openLabModal(lab = null) {
+        const normTime = t => (t || "").substring(0, 5) || "07:30";
+        document.getElementById("labId").value        = lab ? String(lab.id) : "";
+        document.getElementById("labNombre").value    = lab ? lab.nombre : "";
+        document.getElementById("labEdificio").value  = lab ? lab.edificio : "";
+        document.getElementById("labOpenTime").value  = lab ? normTime(lab.open_time  || "07:30") : "07:30";
+        document.getElementById("labCloseTime").value = lab ? normTime(lab.close_time || "15:00") : "15:00";
+
+        let estadoVal = "true";
+        if (lab) {
+          if (lab.activo === false || lab.activo === "false") estadoVal = "false";
+          else if (lab.activo === "maintenance" || lab.status === "maintenance") estadoVal = "maintenance";
+        }
+        document.getElementById("labActivo").value   = estadoVal;
+        document.getElementById("labModalTitle").textContent = lab ? "Editar Laboratorio" : "Agregar Laboratorio";
+        document.getElementById("labModal").style.display = "flex";
+      }
+
+      function closeLabModal() {
+        document.getElementById("labModal").style.display = "none";
+      }
+
+      function editLab(id) {
+        const lab = allLabs.find(l => l.id === id);
+        if (lab) openLabModal(lab);
+      }
+
+      async function saveLab() {
+        const id        = document.getElementById("labId").value.trim();
+        const edificio  = document.getElementById("labEdificio").value;
+        const nombre    = document.getElementById("labNombre").value.trim();
+        const open_time  = (document.getElementById("labOpenTime").value  || "07:30").substring(0, 5);
+        const close_time = (document.getElementById("labCloseTime").value || "15:00").substring(0, 5);
+        const activoVal  = document.getElementById("labActivo").value;
+
+        if (!edificio || !nombre) {
+          showToast("Edificio y nombre son obligatorios", "error"); return;
+        }
+
+        // Construir payload: "maintenance" se guarda como activo=true pero con status=maintenance
+        let activo = true;
+        let status = "active";
+        if (activoVal === "false")        { activo = false; status = "inactive"; }
+        else if (activoVal === "maintenance") { activo = true; status = "maintenance"; }
+
+        const body   = { edificio, nombre, open_time, close_time, activo, status };
+        const url    = id ? `${LABS_API}/${id}` : LABS_API;
+        const method = id ? "PUT" : "POST";
+
+        try {
+          const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          if (!res.ok) {
+            const e = await res.json();
+            showToast("Error: " + (e.message || "No se pudo guardar"), "error"); return;
+          }
+          closeLabModal();
+          showToast(id ? "Laboratorio actualizado" : "Laboratorio agregado", "success");
+          await loadLabs();
+        } catch {
+          showToast("No se pudo conectar con el servidor", "error");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        initNav();
+        loadGeneral();
+        loadDbStatus();
+        loadNotif();
+        loadLabs();
+      });
+    </script>
+    <script src="../scripts/pages/realtime.js"></script>
+    <script src="../scripts/pages/common.js"></script>
+  </body>
 </html>

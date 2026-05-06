@@ -32,15 +32,23 @@ const getById = async (id) => {
   return data;
 };
 
-const create = async (body) => {
-  const { name, description, category_id, serial_number, location, status, quantity } = body;
+const create = async (body, userId) => {
+  const { name, description, category_id, location, status, quantity, area } = body;
+  // Para laboratorio el serial es opcional — generamos uno interno si no viene
+  let serial_number = body.serial_number || null;
+  if (!serial_number && area === "laboratorio") {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const block  = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
+    serial_number = `LAB-${block()}-${block()}`;
+  }
   const { data, error } = await supabase
     .from("assets")
-    .insert([{ name, description, category_id, serial_number, location, status: status || "available", quantity: parseInt(quantity) || 1 }])
+    .insert([{ name, description, category_id, serial_number, location, area: area || null, status: status || "available", quantity: parseInt(quantity) || 1 }])
     .select("*, categories(name)");
   if (error) throw error;
 
   await supabase.from("logs").insert([{
+    user_id: userId || null,
     action: "Activo creado", table_name: "assets", record_id: data[0].id,
     item_type: "asset", item_id: data[0].id, details: `${name} (${serial_number})`
   }]);
@@ -49,7 +57,7 @@ const create = async (body) => {
   return data[0];
 };
 
-const update = async (id, body) => {
+const update = async (id, body, userId) => {
   const { name, description, category_id, serial_number, location, status, quantity, condition_notes } = body;
   const validStatus = ["available", "borrowed", "maintenance", "damaged"];
   if (status && !validStatus.includes(status)) throw { status: 400, message: "Status inválido" };
@@ -62,6 +70,7 @@ const update = async (id, body) => {
   if (!data || data.length === 0) throw { status: 404, message: "No encontrado" };
 
   await supabase.from("logs").insert([{
+    user_id: userId || null,
     action: "Activo actualizado", table_name: "assets", record_id: parseInt(id),
     item_type: "asset", item_id: parseInt(id), details: `Status: ${status}`
   }]);

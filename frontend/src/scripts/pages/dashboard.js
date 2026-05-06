@@ -42,63 +42,29 @@ function animateCount(el, target) {
  * Devuelve: "admin" | "docente" | "alumno"
  */
 function detectRole() {
-  // 1 — variable global (más confiable, la pone common.js)
-  if (window.USER_ROLE) return window.USER_ROLE.toLowerCase().trim();
-
-  // 2 — storage directo
-  const storageKeys = ["role", "userRole", "user_role", "rol"];
-  for (const store of [localStorage, sessionStorage]) {
-    for (const key of storageKeys) {
-      const val = store.getItem(key);
-      if (val) return val.toLowerCase().trim();
+  // Usar directamente getUser() de common.js (ya cargado antes que este script)
+  if (typeof getUser === "function") {
+    const user = getUser();
+    if (user?.role) {
+      const r = user.role.toLowerCase().trim();
+      // Normalizar "administrador" → "admin"
+      return r === "administrador" ? "admin" : r;
     }
-    // objeto "user" serializado
-    const raw = store.getItem("user") || store.getItem("currentUser") || store.getItem("userData");
+  }
+
+  // Fallback: storage directo
+  for (const store of [localStorage, sessionStorage]) {
+    const raw = store.getItem("user");
     if (raw) {
       try {
         const obj = JSON.parse(raw);
-        const r = obj.role || obj.rol || obj.tipo || obj.type || obj.user_role;
-        if (r) return r.toLowerCase().trim();
+        const r = (obj.role || obj.rol || "").toLowerCase().trim();
+        if (r) return r === "administrador" ? "admin" : r;
       } catch { /* no es JSON */ }
     }
   }
 
-  // 3 — JWT (token → payload → role)
-  const tokenKeys = ["token", "access_token", "jwt", "authToken"];
-  for (const store of [localStorage, sessionStorage]) {
-    for (const key of tokenKeys) {
-      const tok = store.getItem(key);
-      if (tok && tok.includes(".")) {
-        try {
-          const payload = JSON.parse(atob(tok.split(".")[1]));
-          const r = payload.role || payload.rol || payload.tipo || payload.user_role;
-          if (r) return r.toLowerCase().trim();
-        } catch { /* token inválido */ }
-      }
-    }
-  }
-
-  // 4 — Leer el badge que ya está pintado en el DOM por common.js
-  //     El header renderiza: <span class="role-badge">Alumno</span>
-  //     o variantes: #userRole, .badge-role, #rolBadge, etc.
-  const badgeSelectors = [
-    "#rolBadge", "#userRole", "#role-badge", ".role-badge",
-    ".badge-role", "[data-role]", "#headerRole"
-  ];
-  for (const sel of badgeSelectors) {
-    const el = document.querySelector(sel);
-    if (el) {
-      const txt = (el.dataset.role || el.textContent || "").toLowerCase().trim();
-      if (txt) return txt;
-    }
-  }
-
-  // 5 — Fallback: si el username contiene "admin"
-  const uname = (document.getElementById("username")?.textContent || "").toLowerCase();
-  if (uname.includes("admin")) return "admin";
-  if (uname.includes("docente") || uname.includes("prof")) return "docente";
-
-  return "admin"; // default seguro para no romper el sistema
+  return "alumno";
 }
 
 // ─── Cache de usuarios (admin) ────────────────────────
@@ -140,10 +106,9 @@ async function renderMovements(movements) {
     return;
   }
 
-  // Verificar si algún movimiento no tiene usuario → enriquecer con mapa de usuarios
+  // Solo enriquecer si hay activos "borrowed" sin username resuelto
   const needsEnrich = movements.some(m =>
-    !(m.user || m.username || m.user_name || m.assigned_to ||
-      m.borrower || m.nombre_usuario || m.nombre)
+    m.status === "borrowed" && !m.username
   );
   const usersMap = needsEnrich ? await fetchUsersMap() : {};
 
@@ -151,40 +116,63 @@ async function renderMovements(movements) {
   movements.forEach(m => {
     const st = statusLabel[m.status] || { text: m.status || "—", cls: "" };
 
-    // Resolver nombre del usuario
-    let usuario =
-      m.user || m.username || m.user_name || m.assigned_to ||
-      m.borrower || m.nombre_usuario || m.nombre || m.alumno || m.student;
+    // El backend ya resuelve username para activos "borrowed"
+    // Para "available" / "maintenance" no hay usuario → mostrar "—"
+    let usuario = m.username || null;
 
-    // Si sigue vacío, buscar en el mapa por user_id / alumno_id
-    if (!usuario) {
-      const uid = m.user_id || m.alumno_id || m.student_id || m.id_usuario || m.borrower_id;
-      if (uid && usersMap[uid]) {
-        usuario = usersMap[uid];
-      }
+    // Fallback: buscar en mapa si hay user_id (solo para borrowed sin username)
+    if (!usuario && m.status === "borrowed") {
+      const uid = m.user_id || m.alumno_id || m.student_id;
+      usuario = (uid && usersMap[uid]) ? usersMap[uid] : "Desconocido";
     }
 
-    // Último recurso: mostrar el id del usuario si existe
-    if (!usuario) {
-      const uid = m.user_id || m.alumno_id || m.student_id || m.id_usuario || m.borrower_id;
-      usuario = uid ? `<span class="mono" style="font-size:11px;color:var(--ibm-gray-50);">ID ${uid}</span>` : "—";
-    }
-
-    const activo = m.name || m.asset_name || m.activo || m.nombre_activo || "—";
+    const activo = m.name || m.asset_name || "—";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="mono">#${m.id}</td>
       <td>${activo}</td>
-      <td>${usuario}</td>
+      <td>${usuario || "—"}</td>
       <td><span class="status-badge ${st.cls}">${st.text}</span></td>`;
     tbody.appendChild(tr);
   });
 }
 
 // ─── Render Actividad ─────────────────────────────────
+// Traduce acciones tipo SNAKE_CASE a texto legible
+const actionLabels = {
+  PRESTAMO_APROBADO:    "Préstamo aprobado",
+  DEVOLUCION_REGISTRADA:"Devolución registrada",
+  SOLICITUD_CREADA:     "Solicitud creada",
+  SOLICITUD_APROBADA:   "Solicitud aprobada",
+  SOLICITUD_RECHAZADA:  "Solicitud rechazada",
+  RESERVA_CREADA:       "Reserva creada",
+  RESERVA_CANCELADA:    "Reserva cancelada",
+  ACTIVO_CREADO:        "Activo registrado",
+  ACTIVO_MODIFICADO:    "Activo modificado",
+  CONSUMIBLE_CREADO:    "Consumible registrado",
+  USUARIO_CREADO:       "Usuario registrado",
+};
+
+function formatAction(raw) {
+  if (!raw) return "Acción registrada";
+  const str = raw.toString().trim();
+  // Si ya viene legible (tiene espacios o no es todo mayúsculas), solo capitalizar
+  if (str.includes(" ") || str !== str.toUpperCase()) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  // Si viene SNAKE_CASE puro → buscar en mapa o convertir
+  const key = str.toUpperCase();
+  if (actionLabels[key]) return actionLabels[key];
+  return key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function renderActivity(activities) {
   const container = document.getElementById("activityContainer");
   if (!container) return;
+
+  // Limpiar SIEMPRE (incluye el placeholder hardcodeado del HTML)
+  container.innerHTML = "";
+
   if (!activities || !activities.length) {
     container.innerHTML = `
       <div class="activity-item">
@@ -194,14 +182,15 @@ function renderActivity(activities) {
       </div>`;
     return;
   }
-  container.innerHTML = "";
+
   activities.forEach(a => {
     const div = document.createElement("div");
     div.className = "activity-item";
+    const label = formatAction(a.action);
     div.innerHTML = `
       <div class="activity-dot"></div>
       <div class="activity-text">
-        ${a.action}${a.table_name ? ` en <strong>${a.table_name}</strong>` : ""}
+        ${label}${a.table_name ? ` en <strong>${a.table_name}</strong>` : ""}
       </div>
       <div class="activity-time">${timeAgo(a.timestamp)}</div>`;
     container.appendChild(div);
@@ -278,7 +267,11 @@ async function loadStats() {
 // ─── Carga stats personales (alumno) ─────────────────
 async function loadStudentStats() {
   try {
-    const res  = await fetch("/api/stats/me");
+    const userId = localStorage.getItem("userId") || localStorage.getItem("user_id") ||
+                   (() => { try { return JSON.parse(localStorage.getItem("user") || "{}").id; } catch { return null; } })();
+    const res = await fetch("/api/stats/me", {
+      headers: userId ? { "x-user-id": userId } : {}
+    });
     if (!res.ok) throw new Error();
     const data = await res.json();
     animateCount(document.getElementById("myRequests"),     data.myRequests     ?? 0);
@@ -351,9 +344,7 @@ function applyRoleView() {
 
 // ─── Init ─────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // common.js se carga DESPUÉS de este script según el HTML original,
-  // así que esperamos un tick para que inicialice window.USER_ROLE
-  setTimeout(applyRoleView, 0);
+  applyRoleView();
 
   // Tiempo real
   if (typeof REALTIME !== "undefined") {

@@ -1,193 +1,366 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../assets/logoTsj.png">
-<title>SGIAC-ISC | Activos</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="../styles/sgiac-shared.css">
-<link rel="stylesheet" href="../styles/responsive.css">
-
-</head>
-<body>
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <img class="sidebar-logo-img" src="../assets/logoTsj.png" alt="Logo TSJ">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-name">SGIAC-ISC</div>
-    <div class="sidebar-brand-sub">Sistema de Gestión</div>
-  </div>
-  <div class="menu">
-<div class="menu-section">Principal</div>
-<a href="dashboard.html"><i class="fas fa-chart-line"></i> Panel Principal</a>
-<div class="menu-section">Inventario</div>
-<a href="activos.html" class="active"><i class="fas fa-box"></i> Activos</a>
-<a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
-<div class="menu-section">Gestión</div>
-<a href="solicitudes.html"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
-<a href="reservas.html"><i class="fas fa-calendar-check"></i> Reservas</a>
-<a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
-<div class="menu-section">Sistema</div>
-<a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
-<a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
-  </div>
-</div>
-<div class="main">
-
-<div class="header">
-  <div class="header-left">
-    <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-    <h2><i class="fas fa-box"></i> Gestión de Activos</h2>
-  </div>
-  <div class="user">
-    <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar">
-    <span id="username">Cargando...</span>
-  </div>
-</div>
-  <div class="content">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title"><span class="dot dot-blue"></span> Inventario de Activos</div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-export admin-only" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Exportar</button>
-          <button class="btn admin-only" onclick="openModal()"><i class="fas fa-plus"></i> Agregar Activo</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/logoTsj.png" />
+    <title>SGIAC-ISC | Activos</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../styles/sgiac-shared.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
+    <div class="sidebar" id="sidebar">
+      <img
+        class="sidebar-logo-img"
+        src="../assets/logoTsj.png"
+        alt="Logo TSJ"
+      />
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">SGIAC-ISC</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
+      </div>
+      <div class="menu">
+        <div class="menu-section">Principal</div>
+        <a href="dashboard.html"
+          ><i class="fas fa-chart-line"></i> Panel Principal</a
+        >
+        <div class="menu-section">Inventario</div>
+        <a href="activos.html" class="active"
+          ><i class="fas fa-box"></i> Activos</a
+        >
+        <a href="consumibles.html"><i class="fas fa-flask"></i> Consumibles</a>
+        <div class="menu-section">Gestión</div>
+        <a href="solicitudes.html"
+          ><i class="fas fa-clipboard-list"></i> Solicitudes</a
+        >
+        <a href="reservas.html"
+          ><i class="fas fa-calendar-check"></i> Reservas</a
+        >
+        <a href="usuarios.html"><i class="fas fa-users"></i> Usuarios</a>
+        <div class="menu-section">Sistema</div>
+        <a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a>
+        <a href="configuracion.html"
+          ><i class="fas fa-cog"></i> Configuración</a
+        >
+      </div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <h2><i class="fas fa-box"></i> Gestión de Activos</h2>
+        </div>
+        <div class="user">
+          <img id="userAvatar" src="https://i.pravatar.cc/40" alt="Avatar" />
+          <span id="username">Cargando...</span>
         </div>
       </div>
+      <div class="content">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="dot dot-blue"></span> Inventario de Activos
+            </div>
+            <div style="display: flex; gap: 8px">
+  <button class="btn-export admin-only" onclick="exportCSV()">
+    <i class="fas fa-file-csv"></i> Exportar
+  </button>
+  <button class="btn-secondary admin-only" onclick="openCatManager()">
+    <i class="fas fa-tags"></i> Categorías
+  </button>
+  <button class="btn admin-only" onclick="openModal()">
+    <i class="fas fa-plus"></i> Agregar Activo
+  </button>
+</div>
+          </div>
 
-      <div class="filters-bar">
-        <span style="font-size:12px;font-weight:600;color:var(--ibm-gray-70);">Área</span>
-        <div class="area-pills">
-          <button class="area-pill active-all" data-area="" onclick="setAreaFilter(this, '')"><i class="fas fa-globe-americas"></i> Todos</button>
-          <button class="area-pill" data-area="sistemas" onclick="setAreaFilter(this, 'sistemas')"><i class="fas fa-desktop"></i> Sistemas</button>
-          <button class="area-pill" data-area="laboratorio" onclick="setAreaFilter(this, 'laboratorio')"><i class="fas fa-flask"></i> Laboratorio</button>
+          <div class="filters-bar">
+            <span
+              style="
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--ibm-gray-70);
+              "
+              >Área</span
+            >
+            <div class="area-pills">
+              <button
+                class="area-pill active-all"
+                data-area=""
+                onclick="setAreaFilter(this, '')"
+              >
+                <i class="fas fa-globe-americas"></i> Todos
+              </button>
+              <button
+                class="area-pill"
+                data-area="sistemas"
+                onclick="setAreaFilter(this, 'sistemas')"
+              >
+                <i class="fas fa-desktop"></i> Sistemas
+              </button>
+              <button
+                class="area-pill"
+                data-area="laboratorio"
+                onclick="setAreaFilter(this, 'laboratorio')"
+              >
+                <i class="fas fa-flask"></i> Laboratorio
+              </button>
+            </div>
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Buscar por nombre..."
+                oninput="applyFilters()"
+              />
+            </div>
+            <select
+              class="filter-select"
+              id="filterCategory"
+              onchange="applyFilters()"
+            >
+              <option value="">Todas las categorías</option>
+            </select>
+            <select
+              class="filter-select"
+              id="filterStatus"
+              onchange="applyFilters()"
+            >
+              <option value="">Todos los estados</option>
+              <option value="available">Disponible</option>
+              <option value="borrowed">Prestado</option>
+              <option value="maintenance">En Mantenimiento</option>
+              <option value="damaged">Dañado</option>
+            </select>
+            <select
+              class="filter-select"
+              id="filterLocation"
+              onchange="applyFilters()"
+            >
+              <option value="">Todas las ubicaciones</option>
+            </select>
+          </div>
+
+          <div class="active-filters" id="activeFilters"></div>
+
+          <div id="tableWrapper" class="panel-scroll">
+            <div class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Cargando activos...</p>
+            </div>
+          </div>
         </div>
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input type="text" id="searchInput" placeholder="Buscar por nombre..." oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- MODAL AGREGAR / EDITAR -->
+    <div class="modal" id="assetModal">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 id="modalTitle">Agregar Activo</h3>
+        <input type="hidden" id="assetId" />
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input
+            type="text"
+            id="assetName"
+            placeholder="Ej. Laptop HP ProBook"
+          />
         </div>
-        <select class="filter-select" id="filterCategory" onchange="applyFilters()">
-          <option value="">Todas las categorías</option>
-        </select>
-        <select class="filter-select" id="filterStatus" onchange="applyFilters()">
-          <option value="">Todos los estados</option>
-          <option value="available">Disponible</option>
-          <option value="borrowed">Prestado</option>
-          <option value="maintenance">En Mantenimiento</option>
-          <option value="damaged">Dañado</option>
-        </select>
-        <select class="filter-select" id="filterLocation" onchange="applyFilters()">
-          <option value="">Todas las ubicaciones</option>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea
+            id="assetDescription"
+            placeholder="Descripción breve del activo..."
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>Área / Departamento *</label>
+          <select id="assetArea" onchange="onAreaChangeModal()">
+            <option value="" disabled selected>Selecciona área</option>
+            <option value="sistemas">Sistemas</option>
+            <option value="laboratorio">Laboratorio / Alimentos</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select id="assetCategory">
+              <option value="" disabled selected>Selecciona categoría</option>
+            </select>
+          </div>
+          <div class="form-group" id="serialRow">
+            <label>Número de serie *</label>
+            <input type="text" id="assetSerial" placeholder="Ej. DKF1-SK24-49DP-D84N" style="text-transform:uppercase;" />
+          </div>
+        </div>
+        <div class="section-sep">Ubicación</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label id="lblEdificio">Edificio *</label>
+            <input
+              type="text"
+              id="assetEdificio"
+              placeholder="Ej. Edificio A"
+            />
+          </div>
+          <div class="form-group">
+            <label id="lblLaboratorio">Laboratorio *</label>
+            <input
+              type="text"
+              id="assetLaboratorio"
+              placeholder="Ej. Lab. de Sistemas"
+            />
+          </div>
+        </div>
+        <div class="section-sep">Estado y cantidad</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estado *</label>
+            <select id="assetStatus">
+              <option value="available">Disponible</option>
+              <option value="borrowed">Prestado</option>
+              <option value="maintenance">En Mantenimiento</option>
+              <option value="damaged">Dañado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cantidad *</label>
+            <input type="number" id="assetQuantity" value="1" min="1" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+          <button
+            class="btn"
+            style="flex: 1; justify-content: center"
+            onclick="saveAsset()"
+          >
+            <i class="fas fa-save"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL ELIMINAR -->
+    <div class="modal" id="deleteModal">
+      <div class="modal-box" style="max-width: 420px; text-align: center">
+        <button class="modal-close" onclick="closeDeleteModal()">
+          &times;
+        </button>
+        <div
+          style="font-size: 42px; color: var(--ibm-red); margin-bottom: 12px"
+        >
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 style="margin-bottom: 8px">¿Eliminar activo?</h3>
+        <p
+          id="deleteAssetName"
+          style="font-size: 13px; color: var(--ibm-gray-70)"
+        >
+          Este activo será eliminado permanentemente.
+        </p>
+        <small style="font-size: 12px; color: var(--ibm-gray-50)"
+          >Esta acción no se puede deshacer.</small
+        >
+        <input type="hidden" id="deleteAssetId" />
+        <div class="modal-actions" style="margin-top: 20px">
+          <button class="btn-cancel" onclick="closeDeleteModal()">
+            Cancelar
+          </button>
+          <button class="btn-danger" onclick="confirmDelete()">
+            <i class="fas fa-trash"></i> Sí, eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="modal" id="catManagerModal">
+  <div class="modal-content" style="max-width:560px;">
+    <button class="close" onclick="closeCatManager()">&times;</button>
+    <h3 id="catManagerTitle" style="display:flex;align-items:center;gap:10px;">
+      <i class="fas fa-tags" style="color:#4f46e5;"></i> Gestión de Categorías
+    </h3>
+ 
+    <!-- ── SECCIÓN LISTA ── -->
+    <div id="catListSection">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:13px;color:#6b7280;">
+          Categorías registradas para este módulo
+        </span>
+        <button class="btn" style="padding:7px 14px;font-size:12.5px;" onclick="openAddCat()">
+          <i class="fas fa-plus"></i> Nueva
+        </button>
+      </div>
+      <div id="catList" style="max-height:380px;overflow-y:auto;"></div>
+    </div>
+ 
+    <!-- ── SECCIÓN FORMULARIO ── -->
+    <div id="catFormSection" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <button onclick="cancelCatForm()"
+          style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:18px;padding:0;">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <span id="catFormTitle" style="font-weight:600;font-size:15px;color:#1f2a3a;">Nueva categoría</span>
+      </div>
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" id="catInputName" placeholder="Ej: Electrónica, Papelería..." />
+      </div>
+      <div class="form-group">
+        <label>Descripción <span style="font-weight:400;color:#9ca3af;">(opcional)</span></label>
+        <input type="text" id="catInputDesc" placeholder="Descripción breve..." />
+      </div>
+      <div class="form-group">
+        <label>Área *</label>
+        <select id="catInputArea">
+          <option value="" disabled selected>Selecciona área</option>
+          <option value="sistemas">Sistemas</option>
+          <option value="laboratorio">Laboratorio / Alimentos</option>
         </select>
       </div>
-
-      <div class="active-filters" id="activeFilters"></div>
-
-      <div id="tableWrapper" class="panel-scroll">
-        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando activos...</p></div>
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn-cancel" onclick="cancelCatForm()">Cancelar</button>
+        <button class="btn" style="flex:1;justify-content:center;" onclick="saveCat()">
+          <i class="fas fa-save"></i> Guardar
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL AGREGAR / EDITAR -->
-<div class="modal" id="assetModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3 id="modalTitle">Agregar Activo</h3>
-    <input type="hidden" id="assetId">
-    <div class="form-group">
-      <label>Nombre *</label>
-      <input type="text" id="assetName" placeholder="Ej. Laptop HP ProBook">
-    </div>
-    <div class="form-group">
-      <label>Descripción</label>
-      <textarea id="assetDescription" placeholder="Descripción breve del activo..."></textarea>
-    </div>
-    <div class="form-group">
-      <label>Área / Departamento *</label>
-      <select id="assetArea" onchange="onAreaChangeModal()">
-        <option value="" disabled selected>Selecciona área</option>
-        <option value="sistemas">Sistemas</option>
-        <option value="laboratorio">Laboratorio / Alimentos</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Categoría *</label>
-        <select id="assetCategory"><option value="" disabled selected>Selecciona categoría</option></select>
-      </div>
-      <div class="form-group">
-        <label>Número de serie *</label>
-        <input type="text" id="assetSerial" placeholder="Ej. ABC-123456">
-      </div>
-    </div>
-    <div class="section-sep">Ubicación</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label id="lblEdificio">Edificio *</label>
-        <input type="text" id="assetEdificio" placeholder="Ej. Edificio A">
-      </div>
-      <div class="form-group">
-        <label id="lblLaboratorio">Laboratorio *</label>
-        <input type="text" id="assetLaboratorio" placeholder="Ej. Lab. de Sistemas">
-      </div>
-    </div>
-    <div class="section-sep">Estado y cantidad</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Estado *</label>
-        <select id="assetStatus">
-          <option value="available">Disponible</option>
-          <option value="borrowed">Prestado</option>
-          <option value="maintenance">En Mantenimiento</option>
-          <option value="damaged">Dañado</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Cantidad *</label>
-        <input type="number" id="assetQuantity" value="1" min="1">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn" style="flex:1;justify-content:center;" onclick="saveAsset()"><i class="fas fa-save"></i> Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL ELIMINAR -->
-<div class="modal" id="deleteModal">
-  <div class="modal-box" style="max-width:420px;text-align:center;">
-    <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
-    <div style="font-size:42px;color:var(--ibm-red);margin-bottom:12px;"><i class="fas fa-exclamation-triangle"></i></div>
-    <h3 style="margin-bottom:8px;">¿Eliminar activo?</h3>
-    <p id="deleteAssetName" style="font-size:13px;color:var(--ibm-gray-70);">Este activo será eliminado permanentemente.</p>
-    <small style="font-size:12px;color:var(--ibm-gray-50);">Esta acción no se puede deshacer.</small>
-    <input type="hidden" id="deleteAssetId">
-    <div class="modal-actions" style="margin-top:20px;">
-      <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
-      <button class="btn-danger" onclick="confirmDelete()"><i class="fas fa-trash"></i> Sí, eliminar</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-</script>
-<script src="../scripts/pages/activos.js"></script>
-<script src="../scripts/pages/realtime.js"></script>
-<script src="../scripts/pages/common.js"></script>
-</body>
+    <script>
+      function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("show");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+    </script>
+    <script>const pageType = "asset";</script>
+    <script src="../scripts/pages/categories-manager.js"></script>
+    <script src="../scripts/pages/activos.js"></script>
+    <script src="../scripts/pages/realtime.js"></script>
+    <script src="../scripts/pages/common.js"></script>
+  </body>
 </html>

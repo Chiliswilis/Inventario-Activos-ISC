@@ -6,8 +6,12 @@ let allCategories = [];
 let currentRole   = "alumno";
 let activeArea    = "";
 
+// ── Paginación ──
+let _currentPage = 1;
+let _pageSize    = 20;
+
 try {
-  const u = JSON.parse(localStorage.getItem("user"));
+  const u = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user") || "null");
   if (u && u.role) currentRole = u.role;
 } catch {}
 const isAdmin = currentRole === "administrador";
@@ -34,13 +38,11 @@ async function loadCategories() {
   }
 }
 
-/** Rellena el select de categoría en la barra de filtros */
 function populateCategoryFilter(area = "") {
   const sel = document.getElementById("filterCategory");
   const prev = sel.value;
   sel.innerHTML = '<option value="">Todas las categorías</option>';
 
-  // ✅ FIX: filtrado estricto por área — sin mezclar categorías de otra área
   const filtered = area
     ? allCategories.filter(c => c.area === area)
     : allCategories;
@@ -54,13 +56,22 @@ function populateCategoryFilter(area = "") {
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
 }
 
-/** Rellena el select de categoría dentro del modal y adapta etiquetas según área */
+/* ──────────────────────────────────────────
+   GENERAR NÚMERO DE SERIE (Sistemas)
+────────────────────────────────────────── */
+// Validar formato serial: bloques alfanuméricos separados por guión
+// Acepta cualquier cantidad de bloques: A1B2-CD34-EF56-GH78
+const SERIAL_REGEX = /^[A-Z0-9]{2,}-[A-Z0-9]{2,}(-[A-Z0-9]{2,})*$/i;
+
+function validateSerial(serial) {
+  return SERIAL_REGEX.test(serial.trim().toUpperCase());
+}
+
 function onAreaChangeModal() {
   const area = document.getElementById("assetArea").value;
   const sel  = document.getElementById("assetCategory");
   sel.innerHTML = '<option value="" disabled selected>Selecciona categoría</option>';
 
-  // ✅ FIX: filtrado estricto — sin || !c.area para no mezclar áreas
   const filtered = area
     ? allCategories.filter(c => c.area === area)
     : allCategories;
@@ -76,23 +87,29 @@ function onAreaChangeModal() {
     });
   }
 
-  // ✅ NUEVO: Adaptar etiquetas y placeholders de ubicación según área
   const lblEdificio    = document.getElementById("lblEdificio");
   const lblLaboratorio = document.getElementById("lblLaboratorio");
   const inpEdificio    = document.getElementById("assetEdificio");
   const inpLab         = document.getElementById("assetLaboratorio");
+  const serialRow      = document.getElementById("serialRow");
+  const inpSerial      = document.getElementById("assetSerial");
 
   if (area === "laboratorio") {
+    if (serialRow)      serialRow.style.display    = "none";
+    if (inpSerial)      inpSerial.value            = "";
     if (lblEdificio)    lblEdificio.textContent    = "Edificio / Área";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio / Sala";
     if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Ciencias";
     if (inpLab)         inpLab.placeholder         = "Ej. Lab. Química 1";
   } else if (area === "sistemas") {
+    if (serialRow)      serialRow.style.display    = "";
+    if (inpSerial)      inpSerial.placeholder      = "Ej. DKF1-SK24-49DP-D84N";
     if (lblEdificio)    lblEdificio.textContent    = "Edificio";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
     if (inpEdificio)    inpEdificio.placeholder    = "Ej. Edificio Principal";
     if (inpLab)         inpLab.placeholder         = "Ej. Laboratorio de Sistemas";
   } else {
+    if (serialRow)      serialRow.style.display    = "";
     if (lblEdificio)    lblEdificio.textContent    = "Edificio";
     if (lblLaboratorio) lblLaboratorio.textContent = "Laboratorio";
     if (inpEdificio)    inpEdificio.placeholder    = "";
@@ -105,6 +122,7 @@ function onAreaChangeModal() {
 ────────────────────────────────────────── */
 function setAreaFilter(btn, area) {
   activeArea = area;
+  _currentPage = 1;
 
   document.querySelectorAll(".area-pill").forEach(p => {
     p.className = "area-pill";
@@ -217,7 +235,7 @@ function clearChip(index) {
 }
 
 /* ──────────────────────────────────────────
-   RENDER TABLA
+   RENDER TABLA CON PAGINACIÓN
 ────────────────────────────────────────── */
 function renderTable(data) {
   const wrap = document.getElementById("tableWrapper");
@@ -226,6 +244,34 @@ function renderTable(data) {
     wrap.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin activos registrados</p></div>`;
     return;
   }
+
+  // ── Paginación ──
+  const totalPages = Math.ceil(data.length / _pageSize);
+  _currentPage     = Math.min(_currentPage, Math.max(1, totalPages));
+  const pageData   = data.slice((_currentPage - 1) * _pageSize, _currentPage * _pageSize);
+
+  const pageSizeOpts = [10, 20, 50, 100].map(n =>
+    `<option value="${n}" ${n === _pageSize ? "selected" : ""}>${n}</option>`).join("");
+
+  const paginationBar = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+                gap:8px;padding:10px 4px;font-size:13px;color:#6b7280;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        Mostrar
+        <select onchange="_pageSize=parseInt(this.value);_currentPage=1;applyFilters()"
+          style="padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;">${pageSizeOpts}</select>
+        por página &nbsp;·&nbsp; <strong>${data.length}</strong> resultado${data.length !== 1 ? "s" : ""}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onclick="if(_currentPage>1){_currentPage--;applyFilters();}"
+          ${_currentPage === 1 ? "disabled" : ""}
+          style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;background:white;cursor:pointer;font-size:12px;">‹</button>
+        <span style="padding:4px 12px;background:#f3f4f6;border-radius:4px;">${_currentPage} / ${totalPages}</span>
+        <button onclick="if(_currentPage<${totalPages}){_currentPage++;applyFilters();}"
+          ${_currentPage === totalPages ? "disabled" : ""}
+          style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;background:white;cursor:pointer;font-size:12px;">›</button>
+      </div>
+    </div>`;
 
   const badgeMap = {
     available:   '<span class="badge badge-available">● Disponible</span>',
@@ -239,7 +285,7 @@ function renderTable(data) {
     laboratorio: '<span class="badge badge-laboratorio"><i class="fas fa-flask" style="font-size:10px;"></i> Lab / Alimentos</span>'
   };
 
-  const rows = data.map(a => {
+  const rows = pageData.map(a => {
     const catName   = a.categories ? a.categories.name : "—";
     const badge     = badgeMap[a.status] || `<span class="badge">${a.status}</span>`;
     const areaBadge = areaBadgeMap[a.area] || `<span class="badge" style="background:#f3f4f6;color:#6b7280;">${a.area || "—"}</span>`;
@@ -283,7 +329,8 @@ function renderTable(data) {
         </tr>
       </thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table>
+    ${paginationBar}`;
 }
 
 /* ──────────────────────────────────────────
@@ -297,12 +344,13 @@ function openModal() {
   document.getElementById("assetArea").value           = "";
   document.getElementById("assetCategory").innerHTML   = '<option value="" disabled selected>Selecciona categoría</option>';
   document.getElementById("assetSerial").value         = "";
+  const _sr = document.getElementById("serialRow");
+  if (_sr) _sr.style.display = "";
   document.getElementById("assetEdificio").value       = "";
   document.getElementById("assetLaboratorio").value    = "";
   document.getElementById("assetStatus").value         = "available";
   document.getElementById("assetQuantity").value       = "1";
 
-  // Resetear etiquetas al estado neutro
   const lblEdificio    = document.getElementById("lblEdificio");
   const lblLaboratorio = document.getElementById("lblLaboratorio");
   if (lblEdificio)    lblEdificio.textContent    = "Edificio";
@@ -330,14 +378,20 @@ async function saveAsset() {
   const status        = document.getElementById("assetStatus").value;
   const quantity      = parseInt(document.getElementById("assetQuantity").value, 10) || 1;
 
-  if (!name || !area || !category_id || !serial_number || !edificio || !laboratorio) {
-    showToast("Nombre, área, categoría, serie, edificio y laboratorio son obligatorios", "error");
+  const needsSerial = area !== "laboratorio";
+  if (!name || !area || !category_id || !edificio || !laboratorio) {
+    showToast("Nombre, área, categoría, edificio y laboratorio son obligatorios", "error");
+    return;
+  }
+  if (needsSerial && !serial_number) {
+    showToast("El número de serie es obligatorio para activos de Sistemas", "error");
+    return;
+  }
+  if (needsSerial && !validateSerial(serial_number)) {
+    showToast("Formato inválido. Usa bloques separados por guión: DKF1-SK24-49DP-D84N", "error");
     return;
   }
 
-  // ── VALIDACIÓN: número de serie duplicado ──────────────────
-  // Un serial debe ser único en toda la tabla de activos.
-  // Si estamos editando, excluimos el propio registro.
   const serialExists = allAssets.some(a =>
     a.serial_number &&
     a.serial_number.trim().toLowerCase() === serial_number.trim().toLowerCase() &&
@@ -348,21 +402,6 @@ async function saveAsset() {
     return;
   }
 
-  // ── VALIDACIÓN: solo 1 unidad por modelo ────────
-const sameNameTotal = allAssets
-  .filter(a => 
-    a.name.trim().toLowerCase() === name.trim().toLowerCase() && 
-    String(a.id) !== String(id)
-  )
-  .reduce((sum, a) => sum + (a.quantity || 1), 0);
-
-if (sameNameTotal > 0 || quantity > 1) {
-  showToast(
-    `No se permite más de **1 unidad** del mismo modelo ("${name}").`,
-    "error"
-  );
-  return;
-}
   const location = `${edificio}, ${laboratorio}`;
   const body     = { name, description, area, category_id, serial_number, location, status, quantity };
   const url      = id ? `${apiUrl}/${id}` : apiUrl;
@@ -380,7 +419,7 @@ if (sameNameTotal > 0 || quantity > 1) {
       return;
     }
     closeModal();
-    showToast(id ? "Activo actualizado ✅" : "Activo agregado ✅", "success");
+    showToast(id ? "Activo actualizado" : "Activo agregado", "success");
     loadAssets();
   } catch {
     showToast("No se pudo conectar con el servidor", "error");
@@ -411,7 +450,6 @@ async function editAsset(id) {
     document.getElementById("assetDescription").value   = a.description || "";
     document.getElementById("assetArea").value           = a.area || "";
 
-    // Cargar categorías del área y adaptar etiquetas antes de asignar valor
     onAreaChangeModal();
     document.getElementById("assetCategory").value       = a.category_id;
     document.getElementById("assetSerial").value         = a.serial_number || "";
@@ -490,17 +528,17 @@ function exportCSV() {
   const link = document.createElement("a");
   link.href = url; link.download = "activos.csv"; link.click();
   URL.revokeObjectURL(url);
-  showToast("CSV exportado ✅", "success");
+  showToast("CSV exportado", "success");
 }
 
-  // ── Tiempo real ──
-  document.addEventListener("DOMContentLoaded", () => {
-    REALTIME.on("assets", (event) => {
-      if (!document.querySelector(".modal.open, #assetModal.open")) {
-        loadAssets();
-      }
-    });
+// ── Tiempo real ──
+document.addEventListener("DOMContentLoaded", () => {
+  REALTIME.on("assets", (event) => {
+    if (!document.querySelector(".modal.open, #assetModal.open")) {
+      loadAssets();
+    }
   });
+});
 
 /* ──────────────────────────────────────────
    INIT

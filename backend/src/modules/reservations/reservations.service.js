@@ -8,10 +8,14 @@ const SELECT_FULL = `
   alumno_id, docente_id, lab_id,
   alumno:users!reservations_alumno_id_fkey(id, username, email),
   docente:users!reservations_docente_id_fkey(id, username),
-  lab:labs(id, edificio, nombre, capacidad, open_time, close_time),
+  lab:labs(id, edificio, nombre, capacidad, open_time, close_time, activo, status),
   reservation_consumables(
     id, quantity_requested, quantity_delivered, leftover_qty,
     consumables(id, name, unit)
+  ),
+  reservation_assets(
+    id, asset_id,
+    assets(id, name, serial_number)
   )
 `;
 
@@ -42,7 +46,7 @@ const create = async (body) => {
   const {
     alumno_id, docente_id, lab_id,
     fecha_uso, hora_inicio, hora_fin,
-    proposito,
+    proposito, num_alumnos,
     consumables = [],
     assets = []
   } = body;
@@ -51,8 +55,9 @@ const create = async (body) => {
   if (dow === 0) throw { status: 400, message: "No se pueden hacer reservas los domingos" };
 
   const { data: lab } = await supabase
-    .from("labs").select("edificio,nombre,open_time,close_time,activo").eq("id", lab_id).single();
+    .from("labs").select("edificio,nombre,open_time,close_time,activo,status").eq("id", lab_id).single();
   if (!lab || !lab.activo) throw { status: 400, message: "Laboratorio no disponible" };
+  if (lab.status === "maintenance") throw { status: 400, message: "El laboratorio está en mantenimiento" };
 
   const normTime = t => (t || "").substring(0, 5);
   const horaIniN = normTime(hora_inicio);
@@ -83,7 +88,9 @@ const create = async (body) => {
     .insert([{
       alumno_id: parseInt(alumno_id), docente_id: parseInt(docente_id),
       lab_id: parseInt(lab_id), edificio: lab.edificio, laboratorio: lab.nombre,
-      fecha_uso, hora_inicio, hora_fin, proposito, status: "pending"
+      fecha_uso, hora_inicio, hora_fin, proposito,
+      num_alumnos: parseInt(num_alumnos) || 0,
+      status: "pending"
     }])
     .select("id, status, fecha_uso, hora_inicio, hora_fin").single();
 
@@ -121,18 +128,114 @@ const create = async (body) => {
   return resv;
 };
 
-const approve = async (id, body) => {
-  const { grupo, semestre, encargado_grupo, docente_message } = body;
+// FIX: función para editar reserva en estado pending
+const update = async (id, body) => {
+  const { lab_id, fecha_uso, hora_inicio, hora_fin, proposito } = body;
+
+  if (!lab_id || !fecha_uso || !hora_inicio || !hora_fin || !proposito)
+    throw { status: 400, message: "Todos los campos son obligatorios" };
+
+  const { data: lab } = await supabase
+    .from("labs").select("edificio,nombre,activo,status").eq("id", lab_id).single();
+  if (!lab) throw { status: 400, message: "Laboratorio no encontrado" };
+  if (!lab.activo) throw { status: 400, message: "Laboratorio no disponible" };
+  if (lab.status === "maintenance") throw { status: 400, message: "El laboratorio está en mantenimiento" };
+
+  const normTime = t => (t || "").substring(0, 5);
+  const horaIniN = normTime(hora_inicio);
+  const horaFinN = normTime(hora_fin);
+
+  if (horaFinN <= horaIniN) throw { status: 400, message: "La hora de fin debe ser mayor que la de inicio" };
+  const [hI, mI] = horaIniN.split(":").map(Number);
+  const [hF, mF] = horaFinN.split(":").map(Number);
+  if ((hF * 60 + mF) - (hI * 60 + mI) < 60)
+    throw { status: 400, message: "La reserva debe durar al menos 1 hora" };
+
+  // Verificar traslape excluyendo la reserva actual
+  const { data: overlap } = await supabase
+    .from("reservations").select("id")
+    .eq("lab_id", lab_id).eq("fecha_uso", fecha_uso)
+    .in("status", ["approved", "occupied"])
+    .lt("hora_inicio", hora_fin).gt("hora_fin", hora_inicio)
+    .neq("id", id);
+
+  if (overlap && overlap.length > 0)
+    throw { status: 400, message: "El laboratorio ya tiene una reserva aprobada en ese horario" };
+
   const { data, error } = await supabase
     .from("reservations")
-    .update({ status: "approved", grupo, semestre, encargado_grupo: encargado_grupo || null, docente_message: docente_message || null })
+    .update({
+      lab_id: parseInt(lab_id),
+      edificio: lab.edificio,
+      laboratorio: lab.nombre,
+      fecha_uso, hora_inicio, hora_fin, proposito
+    })
+    .eq("id", id)
+    .select("id, status, fecha_uso, hora_inicio, hora_fin")
+    .single();
+
+  if (error) throw error;
+  broadcast("reservations", "UPDATE", data);
+  return data;
+};
+
+const approve = async (id, body) => {
+  const { grupo, semestre, encargado_grupo, docente_message, approval_date } = body;
+  const { data, error } = await supabase
+    .from("reservations")
+    .update({
+      status: "approved",
+      grupo,
+      semestre,
+      encargado_grupo:  encargado_grupo  || null,
+      docente_message:  docente_message  || null,
+      approval_date:    approval_date    || new Date().toISOString().split("T")[0]
+    })
     .eq("id", id).select("id, status, grupo, semestre");
   if (error) throw error;
   broadcast("reservations", "UPDATE", data[0]);
   return data[0];
 };
 
+// BUG 4 FIX: El servidor corre en UTC. La zona horaria de México es UTC-6
+// (UTC-5 en horario de verano). Para que la validación de hora funcione
+// correctamente se obtiene la hora local de México a partir de UTC.
+const getMexicoNow = () => {
+  // Intenta usar la zona horaria oficial de México (CDT/CST automático)
+  try {
+    const mxStr = new Date().toLocaleString("en-US", { timeZone: "America/Mexico_City" });
+    return new Date(mxStr);
+  } catch {
+    // Fallback: UTC-6 fijo si la zona no está disponible en el entorno
+    const now = new Date();
+    now.setHours(now.getHours() - 6);
+    return now;
+  }
+};
+
 const occupy = async (id) => {
+  const { data: resv } = await supabase
+    .from("reservations").select("id, fecha_uso, hora_inicio, hora_fin, status").eq("id", id).single();
+
+  if (!resv) throw { status: 404, message: "Reserva no encontrada" };
+  if (resv.status !== "approved") throw { status: 400, message: "La reserva no está en estado aprobado" };
+
+  // BUG 4 FIX: Usar hora de México, no UTC del servidor
+  const nowMx    = getMexicoNow();
+  const todayStr = `${nowMx.getFullYear()}-${String(nowMx.getMonth() + 1).padStart(2,"0")}-${String(nowMx.getDate()).padStart(2,"0")}`;
+
+  if (resv.fecha_uso !== todayStr)
+    throw { status: 400, message: `Solo se puede marcar en uso el día de la reserva (${resv.fecha_uso})` };
+
+  const nowMin   = nowMx.getHours() * 60 + nowMx.getMinutes();
+  const [hI, mI] = (resv.hora_inicio || "00:00").split(":").map(Number);
+  const [hF, mF] = (resv.hora_fin    || "23:59").split(":").map(Number);
+  const inicioMin = hI * 60 + mI;
+  const finMin    = hF * 60 + mF;
+
+  if (nowMin < inicioMin - 10 || nowMin > finMin)
+    throw { status: 400, message: `Solo se puede marcar en uso entre ${resv.hora_inicio} y ${resv.hora_fin}` };
+
   const { data, error } = await supabase
     .from("reservations")
     .update({ status: "occupied", entrada_fecha: new Date().toISOString() })
@@ -153,8 +256,10 @@ const release = async (id, body) => {
   if (error) throw error;
 
   for (const li of leftover_items) {
+    const updatePayload = { leftover_qty: li.leftover_qty ?? 0 };
+    if (li.damaged_qty !== undefined) updatePayload.damaged_qty = li.damaged_qty;
     await supabase.from("reservation_consumables")
-      .update({ leftover_qty: li.leftover_qty })
+      .update(updatePayload)
       .eq("id", li.reservation_consumable_id);
   }
 
@@ -197,4 +302,4 @@ const remove = async (id) => {
   broadcast("reservations", "DELETE", { id });
 };
 
-module.exports = { getAll, getById, create, approve, occupy, release, cancel, remove };
+module.exports = { getAll, getById, create, update, approve, occupy, release, cancel, remove };

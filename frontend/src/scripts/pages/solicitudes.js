@@ -25,7 +25,7 @@ const statusMap = {
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
-  currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  currentUser = JSON.parse(sessionStorage.getItem("user") || "null") || {};
   await Promise.all([loadUsers(), loadAssets(), loadCons(), loadLabs()]);
   await loadRequests();
 });
@@ -125,6 +125,12 @@ function renderTable(data) {
     // Acciones
     let acciones = "";
 
+    // Acciones — Admin: editar pendientes + aprobar/rechazar + devolver + eliminar
+    // Admin: editar solicitudes pending
+    if (role === "administrador" && r.status === "pending") {
+      acciones += `<button class="action-btn action-info" title="Editar" onclick="openEditRequest(${r.id})"><i class="fas fa-edit"></i></button>`;
+    }
+
     // Docente: aprobar/rechazar las solicitudes pending directamente
     if (role === "docente" && r.status === "pending") {
       acciones += `<button class="action-btn action-approve" title="Aprobar" onclick="openApproveModal(${r.id})"><i class="fas fa-check"></i></button>`;
@@ -221,24 +227,33 @@ function openModal() {
       selDocente.appendChild(o);
     });
   } else if (currentUser.role === "docente") {
+    // Bug 1 fix: El docente solo puede solicitar para sí mismo u otros docentes,
+    // NO para alumnos. El campo docente encargado no aplica (él ES el docente).
     const self = document.createElement("option");
     self.value = currentUser.id;
     self.textContent = `${currentUser.username} (yo)`;
     selUser.appendChild(self);
-    allUsers.filter(u => u.role === "alumno").forEach(u => {
-      const o = document.createElement("option"); o.value = u.id; o.textContent = `${u.username} (alumno)`;
+    allUsers.filter(u => u.role === "docente" && Number(u.id) !== Number(currentUser.id)).forEach(u => {
+      const o = document.createElement("option"); o.value = u.id; o.textContent = `${u.username} (docente)`;
       selUser.appendChild(o);
     });
     selUser.disabled = false;
     grpDocente.style.display = "none";
   } else {
+    // Admin: puede elegir cualquier usuario Y asignar docente encargado
     allUsers.filter(u => ["administrador","docente","alumno"].includes(u.role)).forEach(u => {
       const o = document.createElement("option");
       o.value = u.id; o.textContent = `${u.username} (${u.role})`;
       selUser.appendChild(o);
     });
     selUser.disabled = false;
-    grpDocente.style.display = "none";
+    // Admin sí necesita docente encargado — mostrar el selector
+    grpDocente.style.display = "block";
+    selDocente.innerHTML = `<option value="">-- Sin docente encargado --</option>`;
+    allUsers.filter(u => u.role === "docente").forEach(u => {
+      const o = document.createElement("option"); o.value = u.id; o.textContent = u.username;
+      selDocente.appendChild(o);
+    });
   }
 
   document.getElementById("reqType").value    = "asset";
@@ -314,13 +329,23 @@ function onTypeChange() {
 
 function onSolAreaChange(sel) {
   _solArea = sel.value;
-  // Refrescar todos los selects de ítems existentes
   const type = document.getElementById("reqType").value;
-  document.querySelectorAll("#itemsContainer .item-row select").forEach(s => {
-    const cur = s.value;
+  // Refrescar todos los selects de ítems existentes
+  document.querySelectorAll("#itemsContainer .item-row").forEach(row => {
+    const s       = row.querySelector("select");
+    const qtyInp  = row.querySelector("input[type=number]");
+    const infoDiv = row.querySelector("[id^='info_']");
+    if (!s) return;
+    const cur  = s.value;
     const list = type === "asset" ? buildAssetOptions() : buildConsOptions();
     s.innerHTML = `<option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>${list}`;
-    if ([...s.options].some(o => o.value === cur)) s.value = cur;
+    if ([...s.options].some(o => o.value === cur)) {
+      s.value = cur;
+    } else {
+      s.value = "";
+      if (qtyInp) { qtyInp.value = "1"; qtyInp.step = type === "asset" ? "1" : "any"; qtyInp.max = type === "asset" ? "1" : "9999"; qtyInp.placeholder = ""; }
+      if (infoDiv) { infoDiv.style.display = "none"; infoDiv.innerHTML = ""; }
+    }
   });
 }
 
@@ -405,7 +430,7 @@ function addItemRow() {
         <option value="">-- ${type === "asset" ? "Activo" : "Consumible"} --</option>
         ${list}
       </select>
-      <input type="number" id="qty_${id}" value="1" min="1" max="1"
+      <input type="number" id="qty_${id}" value="1" min="0.001" step="${type === "asset" ? "1" : "any"}" max="${type === "asset" ? "1" : "9999"}"
         style="padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;text-align:center;"
         ${type === "asset" ? 'readonly title="Cada activo es único por serie"' : ''}>
       <button onclick="removeItemRow('${id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:4px;">
@@ -420,23 +445,58 @@ function addItemRow() {
 let _solArea = "";
 
 function buildAssetOptions(excludeIds = []) {
+  const areaFiltro = _solArea ? _solArea.toLowerCase().trim() : "";
   return allAssets
-    .filter(a => a.status === "available" && !excludeIds.includes(a.id) && (!_solArea || a.area === _solArea))
+    .filter(a => {
+      if (a.status !== "available") return false;
+      if (excludeIds.includes(a.id)) return false;
+      if (!areaFiltro) return true;
+      return (a.area || "").toLowerCase().trim() === areaFiltro;
+    })
     .map(a => {
-      const areaIcon = a.area === "sistemas" ? "\uD83D\uDDA5" : a.area === "laboratorio" ? "\uD83D\uDD2C" : "";
-      const catName  = a.categories?.name || "";
-      return `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}">${areaIcon} ${a.name}${catName ? " \u00B7 "+catName : ""} — Serie: ${a.serial_number||"S/N"}</option>`;
+      const areaIcon  = (a.area || "").toLowerCase().includes("sistem") ? "\uD83D\uDDA5"
+                      : (a.area || "").toLowerCase().includes("lab")    ? "\uD83D\uDD2C" : "";
+      const catName   = a.categories?.name || "";
+      const isLab     = (a.area || "").toLowerCase().includes("lab");
+      const serieText = isLab ? "" : ` — Serie: ${a.serial_number||"S/N"}`;
+      const qty       = a.quantity || 1;
+      return `<option value="${a.id}" data-serial="${a.serial_number||""}" data-name="${a.name}" data-area="${a.area||""}" data-qty="${qty}">${areaIcon} ${a.name}${catName ? " \u00B7 "+catName : ""}${serieText} (Disp: ${qty})</option>`;
     })
     .join("");
 }
 
+// ── Helper: infiere el área de un consumible desde todos los campos disponibles ──
+function inferConsArea(c) {
+  // Prioridad 1: campo area de la BD (si existe y no está vacío)
+  const areaDB = (c.area || "").toLowerCase().trim();
+  if (areaDB) return areaDB;
+  // Prioridad 2: inferir por nombre de categoría
+  const cat = (c.categories?.name || "").toLowerCase();
+  if (cat.includes("aliment") || cat.includes("lab") || cat.includes("quím") || cat.includes("quim") || cat.includes("biolog") || cat.includes("vestim") || cat.includes("bata")) return "laboratorio";
+  if (cat.includes("cómputo") || cat.includes("computo") || cat.includes("cable") || cat.includes("red") || cat.includes("electr") || cat.includes("hardware") || cat.includes("periféric") || cat.includes("periferic") || cat.includes("sistema")) return "sistemas";
+  // Prioridad 3: inferir por nombre del consumible
+  const name = (c.name || "").toLowerCase();
+  if (name.includes("azúcar") || name.includes("azucar") || name.includes("sal") || name.includes("bata") || name.includes("harina") || name.includes("aceite") || name.includes("vinagre") || name.includes("ácido") || name.includes("acido")) return "laboratorio";
+  if (name.includes("cable") || name.includes("mouse") || name.includes("teclado") || name.includes("router") || name.includes("switch") || name.includes("adaptador") || name.includes("disco") || name.includes("memoria") || name.includes("usb") || name.includes("hdmi") || name.includes("vga") || name.includes("red ")) return "sistemas";
+  return areaDB; // sin área conocida
+}
+
 function buildConsOptions() {
+  const areaFiltro = _solArea ? _solArea.toLowerCase().trim() : "";
+
   return allCons
-    .filter(c => c.quantity > 0 && (!_solArea || c.area === _solArea))
+    .filter(c => {
+      if (c.quantity <= 0) return false;
+      if (!areaFiltro) return true;
+      const areaInferida = inferConsArea(c);
+      return areaInferida.includes(areaFiltro);
+    })
     .map(c => {
-      const areaIcon = c.area === "sistemas" ? "\uD83D\uDDA5" : c.area === "laboratorio" ? "\uD83D\uDD2C" : "";
+      const areaInf  = inferConsArea(c);
+      const areaIcon = areaInf.includes("sistem") ? "\uD83D\uDDA5"
+                     : areaInf.includes("lab")    ? "\uD83D\uDD2C" : "";
       const catName  = (c.categories?.name || "").toLowerCase();
-      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${c.area||""}" data-cat="${catName}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
+      return `<option value="${c.id}" data-qty="${c.quantity}" data-unit="${c.unit||"u"}" data-area="${areaInf}" data-cat="${catName}">${areaIcon} ${c.name} (Disp: ${c.quantity} ${c.unit||"u"})</option>`;
     })
     .join("");
 }
@@ -449,49 +509,96 @@ function onItemSelect(rowId, type) {
   if (!opt?.value) { infoDiv.style.display = "none"; return; }
 
   if (type === "asset") {
-    qtyInp.value = "1"; qtyInp.max = "1";
-    infoDiv.style.display = "block";
-    infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong> · Para pedir más unidades del mismo modelo, agrega otra fila.`;
+    const isLab  = (opt.dataset.area || "").toLowerCase().includes("lab");
+    const maxQty = parseInt(opt.dataset.qty) || 1;
 
-    // Remove this asset from other dropdowns to avoid duplicate selection
-    const selectedId = parseInt(opt.value);
-    document.querySelectorAll("#itemsContainer .item-row select").forEach(otherSel => {
-      if (otherSel.id !== sel.id) {
-        const otherOptions = otherSel.querySelectorAll("option");
-        otherOptions.forEach(opt => {
-          if (parseInt(opt.value) === selectedId) opt.remove();
-        });
-      }
-    });
+    qtyInp.value    = "1";
+    qtyInp.min      = "1";
+    qtyInp.max      = maxQty;   // máximo = stock disponible del activo
+    qtyInp.step     = "1";
+    qtyInp.readOnly = false;
+    qtyInp.oninput  = () => {
+      const v = parseInt(qtyInp.value);
+      if (v > maxQty) qtyInp.value = maxQty;
+      if (v < 1 || isNaN(v)) qtyInp.value = 1;
+    };
+
+    infoDiv.style.display = "block";
+    if (isLab) {
+      // Lab: no mostrar serie (es interna), sí mostrar stock
+      infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#10b981;"></i> Disponible: <strong>${maxQty} unidad${maxQty !== 1 ? "es" : ""}</strong>`;
+    } else {
+      // Sistemas: mostrar serie
+      infoDiv.innerHTML = `<i class="fas fa-info-circle" style="color:#4f46e5;"></i> Serie: <strong>${opt.dataset.serial||"S/N"}</strong> · Disponible: ${maxQty} · Para otra unidad agrega otra fila.`;
+      // Para sistemas, cada fila = 1 activo único por serie → limitar a 1
+      qtyInp.value = "1"; qtyInp.max = "1"; qtyInp.readOnly = true;
+      // Quitar de otros dropdowns para evitar duplicado
+      const selectedId = parseInt(opt.value);
+      document.querySelectorAll("#itemsContainer .item-row select").forEach(otherSel => {
+        if (otherSel.id !== sel.id) {
+          otherSel.querySelectorAll("option").forEach(o => {
+            if (parseInt(o.value) === selectedId) o.remove();
+          });
+        }
+      });
+    }
   } else {
-    // Consumible: cantidad máxima = stock disponible
-    const maxQty   = parseInt(opt.dataset.qty) || 1;
-    const unit     = (opt.dataset.unit || "").toLowerCase();
+    // Consumible: configurar input según unidad de medida
+    const maxQty   = parseFloat(opt.dataset.qty) || 1;
+    const unit     = (opt.dataset.unit || "").toLowerCase().trim();
     const area     = (opt.dataset.area || "").toLowerCase();
     const cat      = (opt.dataset.cat  || "").toLowerCase();
-    const isComputo = area === "sistemas" && (cat.includes("cómputo") || cat.includes("computo"));
+    // Comparación flexible: el área en BD puede ser "Sistemas", "sistemas", "Sistemas / IT", etc.
+    const isComputo = area.includes("sistem") && (cat.includes("cómputo") || cat.includes("computo") || cat.includes("cable") || cat.includes("red") || cat.includes("electr"));
 
-    // Límite especial Sistemas > Cómputo: máx 5 metros o 5 piezas
+    // Bug 3 fix: Determinar step y max según la unidad
+    // Unidades continuas (decimales permitidos): kg, g, litro, litros, l, ml, metros, metro, m
+    // Unidades discretas (enteros): pieza, piezas, u, unidad, unidades, bata, batas, etc.
+    let step      = 1;      // default: entero
     let efectiveMax = maxQty;
     let limitNote   = "";
-    if (isComputo) {
-      if (unit === "metros") {
+    let placeholder = "";
+
+    if (["kg", "kilogramo", "kilogramos"].includes(unit)) {
+      step = 0.001;         // permite hasta gramos (0.001 kg = 1 g)
+      placeholder = "ej: 0.500 = 500g, 1.5 = 1.5 kg";
+    } else if (["g", "gr", "gramo", "gramos"].includes(unit)) {
+      step = 1;
+      placeholder = "ej: 250 gramos";
+    } else if (["l", "litro", "litros"].includes(unit)) {
+      step = 0.001;         // permite hasta ml
+      placeholder = "ej: 0.500 = 500 ml, 1.5 = 1.5 L";
+    } else if (["ml", "mililitro", "mililitros"].includes(unit)) {
+      step = 1;
+      placeholder = "ej: 250 ml";
+    } else if (["metro", "metros", "m"].includes(unit)) {
+      step = 0.5;           // medio metro mínimo
+      placeholder = "ej: 0.5 = medio metro, 1.5 metros";
+      if (isComputo) {
         efectiveMax = Math.min(maxQty, 5);
         limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 m por solicitud</span>`;
-      } else if (unit === "pieza") {
-        efectiveMax = Math.min(maxQty, 5);
-        limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 piezas por solicitud</span>`;
       }
+    } else if (["pieza", "piezas"].includes(unit) && isComputo) {
+      step = 1;
+      efectiveMax = Math.min(maxQty, 5);
+      limitNote   = ` <span style="color:#d97706;font-size:11px;">⚠ Máx 5 piezas por solicitud</span>`;
+    } else {
+      step = 1; // entero para batas, unidades, etc.
     }
 
-    qtyInp.max      = efectiveMax;
-    qtyInp.readOnly = false;
+    qtyInp.step      = step;
+    qtyInp.max       = efectiveMax;
+    qtyInp.min       = step;          // mínimo = 1 paso
+    qtyInp.readOnly  = false;
+    if (placeholder) qtyInp.placeholder = placeholder;
+
     infoDiv.style.display = "block";
     infoDiv.innerHTML = `<i class="fas fa-boxes" style="color:#10b981;"></i> Disponible: <strong>${maxQty} ${opt.dataset.unit||"u"}</strong>${limitNote}`;
+
     qtyInp.oninput = () => {
       const v = parseFloat(qtyInp.value);
       if (v > efectiveMax) qtyInp.value = efectiveMax;
-      if (v < 1) qtyInp.value = 1;
+      if (v < step || isNaN(v)) qtyInp.value = step;
     };
   }
 }
@@ -565,6 +672,9 @@ async function saveRequest() {
     if (!docente_id) { showToast("Selecciona un docente encargado", "error"); return; }
   } else if (currentUser.role === "docente") {
     docente_id = currentUser.id;
+  } else if (currentUser.role === "administrador") {
+    // Admin puede dejar docente en null (solicitud directa sin docente)
+    docente_id = document.getElementById("reqDocente")?.value || null;
   }
 
   // ── LABORATORIO → crear reserva directa ──
@@ -587,6 +697,7 @@ async function saveRequest() {
     if (tFin - tIni < 60) { showToast("La reserva debe durar al menos 1 hora", "error"); return; }
 
     const dowLab  = new Date(fecha_uso + "T12:00:00").getDay();
+    if (dowLab === 0) { showToast("No se permiten reservas los domingos", "error"); return; }
     const isSatL  = dowLab === 6;
     const minOpen = 7 * 60 + 30;
     const maxClose= isSatL ? 13 * 60 : 15 * 60;
@@ -613,7 +724,7 @@ async function saveRequest() {
       body: JSON.stringify(body)
     });
     if (!res.ok) { const e = await res.json(); showToast(e.message || "Error", "error"); return; }
-    showToast("Reserva de laboratorio creada ✅", "success");
+    showToast("Reserva de laboratorio creada", "success");
     closeModal(); await loadRequests(); return;
   }
 
@@ -628,6 +739,7 @@ async function saveRequest() {
     purpose, notes,
     fecha_solicitud: fechaSol,
     hora_solicitud:  horaSol,
+    role:            currentUser.role,   // para validación de horario en backend
     items
   };
 
@@ -637,7 +749,7 @@ async function saveRequest() {
       body: JSON.stringify(body)
     });
     if (!res.ok) { const e = await res.json(); showToast("Error: "+(e.message||"No se pudo guardar"), "error"); return; }
-    showToast("Solicitud creada exitosamente ✅", "success");
+    showToast("Solicitud creada exitosamente", "success");
     closeModal(); await loadRequests();
   } catch { showToast("No se pudo conectar con el servidor", "error"); }
 }
@@ -652,7 +764,8 @@ function collectItems(type) {
 
   for (const row of rows) {
     const sel = row.querySelector("select");
-    const qty = parseInt(row.querySelector("input[type=number]").value) || 1;
+    const qtyRaw = row.querySelector("input[type=number]").value;
+    const qty = parseFloat(qtyRaw) || 1;   // parseFloat para admitir decimales (kg, metros, litros)
     if (!sel.value) { showToast("Selecciona un ítem en todas las filas", "error"); return null; }
 
     if (type === "asset") {
@@ -664,16 +777,16 @@ function collectItems(type) {
     } else {
       // Validación límite Sistemas > Cómputo
       const opt2     = sel.selectedOptions[0];
-      const unit2    = (opt2?.dataset.unit || "").toLowerCase();
+      const unit2    = (opt2?.dataset.unit || "").toLowerCase().trim();
       const area2    = (opt2?.dataset.area  || "").toLowerCase();
       const cat2     = (opt2?.dataset.cat   || "").toLowerCase();
       const isComp   = area2 === "sistemas" && (cat2.includes("cómputo") || cat2.includes("computo"));
       if (isComp) {
-        if (unit2 === "metros" && qty > 5) {
+        if (["metro","metros","m"].includes(unit2) && qty > 5) {
           showToast(`Límite: máximo 5 metros por consumible de Sistemas/Cómputo`, "error");
           return null;
         }
-        if (unit2 === "pieza" && qty > 5) {
+        if (["pieza","piezas"].includes(unit2) && qty > 5) {
           showToast(`Límite: máximo 5 piezas por consumible de Sistemas/Cómputo`, "error");
           return null;
         }
@@ -690,7 +803,7 @@ function collectLabItems() {
   const items = [];
   rows.forEach(row => {
     const sel  = row.querySelector("select");
-    const qty  = parseInt(row.querySelector("input[type=number]").value) || 1;
+    const qty  = parseFloat(row.querySelector("input[type=number]").value) || 1;
     const typ  = row.dataset.type;
     if (!sel?.value) return;
     if (typ === "asset")      items.push({ asset_id:      parseInt(sel.value), quantity: 1 });
@@ -730,7 +843,7 @@ async function sendToAdmin(id) {
       body: JSON.stringify({ status: "pending_admin" })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud enviada al administrador ✅", "success");
+    showToast("Solicitud enviada al administrador", "success");
     await loadRequests();
   } catch { showToast("Error al enviar la solicitud", "error"); }
 }
@@ -831,13 +944,40 @@ function openApproveModal(id) {
     modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
   document.getElementById("approveId").value              = id;
-  document.getElementById("approvePickupLocation").value  = "";
   document.getElementById("approveMessage").value         = "";
   const todayStr = new Date().toISOString().split("T")[0];
   document.getElementById("approvePickupDate").min   = todayStr;
   document.getElementById("approvePickupDate").value = "";
   if (document.getElementById("approvePickupTime"))
     document.getElementById("approvePickupTime").value = "";
+
+  // ── AUTO-FILL lugar de entrega ──
+  // Buscar la solicitud para inferir el lugar según tipo de activo/área
+  const req = allRequests.find(r => r.id === id);
+  let autoLocation = "";
+  if (req) {
+    const items = req.request_items || [];
+    const hasLabItems = items.some(i => {
+      const area = (i.assets?.area || "").toLowerCase();
+      return area.includes("lab") || area.includes("aliment") || area.includes("quím") || area.includes("quim");
+    });
+    const hasSisItems = items.some(i => {
+      const area = (i.assets?.area || "").toLowerCase();
+      return area.includes("sistem");
+    });
+    // Si es solo activo directo (no multi-ítem)
+    const directAsset = req.assets;
+    const directArea  = (directAsset?.area || "").toLowerCase();
+
+    if (hasLabItems || directArea.includes("lab") || directArea.includes("aliment")) {
+      autoLocation = "Laboratorio de Ciencias Básicas";
+    } else if (hasSisItems || directArea.includes("sistem") || req.request_type === "asset") {
+      autoLocation = "Laboratorio de Sistemas";
+    } else if (req.request_type === "consumable") {
+      autoLocation = "Almacén / Bodega";
+    }
+  }
+  document.getElementById("approvePickupLocation").value = autoLocation;
   modal.classList.add("open");
 }
 
@@ -867,7 +1007,7 @@ async function submitApprove() {
       body: JSON.stringify({ pickup_date, pickup_location: pl, admin_message: msg })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud aprobada con éxito ✅", "success");
+    showToast("Solicitud aprobada con éxito", "success");
     document.getElementById("approveModal").classList.remove("open");
     await loadRequests();
   } catch { showToast("Error al aprobar", "error"); }
@@ -884,73 +1024,263 @@ function openReturnModal(id) {
     modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
   }
 
-  const items = r?.request_items || [];
+  const items    = r?.request_items || [];
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // HTML de condición de ítems — solo activos tienen condición
   const itemsHtml = items.map(it => {
-    const name = it.assets?.name || it.consumables?.name || "Ítem";
+    const name    = it.assets?.name || it.consumables?.name || "Ítem";
     const isAsset = !!it.assets;
-    return `<div style="background:#f8f9fc;border-radius:6px;padding:8px;margin-bottom:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;" data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
-      <span style="font-size:13px;font-weight:500;color:#374151;">${name}</span>
-      ${isAsset ? `<select style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:'Poppins',sans-serif;">
-        <option value="bueno">Bueno</option><option value="dañado">Dañado</option><option value="perdido">Perdido</option>
-      </select>` : `<span style="font-size:12px;color:#9ca3af;">Consumible</span>`}
-    </div>`;
-  }).join("") || `<p style="font-size:13px;color:#9ca3af;">Sin ítems registrados</p>`;
+    const qty     = it.quantity || 1;
+    const assetArea = (it.assets?.area || "").toLowerCase();
+    const isLabAsset = isAsset && assetArea.includes("lab");
+
+    // Serial: solo para activos de Sistemas (no lab)
+    const serialHtml = (isAsset && !isLabAsset && it.assets?.serial_number)
+      ? `<small style="color:#9ca3af;font-size:11px;"><i class="fas fa-barcode"></i> Serie: ${it.assets.serial_number}</small><br>`
+      : "";
+
+    // Unidad para consumibles
+    const unit = it.consumables?.unit || "u";
+
+    // Input de cantidad real devuelta
+    const qtyInputId = `retQty_${it.id}`;
+    const qtyInput = `
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+        <label style="font-size:11px;color:#374151;font-weight:600;white-space:nowrap;">
+          ${isAsset ? "Unidades devueltas:" : `Cantidad devuelta (${unit}):`}
+        </label>
+        <input type="number" id="${qtyInputId}"
+          value="${qty}" min="0" max="${qty}" step="${isAsset ? 1 : 0.001}"
+          style="width:70px;padding:4px 6px;border:1px solid #d1d5db;border-radius:5px;
+                 font-size:13px;text-align:center;font-family:'IBM Plex Sans',sans-serif;outline:none;"
+          oninput="(function(el){
+            const v=parseFloat(el.value), mx=${qty};
+            if(v>mx){el.value=mx;el.style.borderColor='#ef4444';}
+            else if(v<0||isNaN(v)){el.value=0;}
+            else el.style.borderColor='#d1d5db';
+          })(this)">
+        <span style="font-size:11px;color:#9ca3af;">/ ${qty}${isAsset ? " solicitada"+(qty!==1?"s":"") : " "+unit}</span>
+      </div>`;
+
+    return `
+      <div style="background:#f8f9fc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;
+                  margin-bottom:8px;" data-item-id="${it.id}" data-asset-id="${it.assets?.id||""}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;color:#374151;">${name}</div>
+            ${serialHtml}
+            <div style="font-size:11px;color:#6b7280;margin-top:2px;">
+              ${isAsset ? '<i class="fas fa-box" style="color:#4f46e5;"></i> Activo' : '<i class="fas fa-flask" style="color:#0891b2;"></i> Consumible'}
+            </div>
+            ${qtyInput}
+          </div>
+          ${isAsset ? `
+          <select style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;
+                         font-family:'IBM Plex Sans',sans-serif;color:#374151;min-width:110px;flex-shrink:0;">
+            <option value="bueno">✅ Bueno</option>
+            <option value="dañado">⚠️ Dañado</option>
+            <option value="perdido">❌ Perdido</option>
+          </select>` : `
+          <span style="font-size:12px;color:#10b981;font-weight:600;flex-shrink:0;">
+            <i class="fas fa-check-circle"></i> Consumible
+          </span>`}
+        </div>
+      </div>`;
+  }).join("") || `<p style="font-size:13px;color:#9ca3af;text-align:center;padding:12px;">Sin ítems registrados en esta solicitud</p>`;
 
   modal.innerHTML = `
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:540px;">
       <button class="modal-close" onclick="document.getElementById('returnModal').classList.remove('open')">&times;</button>
-      <h3>Registrar Devolución</h3>
+
+      <h3 style="display:flex;align-items:center;gap:10px;">
+        <span style="background:#dcfce7;border-radius:50%;width:36px;height:36px;
+                     display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-undo" style="color:#16a34a;font-size:15px;"></i>
+        </span>
+        Registrar Devolución
+      </h3>
+
       <input type="hidden" id="returnId" value="${id}">
-      ${items.length ? `<div style="margin-bottom:12px;"><p style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Condición de ítems</p>${itemsHtml}</div>` : ""}
-      <div class="form-group">
-        <label><input type="checkbox" id="returnIncident" onchange="document.getElementById('incidentFields').style.display=this.checked?'block':'none'"> Reportar incidente</label>
-      </div>
-      <div id="incidentFields" style="display:none;">
-        <div class="form-group">
-          <label>Causa</label>
-          <textarea id="incidentCause" placeholder="Describe lo ocurrido..." style="width:100%;height:60px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+
+      <!-- Info de la solicitud -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin:14px 0;">
+        <div style="font-size:12px;font-weight:600;color:#15803d;margin-bottom:4px;">
+          <i class="fas fa-clipboard-check"></i> Solicitud #${r?.id} — ${r?.users?.username || "—"}
         </div>
-        <div class="form-group">
-          <label>Solución</label>
-          <textarea id="incidentSolution" placeholder="Cómo se resolvió..." style="width:100%;height:60px;resize:none;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;"></textarea>
+        <div style="font-size:12px;color:#374151;">${r?.purpose || "Sin propósito registrado"}</div>
+      </div>
+
+      <!-- Fecha de devolución -->
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">
+          <i class="fas fa-calendar-check" style="color:#4f46e5;margin-right:4px;"></i>
+          Fecha de devolución *
+        </label>
+        <input type="date" id="returnFecha" min="${todayStr}"
+          style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                 font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;">
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+          Lunes–Sábado · No domingos · Horario: 8:00 AM – 2:00 PM
         </div>
       </div>
+
+      <!-- Hora de devolución -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">
+          <i class="fas fa-clock" style="color:#4f46e5;margin-right:4px;"></i>
+          Hora de devolución *
+        </label>
+        <input type="time" id="returnHora" min="08:00" max="14:00" step="3600"
+          style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;
+                 font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;">
+      </div>
+
+      <!-- Condición de ítems -->
+      ${items.length ? `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:#374151;text-transform:uppercase;
+                    letter-spacing:0.5px;margin-bottom:8px;">
+          <i class="fas fa-boxes" style="color:#4f46e5;margin-right:4px;"></i>
+          Condición de los ítems
+        </div>
+        ${itemsHtml}
+      </div>` : ""}
+
+      <!-- Incidente -->
+      <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+        <button type="button" id="incidentToggleBtn"
+          onclick="toggleIncidentSection()"
+          style="width:100%;padding:12px 16px;background:#fef9c3;border:none;cursor:pointer;
+                 display:flex;align-items:center;justify-content:space-between;
+                 font-size:13px;font-weight:600;color:#92400e;font-family:'IBM Plex Sans',sans-serif;">
+          <span><i class="fas fa-exclamation-triangle" style="margin-right:8px;color:#d97706;"></i>
+            ¿Hubo algún incidente?</span>
+          <i class="fas fa-chevron-down" id="incidentChevron" style="transition:transform 0.2s;"></i>
+        </button>
+        <div id="incidentSection" style="display:none;padding:14px;background:#fffbeb;">
+          <input type="hidden" id="returnIncident" value="false">
+          <div style="margin-bottom:10px;">
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+              Descripción del incidente *
+            </label>
+            <textarea id="incidentCause"
+              placeholder="Describe detalladamente lo ocurrido (daño, pérdida, accidente...)"
+              style="width:100%;height:70px;resize:none;padding:10px;border:1px solid #d1d5db;
+                     border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"></textarea>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+              Solución / acción tomada *
+            </label>
+            <textarea id="incidentSolution"
+              placeholder="¿Cómo se resolvió o qué medida se tomó?"
+              style="width:100%;height:70px;resize:none;padding:10px;border:1px solid #d1d5db;
+                     border-radius:6px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;"></textarea>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-actions">
-        <button class="btn-cancel" onclick="document.getElementById('returnModal').classList.remove('open')">Cancelar</button>
-        <button class="btn" style="flex:1;" onclick="submitReturn()"><i class="fas fa-undo"></i> Confirmar devolución</button>
+        <button class="btn-cancel" onclick="document.getElementById('returnModal').classList.remove('open')">
+          Cancelar
+        </button>
+        <button class="btn" style="flex:1;background:#16a34a;" onclick="submitReturn()">
+          <i class="fas fa-check"></i> Confirmar devolución
+        </button>
       </div>
     </div>`;
+
+  // Validación de fecha: no domingos
+  document.getElementById("returnFecha").addEventListener("change", function() {
+    if (!this.value) return;
+    const d = new Date(this.value + "T12:00:00");
+    if (d.getDay() === 0) {
+      showToast("No se permiten devoluciones los domingos", "error");
+      this.value = "";
+    }
+  });
+
   modal.classList.add("open");
 }
 
+function toggleIncidentSection() {
+  const sec = document.getElementById("incidentSection");
+  const chev = document.getElementById("incidentChevron");
+  const inp  = document.getElementById("returnIncident");
+  const open = sec.style.display === "none";
+  sec.style.display  = open ? "block" : "none";
+  chev.style.transform = open ? "rotate(180deg)" : "rotate(0)";
+  if (inp) inp.value = open ? "true" : "false";
+}
+
 async function submitReturn() {
-  const id        = document.getElementById("returnId").value;
-  const incident  = document.getElementById("returnIncident").checked;
-  const cause     = document.getElementById("incidentCause")?.value.trim();
-  const solution  = document.getElementById("incidentSolution")?.value.trim();
-  if (incident && (!cause || !solution)) { showToast("Describe causa y solución del incidente", "error"); return; }
+  const id      = document.getElementById("returnId").value;
+  const fecha   = document.getElementById("returnFecha").value;
+  const hora    = document.getElementById("returnHora").value;
+  const incident = document.getElementById("returnIncident")?.value === "true";
+  const cause    = document.getElementById("incidentCause")?.value.trim();
+  const solution = document.getElementById("incidentSolution")?.value.trim();
+
+  // Validar fecha obligatoria
+  if (!fecha) { showToast("La fecha de devolución es obligatoria", "error"); return; }
+  if (!hora)  { showToast("La hora de devolución es obligatoria", "error"); return; }
+
+  // Validar que no sea domingo
+  const dow = new Date(fecha + "T12:00:00").getDay();
+  if (dow === 0) { showToast("No se permiten devoluciones los domingos", "error"); return; }
+
+  // Validar horario 8:00 AM – 2:00 PM
+  const [h, m] = hora.split(":").map(Number);
+  const mins = h * 60 + m;
+  if (mins < 8 * 60)   { showToast("Hora mínima de devolución: 8:00 AM", "error"); return; }
+  if (mins > 14 * 60)  { showToast("Hora máxima de devolución: 2:00 PM", "error"); return; }
+
+  // Validar incidente si está activado
+  if (incident && (!cause || !solution)) {
+    showToast("Completa la descripción y solución del incidente", "error"); return;
+  }
 
   const items_condition = [];
+  let qtyWarning = false;
   document.querySelectorAll("#returnModal [data-item-id]").forEach(row => {
-    const sel = row.querySelector("select");
-    if (!sel) return;
+    const sel    = row.querySelector("select");
+    const itemId = parseInt(row.dataset.itemId);
+    // Leer cantidad real devuelta del input
+    const qtyInp = document.getElementById(`retQty_${itemId}`);
+    const qtyRet = qtyInp ? parseFloat(qtyInp.value) || 0 : null;
+    const qtyMax = qtyInp ? parseFloat(qtyInp.max)   || 0 : null;
+    const isAsset = !!(parseInt(row.dataset.assetId) || 0);
+    if (isAsset && qtyMax !== null && qtyRet < qtyMax) qtyWarning = true;
     items_condition.push({
-      item_id:          parseInt(row.dataset.itemId),
-      asset_id:         parseInt(row.dataset.assetId)||null,
-      return_condition: sel.value
+      item_id:            itemId,
+      asset_id:           parseInt(row.dataset.assetId) || null,
+      return_condition:   sel ? sel.value : null,
+      quantity_returned:  qtyRet
     });
   });
+  // Advertir si algún ítem se devuelve incompleto (no bloquea, solo avisa)
+  if (qtyWarning && !incident) {
+    const ok = confirm("⚠️ Algunos ítems se están devolviendo con menos unidades de las solicitadas. ¿Continuar?");
+    if (!ok) return;
+  }
 
   try {
     const res = await fetch(`${API}/${id}/return`, {
-      method: "PUT", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ incident, incident_cause: cause, incident_solution: solution, items_condition })
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        incident,
+        incident_cause:    incident ? cause    : null,
+        incident_solution: incident ? solution : null,
+        return_date:       `${fecha}T${hora}:00`,
+        items_condition
+      })
     });
     if (!res.ok) throw new Error();
-    showToast(incident ? "Devolución con incidente ⚠️" : "Devolución registrada ✅", "success");
+    showToast(incident ? "Devolución registrada con incidente ⚠️" : "Devolución registrada", "success");
     document.getElementById("returnModal").classList.remove("open");
     await loadRequests();
-  } catch { showToast("Error al registrar devolución", "error"); }
+  } catch { showToast("Error al registrar la devolución", "error"); }
 }
 
 // ── VER DETALLE / RESPUESTA ADMIN ────────────────────────────
@@ -1058,7 +1388,7 @@ async function updateRequest(id) {
       body: JSON.stringify({ purpose, notes, fecha_solicitud: fechaSol, hora_solicitud: horaSol, items })
     });
     if (!res.ok) throw new Error();
-    showToast("Solicitud actualizada ✅", "success");
+    showToast("Solicitud actualizada", "success");
     closeModal(); await loadRequests();
   } catch { showToast("Error al actualizar la solicitud", "error"); }
 }
@@ -1122,7 +1452,7 @@ function exportCSV() {
   });
   const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "solicitudes.csv"; a.click();
-  showToast("Exportado ✅", "success");
+  showToast("Exportado", "success");
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
@@ -1151,4 +1481,18 @@ function showToast(msg, type="success") {
     REALTIME.on("assets", () => {
       loadAssets();   // recarga catálogo de activos disponibles
     });
+
+    // AUTO-FILL: al poner hora inicio en solicitud de laboratorio, sugerir hora fin +1h
+    const reqHoraInicioEl = document.getElementById("reqHoraInicio");
+    if (reqHoraInicioEl) {
+      reqHoraInicioEl.addEventListener("change", function () {
+        if (!this.value) return;
+        const [h, m] = this.value.split(":").map(Number);
+        const total = h * 60 + m + 60;
+        const hf = String(Math.floor(total / 60)).padStart(2, "0");
+        const mf = String(total % 60).padStart(2, "0");
+        const finEl = document.getElementById("reqHoraFin");
+        if (finEl && !finEl.value) finEl.value = `${hf}:${mf}`;
+      });
+    }
   });
