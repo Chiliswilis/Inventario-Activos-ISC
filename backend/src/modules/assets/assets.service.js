@@ -80,8 +80,22 @@ const update = async (id, body, userId) => {
 };
 
 const remove = async (id) => {
+  // 1. Logs operacionales del activo
+  await supabase.from("logs").delete().eq("item_type", "asset").eq("item_id", id);
+
+  // 2. Items de solicitudes que referencian este activo
+  await supabase.from("request_items").delete().eq("asset_id", id);
+
+  // 3. Nullificar FK en requests (conservar historial de solicitudes)
+  await supabase.from("requests").update({ asset_id: null }).eq("asset_id", id);
+
+  // 4. Relaciones con reservaciones
+  await supabase.from("reservation_assets").delete().eq("asset_id", id);
+
+  // 5. Eliminar el activo
   const { error } = await supabase.from("assets").delete().eq("id", id);
   if (error) throw error;
+
   broadcast("assets", "DELETE", { id });
 };
 
