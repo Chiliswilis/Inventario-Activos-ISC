@@ -34,13 +34,11 @@ SGIAC-ISC es una aplicación web para administrar, controlar y dar seguimiento a
 
 ## Requisitos previos
 
-Antes de clonar el proyecto necesitas tener instalado:
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — incluye Docker y Docker Compose
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Git](https://git-scm.com/downloads)
-- Una cuenta en [Supabase](https://supabase.com) con un proyecto creado
+- Credenciales de un proyecto en [Supabase](https://supabase.com)
 
-> No necesitas instalar Node.js ni Nginx por separado — Docker los maneja automáticamente.
+> No necesitas instalar Node.js, npm ni Nginx — Docker los incluye automáticamente.
 
 ---
 
@@ -72,6 +70,8 @@ SUPABASE_KEY=tu_service_role_key_aqui
 > - `SUPABASE_KEY` → service_role (secret)
 
 ### 3. Levantar el proyecto con Docker
+
+> ⚠️ Asegúrate de haber configurado `backend/.env` antes de ejecutar este comando.
 
 ```bash
 docker-compose up --build

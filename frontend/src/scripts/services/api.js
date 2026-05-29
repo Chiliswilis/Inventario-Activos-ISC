@@ -1,7 +1,5 @@
-// ============================================================
 // SGIAC-ISC | services/api.js
 // Centraliza todas las llamadas al backend
-// ============================================================
 
 const API = (() => {
 
@@ -32,7 +30,7 @@ const API = (() => {
     return res.json();
   }
 
-  // ── AUTH ──────────────────────────────────────────────────
+  //AUTH
   const auth = {
     login:    (email, password) => request("/api/auth/login",    { method: "POST", body: JSON.stringify({ email, password }) }),
     register: (data)            => request("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
@@ -65,7 +63,7 @@ const API = (() => {
     }
   };
 
-  // ── ASSETS ───────────────────────────────────────────────
+  //ASSETS
   const assets = {
     getAll:   ()        => request("/api/assets"),
     getById:  (id)      => request(`/api/assets/${id}`),
@@ -76,14 +74,14 @@ const API = (() => {
     remove:   (id)      => request(`/api/assets/${id}`,{ method: "DELETE" }),
   };
 
-  // ── CATEGORIES ───────────────────────────────────────────
+  //CATEGORIES
   const categories = {
     getAll:        () => request("/api/categories"),
     getAssets:     () => request("/api/categories/assets"),
     getConsumables:() => request("/api/categories/consumables"),
   };
 
-  // ── CONSUMIBLES ──────────────────────────────────────────
+  // CONSUMIBLES
   const consumibles = {
     getAll:   ()         => request("/api/consumibles"),
     getById:  (id)       => request(`/api/consumibles/${id}`),
@@ -92,7 +90,7 @@ const API = (() => {
     remove:   (id)       => request(`/api/consumibles/${id}`,{ method: "DELETE" }),
   };
 
-  // ── USERS ────────────────────────────────────────────────
+  //USERS
   const users = {
     getAll:   ()         => request("/api/users"),
     getById:  (id)       => request(`/api/users/${id}`),
@@ -101,7 +99,7 @@ const API = (() => {
     remove:   (id)       => request(`/api/users/${id}`,{ method: "DELETE" }),
   };
 
-  // ── REQUESTS (solicitudes) ────────────────────────────────
+  // REQUESTS (solicitudes)
   const requests = {
     getAll:   (filters = {}) => request("/api/requests?" + new URLSearchParams(filters)),
     getById:  (id)           => request(`/api/requests/${id}`),
@@ -113,7 +111,7 @@ const API = (() => {
     remove:   (id)           => request(`/api/requests/${id}`,        { method: "DELETE" }),
   };
 
-  // ── RESERVATIONS ─────────────────────────────────────────
+  //RESERVATIONS
   const reservations = {
     getAll:   (filters = {}) => request("/api/reservations?" + new URLSearchParams(filters)),
     getById:  (id)           => request(`/api/reservations/${id}`),
@@ -125,12 +123,12 @@ const API = (() => {
     remove:   (id)           => request(`/api/reservations/${id}`,          { method: "DELETE" }),
   };
 
-  // ── STATS ────────────────────────────────────────────────
+  // STATS
   const stats = {
     getAll: () => request("/api/stats"),
   };
 
-  // ── LABS ─────────────────────────────────────────────────
+  // LABS
   const labs = {
     getAll: () => request("/api/labs"),
   };
